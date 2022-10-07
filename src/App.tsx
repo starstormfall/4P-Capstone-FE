@@ -1,26 +1,18 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { MantineProvider, Text, Button } from "@mantine/core";
+import { tdflTheme } from "./Styles/theme";
 
-function App() {
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <MantineProvider theme={tdflTheme} withGlobalStyles withNormalizeCSS>
+      <Text color="blue">Welcome to Mantine!</Text>
+      <Button radius="md" color="aqua">
+        BUTTON 1
+      </Button>
+      <Button color="blue">BUTTON 2</Button>
+      <Button color="greyBlue">BUTTON 3</Button>
+      <Button color="green">BUTTON 1</Button>
+      <Button color="purple">BUTTON 1</Button>
+      <Button color="beige">BUTTON 1</Button>
+    </MantineProvider>
   );
 }
-
-export default App;
