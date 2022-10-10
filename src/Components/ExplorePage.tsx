@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { Text, Button } from "@mantine/core";
+import { Text, Button, Title } from "@mantine/core";
 
 export default function ExplorePage() {
   return (
     <div>
-      Explore Page
+      <Title>Explore Page</Title>
       <Text color="blue">Welcome to Mantine!</Text>
       <Button radius="md" color="aqua">
         BUTTON 1
