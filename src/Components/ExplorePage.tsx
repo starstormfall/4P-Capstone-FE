@@ -4,17 +4,11 @@ import axios from "axios";
 import { backendUrl } from "../utils";
 import tdflLogo from "../Images/tdflLogo.png";
 
-import {
-  Text,
-  Button,
-  Title,
-  Container,
-  Group,
-  Image,
-  Grid,
-} from "@mantine/core";
+import { Button, Container, Image, Grid } from "@mantine/core";
 
 export default function ExplorePage() {
+  const navigate = useNavigate();
+
   const [allPhotos, setAllPhotos] = useState([]);
 
   // get a certain number of photos based on number query
@@ -34,22 +28,10 @@ export default function ExplorePage() {
     getPhotos();
   }, []);
 
-  const photoDisplay = allPhotos.map((photoUrl, index) => (
-    <Image
-      key={index}
-      width={500}
-      height={300}
-      fit="contain"
-      radius="md"
-      src={photoUrl}
-      alt="japan"
-    />
-  ));
-
   return (
     <Container size="xl">
       <Image src={tdflLogo} fit="contain" height={300} alt="logo" />
-
+      <Button onClick={() => navigate("/home")}> Home </Button>
       <Grid>
         <Grid.Col xs={4}>
           <Image
