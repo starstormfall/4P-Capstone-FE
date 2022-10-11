@@ -13,7 +13,6 @@ export const AppContext = createContext({} as AppContextType);
 
 // set data type for one function.
 export type AuthUser = {
-  name: string;
   email: string;
 };
 
