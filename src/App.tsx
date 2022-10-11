@@ -5,7 +5,7 @@ import NothingFound from "./Components/NothingFound/NothingFound";
 
 // imports for components
 import ExplorePage from "./Components/ExplorePage";
-import HomePage from "./Components/UserHome";
+import HomePage from "./Components/UserHome/HomePage";
 import UserForm from "./Components/UserForm";
 import UserFavourites from "./Components/UserFavourites";
 import ForumMain from "./Components/ForumMain";
