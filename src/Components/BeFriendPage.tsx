@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
 
 export default function BeFriendPage() {
-  return <div>BeFriendPage Page</div>;
+  return (
+    <div>
+      BeFriendPage Page
+      <Outlet />
+    </div>
+  );
 }
