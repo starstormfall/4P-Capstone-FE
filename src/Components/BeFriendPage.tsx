@@ -9,37 +9,16 @@ import { useQuery } from "@tanstack/react-query";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 
-//create interface for the data
-type FriendDataInformation = {
-  addedUser: {
-    name: string;
-    photoLink: string;
-  };
-  addedUserId: number;
-  createdAt: string;
-  id: number;
-  initiatedUser: {
-    name: string;
-    photoLink: string;
-  };
-  initiatedUserId: number;
-  post: {
-    content: string;
-  };
-  postId: number;
-  reason: string;
-  status: string;
-  updatedAt: string;
-};
-
 export default function BeFriendPage() {
-  const { userId } = UseApp();
+  const { userInfo } = UseApp();
 
   const useFriendList = useQuery(["friendlist"], () =>
     axios
-      .get(`${backendUrl}/friends/${userId}/allfriends`)
+      .get(`${backendUrl}/friends/${userInfo?.id}/allfriends`)
       .then((res) => res.data)
   );
+
+  // use mantine loader for loading of data!
 
   return (
     <div>
@@ -53,7 +32,7 @@ export default function BeFriendPage() {
           <ChatRoomList />
         </Grid.Col>
         <Grid.Col span={4}>
-          <FriendRequestList />
+          <FriendRequestList friendListData={useFriendList.data} />
         </Grid.Col>
         <Grid.Col span={4}>invited checkroom</Grid.Col>
       </Grid>

@@ -38,19 +38,19 @@ type Props = {
 
 // recieve props from BeFriendPage
 export default function FriendList({ friendListData }: Props) {
-  console.log(friendListData);
+  const { userInfo } = UseApp();
 
   return (
     <div>
       FriendList Page
-      {/* {data &&
-        data.map((user: FriendDataInformation) => (
+      {friendListData &&
+        friendListData.map((user: FriendDataInformation) => (
           <div key={user.id}>
-            {user.addedUserId === userId
+            {user.addedUserId === userInfo?.id
               ? user.initiatedUser.name
-              : user.addedUser.name} */}
-      {/* </div>
-        ))} */}
+              : user.addedUser.name}
+          </div>
+        ))}
     </div>
   );
 }

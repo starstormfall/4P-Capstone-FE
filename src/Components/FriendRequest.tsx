@@ -6,29 +6,42 @@ import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 
 //create interface for the data
+interface FriendDataInformation {
+  addedUser: {
+    name: string;
+    photoLink: string;
+  };
+  addedUserId: number;
+  createdAt: string;
+  id: number;
+  initiatedUser: {
+    name: string;
+    photoLink: string;
+  };
+  initiatedUserId: number;
+  post: {
+    content: string;
+  };
+  postId: number;
+  reason: string;
+  status: string;
+  updatedAt: string;
+}
 
-export default function FriendRequestList() {
-  const { userId } = UseApp();
+// interface FriendData {
+//   friendDataInformation: FriendDataInformation[];
+// }
 
-  const { isLoading, error, data, isFetching } = useQuery(
-    ["friendrequest"],
-    () =>
-      axios
-        .get(`${backendUrl}/friends/${userId}/allfriends`)
-        .then((res) => res.data)
-  );
-  useEffect(() => {
-    console.log(data);
-  }, []);
+type Props = {
+  friendListData: FriendDataInformation[];
+};
 
-  if (isLoading) return <div>Loading...</div>;
-
-  if (error) return <div>An Error has occured</div>;
+export default function FriendRequestList({ friendListData }: Props) {
   return (
     <div>
       Friend Request Page
-      {data &&
-        data.map((user?: any) => (
+      {friendListData &&
+        friendListData.map((user: FriendDataInformation) => (
           <div key={user.id}>
             {user.status === "pending" ? user.initiatedUser.name : null}
           </div>
