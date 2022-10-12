@@ -10,6 +10,11 @@ import {
   Container,
   Textarea,
   MultiSelect,
+  Stack,
+  Group,
+  ScrollArea,
+  Avatar,
+  Grid,
 } from "@mantine/core";
 import { IconArrowsMinimize } from "@tabler/icons";
 import { UseApp } from "./Context";
@@ -131,7 +136,7 @@ const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
 
 //to pass props down to this chatroom if current active status is true or false
 export default function ChatRoom(props: Props) {
-  const { userId, inputValue } = UseApp();
+  const { userId, userName, userPhoto } = UseApp();
   // const { chatroomId } = useParams<chatroomParams>();
   const { chatroomId } = props;
   const [allMessages, setAllMessages] = useState<LoadedMessage[]>([]);
@@ -148,7 +153,8 @@ export default function ChatRoom(props: Props) {
 
   console.log(chatroomId);
   console.log("userId", userId);
-  console.log(inputValue);
+  console.log(userName);
+  console.log(userPhoto);
 
   // Allows users to join socket room upon load.
   useEffect(() => {
@@ -232,12 +238,25 @@ export default function ChatRoom(props: Props) {
   if (allMessages && allMessages !== null) {
     allChatMessages = allMessages.map((message) => {
       return (
-        <div key={message.message}>
-          <img width={200} src={message.posterUser.photoLink} alt="chat user" />
-          <p>{message.posterUser.name}</p>
-          <p>{new Date(message.createdAt).toLocaleString()}</p>
-          <p>{message.message}</p>
-        </div>
+        <Stack p={0} spacing={2} sx={{ maxWidth: "100%" }} align="flex-end">
+          <Card key={message.message}>
+            <Grid>
+              <Grid.Col span={3}>
+                <Avatar
+                  radius="xl"
+                  size="lg"
+                  src={message.posterUser.photoLink}
+                  alt="chat user"
+                />
+              </Grid.Col>
+              <Grid.Col span={8}>
+                <p>{message.posterUser.name}</p>
+                <p>{new Date(message.createdAt).toLocaleString()}</p>
+                <p>{message.message}</p>
+              </Grid.Col>
+            </Grid>
+          </Card>
+        </Stack>
       );
     });
   }
@@ -262,8 +281,7 @@ export default function ChatRoom(props: Props) {
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
 
-    //HARDCODED POSTER USER. TO CHANGE LATER.
-    if (userId) {
+    if (userId && userName && userPhoto) {
       const newObject = {
         message: newMessage,
         chatroomId: Number(chatroomId),
@@ -271,9 +289,8 @@ export default function ChatRoom(props: Props) {
         createdAt: new Date(),
         updatedAt: new Date(),
         posterUser: {
-          name: "Sam",
-          photoLink:
-            "https://firebasestorage.googleapis.com/v0/b/project4-capstone-tdfl.appspot.com/o/users%2Fseed%2Fsamo.jpg?alt=media&token=c6292add-1536-417e-8aca-1e1ef5be218f",
+          name: userName,
+          photoLink: userPhoto,
         },
       };
 
@@ -350,7 +367,7 @@ export default function ChatRoom(props: Props) {
   console.log(newUser);
 
   return (
-    <>
+    <Container size="xl">
       <div>ChatRoom Page</div>
       <IconArrowsMinimize onClick={handleMinimize} />
       <Button onClick={handleLeave}>Leave Chatroom</Button>
@@ -391,6 +408,6 @@ export default function ChatRoom(props: Props) {
           Submit
         </Button>
       </form>
-    </>
+    </Container>
   );
 }
