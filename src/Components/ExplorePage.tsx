@@ -16,9 +16,7 @@ export default function ExplorePage() {
   // get a certain number of photos based on number query
   const getPhotos = async () => {
     try {
-      const response = await axios.get(
-        `${backendUrl}/posts/explore?photos=true&number=7`
-      );
+      const response = await axios.get(`${backendUrl}/info/photos?number=7`);
 
       setAllPhotos(response.data);
     } catch (err) {
