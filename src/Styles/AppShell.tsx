@@ -3,12 +3,9 @@ import {
   AppShell,
   Navbar,
   Header,
-  Footer,
-  Text,
   MediaQuery,
   Burger,
   useMantineTheme,
-  Button,
 } from "@mantine/core";
 import { Outlet } from "react-router-dom";
 
@@ -38,11 +35,6 @@ export default function TdflAppShell() {
         >
           <TdflNavbar />
         </Navbar>
-      }
-      footer={
-        <Footer height={60} p="md">
-          Application footer
-        </Footer>
       }
       header={
         <Header height={70} p="md">

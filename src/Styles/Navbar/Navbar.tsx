@@ -5,18 +5,15 @@ import {
   IconNotes,
   IconCalendarStats,
   IconGauge,
-  IconPresentationAnalytics,
-  IconFileAnalytics,
-  IconAdjustments,
   IconLock,
 } from "@tabler/icons";
 import { UserButton } from "./UserButton";
 import { LinksGroup } from "./NavLinksGroup";
 
 const mockdata = [
-  { label: "Dashboard", icon: IconGauge },
+  { label: "Home", icon: IconGauge },
   {
-    label: "Market news",
+    label: "Map",
     icon: IconNotes,
     initiallyOpened: true,
     links: [
@@ -27,7 +24,7 @@ const mockdata = [
     ],
   },
   {
-    label: "Releases",
+    label: "Exchange",
     icon: IconCalendarStats,
     links: [
       { label: "Upcoming releases", link: "/" },
@@ -35,11 +32,9 @@ const mockdata = [
       { label: "Releases schedule", link: "/" },
     ],
   },
-  { label: "Analytics", icon: IconPresentationAnalytics },
-  { label: "Contracts", icon: IconFileAnalytics },
-  { label: "Settings", icon: IconAdjustments },
+
   {
-    label: "Security",
+    label: "Befriend",
     icon: IconLock,
     links: [
       { label: "Enable 2FA", link: "/" },
@@ -94,7 +89,7 @@ export default function TdflNavbar() {
   ));
 
   return (
-    <Navbar height={1005} width={{ sm: 300 }} p="md" className={classes.navbar}>
+    <Navbar height="75vh" width={{ sm: 300 }} p="md" className={classes.navbar}>
       <Navbar.Section className={classes.header}>
         <Group position="apart">
           <UserButton
@@ -107,14 +102,6 @@ export default function TdflNavbar() {
 
       <Navbar.Section grow className={classes.links} component={ScrollArea}>
         <div className={classes.linksInner}>{links}</div>
-        <Button radius="md" color="aqua">
-          BUTTON 1
-        </Button>
-        <Button color="blue">BUTTON 2</Button>
-        <Button color="greyBlue">BUTTON 3</Button>
-        <Button color="green">BUTTON 1</Button>
-        <Button color="purple">BUTTON 1</Button>
-        <Button color="beige">BUTTON 1</Button>
       </Navbar.Section>
 
       <Navbar.Section className={classes.footer}>
