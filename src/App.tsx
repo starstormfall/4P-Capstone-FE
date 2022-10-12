@@ -29,6 +29,7 @@ function App() {
         <Routes>
           <Route index element={<ExplorePage />} />
           <Route path="/" element={<TdflAppShell />}>
+            {/* havbar, header <-- search in header = value:tokyo */}
             {/* Account creation page */}
             <Route path="/createaccount" element={<UserForm />} />
             {/* Logged in user homepage (explorepage) */}
@@ -39,7 +40,6 @@ function App() {
             <Route path="/forum" element={<ForumMain />} />
             {/* Individual Forum Thread (need forum creation page? or modal) */}
             <Route path="/forum/:threadId" element={<ThreadSingle />} />
-
             {/* Befriend page that house <friendList/> and <Chatrooms/> */}
             <Route path="/befriend" element={<BeFriendPage />}>
               {/* Befriend (friend list in Befriend) */}
@@ -51,7 +51,6 @@ function App() {
                 element={<ChatRoom />}
               />
             </Route>
-
             {/* Map homepage */}
             <Route path="/map" element={<Map />} />
             <Route path="/map/:pinId" element={<PinMap />} />
