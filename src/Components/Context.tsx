@@ -12,18 +12,36 @@ export const UseApp = () => {
 export const AppContext = createContext({} as AppContextType);
 
 // set data type for one function.
-export type AuthUser = {
-  email: string;
-};
+// export type AuthUser = {
+//   email: string;
+//   userId: number;
+// };
 
 // set ALL states and functions datatypes.
 type AppContextType = {
-  user: AuthUser | null;
-  setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
+  userEmail: string | null;
+  setUserEmail: React.Dispatch<React.SetStateAction<string | null>>;
+  userId: number | null;
+  setUserId: React.Dispatch<React.SetStateAction<number | null>>;
+  inputValue: string | null;
+  setInputValue: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
+// store the name and photolink
+
 export function AppContextProvider({ children }: AppContextProviderProps) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const value = { user, setUser };
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [inputValue, setInputValue] = useState<string | null>(null);
+
+  const value = {
+    userEmail,
+    setUserEmail,
+    userId,
+    setUserId,
+    inputValue,
+    setInputValue,
+  };
+  console.log(userEmail, userId);
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
