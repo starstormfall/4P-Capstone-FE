@@ -48,7 +48,7 @@ function App() {
               <Route path="/befriend/chatroom" element={<ChatRoomList />} />
               <Route
                 path="/befriend/chatroom/:chatroomId"
-                element={<ChatRoom />}
+                element={<ChatRoom active={true} />}
               />
             </Route>
 
