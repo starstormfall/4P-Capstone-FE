@@ -51,11 +51,11 @@ function App() {
                   {/* Befriend (friend list in Befriend) */}
                   {/* <Route path="/befriend/friendlist" element={<FriendList />} /> */}
                   {/* Befriend (all user's chatrooms) */}
-                  <Route path="/befriend/chatroom" element={<ChatRoomList />} />
-                  <Route
+                  {/* <Route path="/befriend/chatroom" element={<ChatRoomList />} /> */}
+                  {/* <Route
                     path="/befriend/chatroom/:chatroomId"
                     element={<ChatRoom active={true} />}
-                  />
+                  /> */}
                 </Route>
 
                 {/* Map homepage */}

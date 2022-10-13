@@ -8,6 +8,7 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
+import ChatRoom from "./ChatRoom";
 
 //create interface for the data
 type FriendDataInformation = {
@@ -33,13 +34,21 @@ type FriendDataInformation = {
 };
 
 export default function BeFriendPage() {
-  const { userId } = UseApp();
+  const { userInfo } = UseApp();
 
   const useFriendList = useQuery(["friendlist"], () =>
     axios
-      .get(`${backendUrl}/friends/${userId}/allfriends`)
+      .get(`${backendUrl}/friends/${userInfo?.id}/allfriends`)
       .then((res) => res.data)
   );
+
+  const [openChatroom, setOpenChatroom] = useState(false);
+  const [chatroomId, setChatroomId] = useState<number>();
+  const [chatroomActive, setChatroomActive] = useState<boolean>();
+  const [chatroomhostId, setChatroomHostId] = useState<number>();
+  const [chatroomTitle, setChatroomTitle] = useState("");
+
+  console.log(openChatroom);
 
   return (
     <div>
@@ -48,14 +57,49 @@ export default function BeFriendPage() {
         <Grid.Col span={4}>
           {<FriendList friendListData={useFriendList.data} />}
         </Grid.Col>
-        <Grid.Col span={4}>current chatroom</Grid.Col>
         <Grid.Col span={4}>
-          <ChatRoomList />
+          {openChatroom ? (
+            <>
+              current chatroom
+              <ChatRoom
+                friendListData={useFriendList.data}
+                chatroomId={chatroomId}
+                chatroomActive={chatroomActive}
+                setOpenChatroom={setOpenChatroom}
+                openChatroom={openChatroom}
+                chatroomhostId={chatroomhostId}
+                chatroomTitle={chatroomTitle}
+              />
+            </>
+          ) : null}
         </Grid.Col>
         <Grid.Col span={4}>
-          <FriendRequestList />
+          <ChatRoomList
+            friendListData={useFriendList.data}
+            chatroomType="hosted"
+            openChatroom={openChatroom}
+            setOpenChatroom={setOpenChatroom}
+            setChatroomId={setChatroomId}
+            setChatroomActive={setChatroomActive}
+            setChatroomHostId={setChatroomHostId}
+            setChatroomTitle={setChatroomTitle}
+          />
         </Grid.Col>
-        <Grid.Col span={4}>invited checkroom</Grid.Col>
+        <Grid.Col span={4}>
+          <FriendRequestList friendListData={useFriendList.data} />
+        </Grid.Col>
+        <Grid.Col span={4}>
+          <ChatRoomList
+            friendListData={useFriendList.data}
+            chatroomType="invited"
+            openChatroom={openChatroom}
+            setOpenChatroom={setOpenChatroom}
+            setChatroomId={setChatroomId}
+            setChatroomActive={setChatroomActive}
+            setChatroomHostId={setChatroomHostId}
+            setChatroomTitle={setChatroomTitle}
+          />
+        </Grid.Col>
       </Grid>
       <Outlet />
     </div>
