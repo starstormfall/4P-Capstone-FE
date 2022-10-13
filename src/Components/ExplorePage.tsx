@@ -32,7 +32,7 @@ export default function ExplorePage() {
     getAccessTokenSilently,
   } = useAuth0();
 
-  const { setUserEmail, setUserId } = UseApp();
+  const { setUserEmail, setUserId, setUserName, setUserPhoto } = UseApp();
 
   const handleLogin = () => {
     console.log("User logging in!");
@@ -65,9 +65,11 @@ export default function ExplorePage() {
     await updateUser(user);
 
     const response = await axios.get(`${backendUrl}/users/${user?.email}`);
-    console.log(response.data.id);
+    console.log(response.data);
     if (response) {
       setUserId(response.data.id);
+      setUserName(response.data.name);
+      setUserPhoto(response.data.photoLink);
     }
   };
 
