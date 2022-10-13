@@ -15,6 +15,7 @@ import {
   ScrollArea,
   Avatar,
   Grid,
+  createStyles,
 } from "@mantine/core";
 import { IconArrowsMinimize } from "@tabler/icons";
 import { UseApp } from "./Context";
@@ -134,7 +135,21 @@ interface Props {
 const socket: Socket<ServerToClientEvents, ClientToServerEvents> =
   io(backendUrl);
 
-//to pass props down to this chatroom if current active status is true or false
+const useStyles = createStyles((theme) => ({
+  bodyRight: {
+    textAlign: "right",
+    paddingRight: 74,
+    paddingLeft: 74,
+    paddingBottom: theme.spacing.sm,
+  },
+
+  bodyLeft: {
+    paddingLeft: 74,
+    paddingRight: 74,
+    paddingBottom: theme.spacing.sm,
+  },
+}));
+
 export default function ChatRoom(props: Props) {
   const { userId, userName, userPhoto } = UseApp();
   // const { chatroomId } = useParams<chatroomParams>();
@@ -149,12 +164,7 @@ export default function ChatRoom(props: Props) {
     props.chatroomActive
   );
   const [allUsers, setAllUsers] = useState<AllUsers[]>();
-  // const [active, setActive] = useState<boolean>(true);
-
-  console.log(chatroomId);
-  console.log("userId", userId);
-  console.log(userName);
-  console.log(userPhoto);
+  const { classes } = useStyles();
 
   // Allows users to join socket room upon load.
   useEffect(() => {
@@ -237,27 +247,90 @@ export default function ChatRoom(props: Props) {
 
   if (allMessages && allMessages !== null) {
     allChatMessages = allMessages.map((message) => {
-      return (
-        <Stack p={0} spacing={2} sx={{ maxWidth: "100%" }} align="flex-end">
-          <Card key={message.message}>
-            <Grid>
-              <Grid.Col span={3}>
-                <Avatar
-                  radius="xl"
-                  size="lg"
-                  src={message.posterUser.photoLink}
-                  alt="chat user"
-                />
-              </Grid.Col>
-              <Grid.Col span={8}>
-                <p>{message.posterUser.name}</p>
-                <p>{new Date(message.createdAt).toLocaleString()}</p>
-                <p>{message.message}</p>
-              </Grid.Col>
-            </Grid>
-          </Card>
-        </Stack>
-      );
+      if (message.posterUserId === userId) {
+        return (
+          // <Stack p={0} spacing={2} sx={{ maxWidth: "100%" }} align="flex-end">
+          //   <Card key={message.message}>
+          //     <Grid>
+          //       <Grid.Col span={8}>
+          //         <p>{message.posterUser.name}</p>
+          //         <p>{new Date(message.createdAt).toLocaleString()}</p>
+          //         <p>{message.message}</p>
+          //       </Grid.Col>
+          //       <Grid.Col span={3}>
+          //         <Avatar
+          //           radius="xl"
+          //           size="lg"
+          //           src={message.posterUser.photoLink}
+          //           alt="chat user"
+          //         />
+          //       </Grid.Col>
+          //     </Grid>
+          //   </Card>
+          // </Stack>
+          <div>
+            <Group position="right">
+              <div>
+                <Text size="sm" align="right">
+                  {message.posterUser.name}
+                </Text>
+                <Text size="xs" color="dimmed" align="right">
+                  {new Date(message.createdAt).toLocaleString()}
+                </Text>
+              </div>
+              <Avatar
+                src={message.posterUser.photoLink}
+                alt={message.posterUser.name}
+                radius="xl"
+                size="lg"
+              />
+            </Group>
+            <Text className={classes.bodyRight} size="sm">
+              {message.message}
+            </Text>
+          </div>
+        );
+      } else
+        return (
+          // <Stack p={0} spacing={2} sx={{ maxWidth: "100%" }} align="flex-end">
+          //   <Card key={message.message}>
+          //     <Grid>
+          //       <Grid.Col span={3}>
+          //         <Avatar
+          //           radius="xl"
+          //           size="lg"
+          //           src={message.posterUser.photoLink}
+          //           alt="chat user"
+          //         />
+          //       </Grid.Col>
+          //       <Grid.Col span={8}>
+          //         <p>{message.posterUser.name}</p>
+          //         <p>{new Date(message.createdAt).toLocaleString()}</p>
+          //         <p>{message.message}</p>
+          //       </Grid.Col>
+          //     </Grid>
+          //   </Card>
+          // </Stack>
+          <div>
+            <Group>
+              <Avatar
+                src={message.posterUser.photoLink}
+                alt={message.posterUser.name}
+                radius="xl"
+                size="lg"
+              />
+              <div>
+                <Text size="sm">{message.posterUser.name}</Text>
+                <Text size="xs" color="dimmed">
+                  {new Date(message.createdAt).toLocaleString()}
+                </Text>
+              </div>
+            </Group>
+            <Text className={classes.bodyLeft} size="sm">
+              {message.message}
+            </Text>
+          </div>
+        );
     });
   }
 
