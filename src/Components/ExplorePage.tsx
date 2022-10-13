@@ -86,6 +86,9 @@ export default function ExplorePage() {
       <Button onClick={handleLogin}>LOGIN BUTTON</Button>
       <Button onClick={() => logout()}>LOG OUT BUTTON</Button>
       <Button onClick={() => navigate("/befriend")}>nav to befriend</Button>
+      <Button onClick={() => navigate("/createaccount")}>
+        nav to userform
+      </Button>
       <Grid>
         <Grid.Col xs={4}>
           <Image

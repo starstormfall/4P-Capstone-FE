@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 interface ChatRoomDataInformation {
   chatroom: {
@@ -21,13 +21,7 @@ type Props = {
   chatroomListData: ChatRoomDataInformation[];
 };
 
-export default function ChatRoomList({ chatroomListData }: Props) {
-  console.log(chatroomListData);
-  // let chatRoomsList
-  // if(chatroomListData && chatroomListData.length !== 0) {
-  //   chatRoomsList = chatroomListData.map((details)=>{
-
-  //   })
-  // }
-  return <div>ChatRoomList Page</div>;
+export default function InvitedChatRoomList({ chatroomListData }: Props) {
+  // console.log(chatroomListData);
+  return <div>Invited Chatrooms Page</div>;
 }

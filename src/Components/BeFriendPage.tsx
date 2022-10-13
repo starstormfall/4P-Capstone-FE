@@ -8,6 +8,7 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
+import InvitedChatRoomList from "./invitedChatrooms";
 
 export default function BeFriendPage() {
   const { userInfo } = UseApp();
@@ -15,6 +16,12 @@ export default function BeFriendPage() {
   const useFriendList = useQuery(["friendlist"], () =>
     axios
       .get(`${backendUrl}/friends/${userInfo?.id}/allfriends`)
+      .then((res) => res.data)
+  );
+
+  const chatRoomsList = useQuery(["chatroomlist"], () =>
+    axios
+      .get(`${backendUrl}/chats/${userInfo?.id}/allchat`)
       .then((res) => res.data)
   );
 
@@ -29,12 +36,14 @@ export default function BeFriendPage() {
         </Grid.Col>
         <Grid.Col span={4}>current chatroom</Grid.Col>
         <Grid.Col span={4}>
-          <ChatRoomList />
+          <ChatRoomList chatroomListData={chatRoomsList.data} />
         </Grid.Col>
         <Grid.Col span={4}>
           <FriendRequestList friendListData={useFriendList.data} />
         </Grid.Col>
-        <Grid.Col span={4}>invited checkroom</Grid.Col>
+        <Grid.Col span={4}>
+          <InvitedChatRoomList chatroomListData={chatRoomsList.data} />
+        </Grid.Col>
       </Grid>
       <Outlet />
     </div>

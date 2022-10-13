@@ -4,6 +4,7 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
+import { Button, Container, Image, Grid, Card, Text } from "@mantine/core";
 
 //create interface for the data
 interface FriendDataInformation {
@@ -39,11 +40,18 @@ type Props = {
 export default function FriendRequestList({ friendListData }: Props) {
   return (
     <div>
-      Friend Request Page
+      <Text>Friend Request</Text>
       {friendListData &&
         friendListData.map((user: FriendDataInformation) => (
           <div key={user.id}>
-            {user.status === "pending" ? user.initiatedUser.name : null}
+            {user.status === "pending" ? (
+              <Container>
+                <Card>
+                  <Image />
+                  <Text>{user.initiatedUser.name}</Text>
+                </Card>
+              </Container>
+            ) : null}
           </div>
         ))}
     </div>
