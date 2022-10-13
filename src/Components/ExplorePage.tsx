@@ -9,6 +9,7 @@ import { UseApp } from "./Context";
 import { Button, Container, Image, Grid } from "@mantine/core";
 
 export default function ExplorePage() {
+  console.log(backendUrl);
   const navigate = useNavigate();
 
   const [allPhotos, setAllPhotos] = useState([]);

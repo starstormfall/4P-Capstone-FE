@@ -76,6 +76,8 @@ export const tdflTheme: MantineThemeOverride = {
     ],
   },
 
+  loader: "dots",
+
   primaryColor: "greyBlue",
   primaryShade: { light: 5, dark: 9 },
 

@@ -1,23 +1,25 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { backendUrl } from "../../utils";
 
 // import style components from mantine
-import { Button, Group, Grid } from "@mantine/core";
+import { Button, Group, Grid, Loader } from "@mantine/core";
 
 // import interface
 import { Area, Category, Hashtag, Post, PostCard } from "./HomePageInterface";
 
 // import child components
 import ExplorePost from "./ExplorePost";
-import { getNameOfJSDocTypedef } from "typescript";
 
 export default function HomePage() {
-  const [allPosts, setAllPosts] = useState([]);
-  const [allAreas, setAllAreas] = useState([]);
-  const [allCategories, setAllCategories] = useState([]);
-  const [allHashtags, setAllHashtags] = useState([]);
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
+  const [allAreas, setAllAreas] = useState<Area[]>([]);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [allHashtags, setAllHashtags] = useState<Hashtag[]>([]);
+  const [selectedAreas, setSelectedAreas] = useState<number[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [selectedHashtags, setSelectedHashtags] = useState<number[]>([]);
 
   // useEffect api call to get subset of explore posts (need to set up pagination on backend)
   const getExplorePosts = async () => {
@@ -58,9 +60,28 @@ export default function HomePage() {
     getHashtags();
   }, []);
 
+  // handleClickArea ==> api call to get filtered posts based on selected area with all categories and hashtags
+  const handleFilterArea = async (event: MouseEvent) => {
+    const areaId = Number(event.currentTarget.id);
+    const addAreaId: number[] = [...selectedAreas, areaId];
+
+    setSelectedAreas(addAreaId);
+    console.log(selectedAreas);
+
+    const areaPosts = await axios.get(
+      `${backendUrl}/posts/area=${selectedAreas}`
+    );
+    console.log(areaPosts);
+  };
+
   // display all areas
   const listAreas = allAreas.map((area: Area, index) => (
-    <Button color="aqua" key={index}>
+    <Button
+      color="aqua"
+      key={index}
+      id={`${area.id}`}
+      onClick={handleFilterArea}
+    >
       {area.prefecture}
     </Button>
   ));
@@ -78,7 +99,6 @@ export default function HomePage() {
     </Button>
   ));
 
-  // handleClickArea ==> api call to get filtered posts based on selected area with all categories and hashtags
   // handleClickCategory ==> api call to get filtered posts based on selected category & selected area
   // handleClickHashtag ==> api call to get filtered posts based on selected hashtag & selected category & selected area
 
@@ -106,7 +126,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <Group>{allAreas && allAreas.length ? listAreas : "Loading Data"}</Group>
+      <Group>{allAreas && allAreas.length ? listAreas : <Loader />}</Group>
       <br />
       <Group>
         {allCategories && allCategories.length
@@ -115,10 +135,10 @@ export default function HomePage() {
       </Group>
       <br />
       <Group>
-        {allHashtags && allHashtags.length ? listHashtags : "Loading Data"}
+        {allHashtags && allHashtags.length ? listHashtags : <Loader />}
       </Group>
       <br />
-      <Grid>{allPosts && allPosts.length ? listPosts : "Loading data"}</Grid>
+      <Grid>{allPosts && allPosts.length ? listPosts : <Loader />}</Grid>
     </div>
   );
 }
