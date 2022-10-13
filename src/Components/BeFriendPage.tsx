@@ -34,11 +34,11 @@ type FriendDataInformation = {
 };
 
 export default function BeFriendPage() {
-  const { userId } = UseApp();
+  const { userInfo } = UseApp();
 
   const useFriendList = useQuery(["friendlist"], () =>
     axios
-      .get(`${backendUrl}/friends/${userId}/allfriends`)
+      .get(`${backendUrl}/friends/${userInfo?.id}/allfriends`)
       .then((res) => res.data)
   );
 
@@ -86,7 +86,7 @@ export default function BeFriendPage() {
           />
         </Grid.Col>
         <Grid.Col span={4}>
-          <FriendRequestList />
+          <FriendRequestList friendListData={useFriendList.data} />
         </Grid.Col>
         <Grid.Col span={4}>
           <ChatRoomList
