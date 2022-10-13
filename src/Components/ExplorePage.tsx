@@ -32,7 +32,8 @@ export default function ExplorePage() {
     getAccessTokenSilently,
   } = useAuth0();
 
-  const { setUserEmail, setUserInfo } = UseApp();
+  const { setUserEmail, setUserInfo, setUserName, setUserPhoto, setUserId } =
+    UseApp();
 
   const handleLogin = () => {
     console.log("User logging in!");
@@ -67,6 +68,9 @@ export default function ExplorePage() {
     const response = await axios.get(`${backendUrl}/users/${user?.email}`);
     console.log(response.data);
     if (response) {
+      setUserId(response.data.id);
+      setUserName(response.data.name);
+      setUserPhoto(response.data.photoLink);
       setUserInfo(response.data);
     }
   };

@@ -36,6 +36,12 @@ type AppContextType = {
   setUserInfo: React.Dispatch<React.SetStateAction<UserInfo | null>>;
   inputValue: string | null;
   setInputValue: React.Dispatch<React.SetStateAction<string | null>>;
+  userName: string | null;
+  setUserName: React.Dispatch<React.SetStateAction<string | null>>;
+  userPhoto: string | null;
+  setUserPhoto: React.Dispatch<React.SetStateAction<string | null>>;
+  userId: number | null;
+  setUserId: React.Dispatch<React.SetStateAction<number | null>>;
 };
 
 // store the name and photolink
@@ -44,6 +50,9 @@ export function AppContextProvider({ children }: AppContextProviderProps) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [inputValue, setInputValue] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
 
   const value = {
     userEmail,
@@ -52,6 +61,12 @@ export function AppContextProvider({ children }: AppContextProviderProps) {
     setUserInfo,
     inputValue,
     setInputValue,
+    userName,
+    setUserName,
+    userPhoto,
+    setUserPhoto,
+    userId,
+    setUserId,
   };
   console.log(userEmail, userInfo);
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
