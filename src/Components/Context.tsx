@@ -32,8 +32,8 @@ type UserInfo = {
 type AppContextType = {
   userEmail: string | null;
   setUserEmail: React.Dispatch<React.SetStateAction<string | null>>;
-  userInfo: UserInfo | null;
-  setUserInfo: React.Dispatch<React.SetStateAction<UserInfo | null>>;
+  userInfo: UserInfo;
+  setUserInfo: React.Dispatch<React.SetStateAction<UserInfo>>;
   inputValue: string | null;
   setInputValue: React.Dispatch<React.SetStateAction<string | null>>;
   userName: string | null;
@@ -48,7 +48,16 @@ type AppContextType = {
 
 export function AppContextProvider({ children }: AppContextProviderProps) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo>({
+    id: 0,
+    name: "loading",
+    email: "loading",
+    nationality: "loading",
+    score: 0,
+    lastLogin: "loading",
+    loginStreak: 0,
+    photoLink: "loading",
+  });
   const [inputValue, setInputValue] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
