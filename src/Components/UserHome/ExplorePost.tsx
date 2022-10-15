@@ -1,6 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { MouseEvent } from "react";
 
 import { PostCard } from "./HomePageInterface";
+
+import {
+  Pin,
+  MessageCircle,
+  Heart,
+  HeartOutline,
+  Star,
+} from "@easy-eva-icons/react";
 
 import { IconBookmark, IconHeart, IconShare } from "@tabler/icons";
 import {
@@ -11,8 +19,9 @@ import {
   Badge,
   Group,
   Center,
-  Avatar,
   createStyles,
+  UnstyledButton,
+  Spoiler,
 } from "@mantine/core";
 
 const useStyles = createStyles((theme) => ({
@@ -62,6 +71,7 @@ const useStyles = createStyles((theme) => ({
 // // handleShareLink
 
 export default function ExplorePost({
+  postId,
   className,
   photoLink,
   externalLink,
@@ -70,6 +80,11 @@ export default function ExplorePost({
   userId,
   explorePost,
   likeCount,
+  showPin,
+  likePost,
+  favouritePost,
+  showAssocThread,
+  shareLink,
   ...others
 }: PostCard & Omit<React.ComponentPropsWithoutRef<"div">, keyof PostCard>) {
   const { classes, cx, theme } = useStyles();
@@ -87,9 +102,13 @@ export default function ExplorePost({
       {...others}
     >
       <Card.Section>
-        <a {...linkProps}>
-          <Image src={photoLink} height={180} />
-        </a>
+        <UnstyledButton
+          onClick={(event: MouseEvent<HTMLButtonElement>) =>
+            showPin(event, postId)
+          }
+        >
+          <Image src={photoLink} />
+        </UnstyledButton>
       </Card.Section>
 
       <Badge
@@ -100,29 +119,63 @@ export default function ExplorePost({
         {explorePost}
       </Badge>
 
-      <Text className={classes.title} weight={500} component="a" {...linkProps}>
-        {title}
-      </Text>
-
-      <Text size="sm" color="dimmed" lineClamp={4}>
-        {content}
-      </Text>
-
-      <Group position="apart" className={classes.footer}>
-        <Center>
-          <ActionIcon className={classes.action}>
-            <IconHeart size={16} color={theme.colors.red[6]} />
+      <Group align="flex-start" position="apart" noWrap>
+        <Text
+          className={classes.title}
+          weight={500}
+          component="a"
+          {...linkProps}
+        >
+          {title}
+        </Text>
+        <Center className={classes.title}>
+          <ActionIcon
+            id={`${postId}`}
+            className={classes.action}
+            color="red"
+            onClick={(event: MouseEvent<HTMLButtonElement>) =>
+              likePost(event, postId)
+            }
+          >
+            <Heart />
           </ActionIcon>
           <Text size="sm" inline>
             {likeCount}
           </Text>
         </Center>
+      </Group>
 
+      <Text size="sm" color="dimmed" lineClamp={5}>
+        {content}
+      </Text>
+
+      <Group position="apart" className={classes.footer}>
         <Group spacing={8} mr={0}>
-          <ActionIcon className={classes.action}>
-            <IconBookmark size={16} color={theme.colors.yellow[7]} />
+          <ActionIcon className={classes.action} color="aqua">
+            <Pin />
           </ActionIcon>
-          <ActionIcon className={classes.action}>
+          <ActionIcon
+            className={classes.action}
+            onClick={(event: MouseEvent<HTMLButtonElement>) =>
+              showAssocThread(event, postId)
+            }
+          >
+            <MessageCircle />
+          </ActionIcon>
+          <ActionIcon
+            className={classes.action}
+            onClick={(event: MouseEvent<HTMLButtonElement>) =>
+              favouritePost(event, postId)
+            }
+          >
+            <Star />
+          </ActionIcon>
+          <ActionIcon
+            className={classes.action}
+            onClick={(event: MouseEvent<HTMLButtonElement>) =>
+              shareLink(event, postId)
+            }
+          >
             <IconShare size={16} />
           </ActionIcon>
         </Group>
