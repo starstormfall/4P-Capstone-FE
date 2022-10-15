@@ -10,7 +10,16 @@ import {
   HeatmapLayer,
 } from "@react-google-maps/api";
 import { useNavigate } from "react-router-dom";
-import { Button, Group, Grid, Loader, Text, Card, Image } from "@mantine/core";
+import {
+  Button,
+  Group,
+  Grid,
+  Loader,
+  Text,
+  Card,
+  Image,
+  ScrollArea,
+} from "@mantine/core";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import axios from "axios";
@@ -122,8 +131,11 @@ export default function Map() {
   const [pinMarkers, setPinMarkers] = useState<MarkerPositions[]>([]);
   const [activeMarker, setActiveMarker] = useState<number | null>(null);
   const [activeWindow, setActiveWindow] = useState<number | null>(null);
+  const [categoryVisible, setCategoryVisible] = useState(false);
+  const [hashtagVisible, setHashtagVisible] = useState(false);
   const [filterRegion, setFilterRegion] = useState(0);
   const [filterCategory, setFilterCategory] = useState(0);
+  const [crowdMapWeight, setCrowdMapWeight] = useState(0);
 
   const getAllInitialPins = async () => {
     if (filterRegion === 0 && filterCategory === 0) {
@@ -139,13 +151,35 @@ export default function Map() {
         `${backendUrl}/maps/allPins?areaId=${filterRegion}`
       );
 
-      setPins(response.data);
-    } else {
-      const response = await axios.get(
-        `${backendUrl}/maps/allPins?categoryId=${filterCategory}`
+      const markersRes = await axios.get(
+        `${backendUrl}/maps/allPins?type=markers`
+      );
+
+      const newMarkersRes = markersRes.data.filter(
+        (pin: MarkerPositions) => Number(pin.areaId) === Number(filterRegion)
       );
 
       setPins(response.data);
+      setPinMarkers(newMarkersRes);
+    } else if (filterRegion !== 0 && filterCategory !== 0) {
+      const response = await axios.get(
+        `${backendUrl}/maps/allPins?areaId=${filterRegion}&categoryId=${filterCategory}`
+      );
+
+      const markersRes = await axios.get(
+        `${backendUrl}/maps/allPins?type=markers`
+      );
+
+      const newMarkersRes = await markersRes.data.filter(
+        (pin: MarkerPositions) => Number(pin.areaId) === Number(filterRegion)
+      );
+
+      const newMarkersCatRes = newMarkersRes.filter((pin: MarkerPositions) =>
+        pin.categoryId.includes(Number(filterCategory))
+      );
+
+      setPins(response.data);
+      setPinMarkers(newMarkersCatRes);
     }
   };
 
@@ -180,23 +214,108 @@ export default function Map() {
     getAllInitialPins();
   }, [filterRegion, filterCategory]);
 
+  const handleFilter = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const { id, name } = event.currentTarget;
+
+    if (name === "prefecture") {
+      setCategoryVisible(true);
+      setHashtagVisible(false);
+
+      const areaId = Number(id);
+
+      if (filterRegion !== areaId) {
+        setFilterRegion(areaId);
+        setFilterCategory(0);
+      } else if (filterRegion === areaId) {
+        setFilterRegion(0);
+        setFilterCategory(0);
+      }
+    } else if (name === "category") {
+      setHashtagVisible(true);
+
+      const categoryId = Number(id);
+
+      if (filterCategory !== categoryId) {
+        setFilterCategory(categoryId);
+      } else if (filterCategory === categoryId) {
+        setFilterCategory(0);
+      }
+    } else if (name === "hashtag") {
+      console.log("hi not done yet");
+    }
+  };
+
+  const listAreas = allAvailableAreas.map((area: Area, index) => (
+    <Button
+      color="aqua"
+      key={index}
+      id={`${area.id}`}
+      name="prefecture"
+      onClick={handleFilter}
+    >
+      {area.prefecture}
+    </Button>
+  ));
+
+  const listCategories = allAvailableCategories.map(
+    (category: Category, index) => (
+      <Button
+        color="blue"
+        key={index}
+        id={`${category.id}`}
+        name="category"
+        onClick={handleFilter}
+      >
+        {category.name.toUpperCase()}
+      </Button>
+    )
+  );
+
+  const listHashtags = allAvailableHashtags.map((hashtag: Hashtag, index) => {
+    if (filterCategory === hashtag.categoryId) {
+      return (
+        <Button
+          color="purple"
+          key={index}
+          id={`${hashtag.id}`}
+          name="hashtag"
+          onClick={handleFilter}
+        >
+          {hashtag.name}
+        </Button>
+      );
+    } else return null;
+  });
+
   const handleActiveMarker = async (marker: number, index: number) => {
     if (marker === activeMarker) {
       return;
     }
-    const realIndex = pins.findIndex((item) => item.id === marker);
+    const realIndex = pinMarkers.findIndex((item) => item.id === marker);
     setActiveMarker(marker);
     setActiveWindow(realIndex);
+
+    console.log(pinMarkers[realIndex].latestCrowdSize);
+    if (pinMarkers[realIndex].latestCrowdSize === "little crowd") {
+      setCrowdMapWeight(10);
+    } else if (pinMarkers[realIndex].latestCrowdSize === "somewhat crowded") {
+      setCrowdMapWeight(40);
+    } else {
+      setCrowdMapWeight(100);
+    }
   };
   console.log(activeWindow);
 
   const findPinInfo = () => {
-    if (activeWindow !== null) {
+    if (activeMarker !== null && activeWindow !== null) {
       // const index = pins.findIndex((item) => item.id === activeMarker);
 
-      const { crowds, posts } = pins[activeWindow];
+      //activemarker is the id.
+      const realIndex = pins.findIndex((item) => item.id === activeMarker);
 
-      const allCrowds = crowds.slice(2).map((crowd, i) => {
+      const { crowds, posts } = pins[realIndex];
+
+      const allCrowds = crowds.slice(0, 3).map((crowd, i) => {
         const { crowdIntensity, crowdSize, recordedAt } = crowd;
         return (
           <>
@@ -249,8 +368,13 @@ export default function Map() {
 
       return (
         <>
-          <Text>{pins[activeWindow].placeName}</Text>
-          <Text>{pins[activeWindow].area.prefecture}</Text>
+          <Text>{pinMarkers[activeWindow].name}</Text>
+          <Text>
+            {
+              pins[Number(pins.findIndex((item) => item.id === activeMarker))]
+                .area.prefecture
+            }
+          </Text>
           <Text>LATEST CROWD ESTIMATES</Text>
           {allCrowds}
           <br />
@@ -271,6 +395,28 @@ export default function Map() {
   return (
     <>
       <div>Map Page</div>
+      <ScrollArea style={{ height: 50 }}>
+        <div style={{ width: "100vw" }}>
+          <Group>
+            {allAvailableAreas && allAvailableAreas.length ? (
+              listAreas
+            ) : (
+              <Loader />
+            )}
+          </Group>
+        </div>
+      </ScrollArea>
+      <br />
+      {allAvailableCategories &&
+      allAvailableCategories.length &&
+      categoryVisible ? (
+        <Group>{listCategories}</Group>
+      ) : null}
+      <br />
+      {allAvailableHashtags && allAvailableHashtags.length && hashtagVisible ? (
+        <Group>{listHashtags} </Group>
+      ) : null}
+      <br />
       {isLoaded && pinMarkers.length > 0 ? (
         <>
           <GoogleMap
@@ -292,10 +438,10 @@ export default function Map() {
                       pinMarkers[activeWindow].position.lat,
                       pinMarkers[activeWindow].position.lng
                     ),
-                    weight: 10000,
+                    weight: 1000000,
                   },
                 ]}
-                options={{ radius: 50, opacity: 0.4 }}
+                options={{ radius: crowdMapWeight, opacity: 0.4 }}
               />
             ) : null}
 
@@ -304,51 +450,126 @@ export default function Map() {
               const { id, name, position, categoryId } = element;
 
               if (categoryId.length > 1) {
-                const arrayOfMarkers = categoryId.map((category, index) => {
-                  let markerIcon = "";
-                  if (category === 1) {
-                    markerIcon =
-                      "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
-                  } else if (category === 2) {
-                    markerIcon =
-                      "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
-                  } else if (category === 3) {
-                    markerIcon =
-                      "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
-                  } else {
-                    markerIcon =
-                      "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
-                  }
+                if (filterCategory !== 0) {
+                  const arrayOfMarkers = categoryId.map((category, index) => {
+                    let markerIcon = "";
 
-                  return (
-                    <MarkerF
-                      key={`${id} ${category}`}
-                      icon={{
-                        url: `${markerIcon}`,
-                        scaledSize: new google.maps.Size(50, 50),
-                        // scale: 0.0005,
-                      }}
-                      // icon={markerIcon}
-                      position={{
-                        lat: position.lat + index * 0.0001,
-                        lng: position.lng + index * 0.0001,
-                      }}
-                      // position={position}
-                      onClick={() => handleActiveMarker(id, index)}
-                    >
-                      {activeMarker === id ? (
-                        <InfoWindowF onCloseClick={() => setActiveMarker(null)}>
-                          <>
-                            <Text>{name}</Text>
-                            <Text>{pins[index].area.prefecture}</Text>
-                          </>
-                        </InfoWindowF>
-                      ) : null}
-                    </MarkerF>
-                  );
-                });
+                    if (category === filterCategory) {
+                      if (category === 1) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
+                      } else if (category === 2) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
+                      } else if (category === 3) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
+                      } else {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
+                      }
 
-                return arrayOfMarkers.map((marker) => marker);
+                      return (
+                        <MarkerF
+                          key={`${id} ${category}`}
+                          icon={{
+                            url: `${markerIcon}`,
+                            scaledSize: new google.maps.Size(50, 50),
+                            // scale: 0.0005,
+                          }}
+                          // icon={markerIcon}
+                          position={{
+                            lat: position.lat + index * 0.0001,
+                            lng: position.lng + index * 0.0001,
+                          }}
+                          // position={position}
+                          onClick={() => handleActiveMarker(id, index)}
+                        >
+                          {/* {activeMarker === id ? (
+                            <InfoWindowF
+                              onCloseClick={() => setActiveMarker(null)}
+                            >
+                              <>
+                                <Text>{name}</Text>
+                                <Text>
+                                  {
+                                    pins[
+                                      Number(
+                                        pins.findIndex(
+                                          (item) => item.id === activeMarker
+                                        )
+                                      )
+                                    ].area.prefecture
+                                  }
+                                </Text>
+                              </>
+                            </InfoWindowF>
+                          ) : null} */}
+                        </MarkerF>
+                      );
+                    }
+                  });
+
+                  return arrayOfMarkers.map((marker) => marker);
+                } else {
+                  const arrayOfMarkers = categoryId.map((category, index) => {
+                    let markerIcon = "";
+                    if (category === 1) {
+                      markerIcon =
+                        "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
+                    } else if (category === 2) {
+                      markerIcon =
+                        "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
+                    } else if (category === 3) {
+                      markerIcon =
+                        "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
+                    } else {
+                      markerIcon =
+                        "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
+                    }
+
+                    return (
+                      <MarkerF
+                        key={`${id} ${category}`}
+                        icon={{
+                          url: `${markerIcon}`,
+                          scaledSize: new google.maps.Size(50, 50),
+                          // scale: 0.0005,
+                        }}
+                        // icon={markerIcon}
+                        position={{
+                          lat: position.lat + index * 0.0001,
+                          lng: position.lng + index * 0.0001,
+                        }}
+                        // position={position}
+                        onClick={() => handleActiveMarker(id, index)}
+                      >
+                        {/* {activeMarker === id ? (
+                          <InfoWindowF
+                            onCloseClick={() => setActiveMarker(null)}
+                          >
+                            <>
+                              <Text>{name}</Text>
+                              <Text>
+                                {
+                                  pins[
+                                    Number(
+                                      pins.findIndex(
+                                        (item) => item.id === activeMarker
+                                      )
+                                    )
+                                  ].area.prefecture
+                                }
+                              </Text>
+                            </>
+                          </InfoWindowF>
+                        ) : null} */}
+                      </MarkerF>
+                    );
+                  });
+
+                  return arrayOfMarkers.map((marker) => marker);
+                }
               } else {
                 let markerIcon = "";
                 if (categoryId[0] === 1) {
@@ -377,14 +598,24 @@ export default function Map() {
                     position={position}
                     onClick={() => handleActiveMarker(id, index)}
                   >
-                    {activeMarker === id ? (
+                    {/* {activeMarker === id ? (
                       <InfoWindowF onCloseClick={() => setActiveMarker(null)}>
                         <>
                           <Text>{name}</Text>
-                          <Text>{pins[index].area.prefecture}</Text>
+                          <Text>
+                            {
+                              pins[
+                                Number(
+                                  pins.findIndex(
+                                    (item) => item.id === activeMarker
+                                  )
+                                )
+                              ].area.prefecture
+                            }
+                          </Text>
                         </>
                       </InfoWindowF>
-                    ) : null}
+                    ) : null} */}
                   </MarkerF>
                 );
               }
