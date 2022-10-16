@@ -8,6 +8,7 @@ import {
   Heart,
   HeartOutline,
   Star,
+  StarOutline,
 } from "@easy-eva-icons/react";
 
 import { IconBookmark, IconHeart, IconShare } from "@tabler/icons";
@@ -85,6 +86,8 @@ export default function ExplorePost({
   favouritePost,
   showAssocThread,
   shareLink,
+  userLike,
+  userFavourite,
   ...others
 }: PostCard & Omit<React.ComponentPropsWithoutRef<"div">, keyof PostCard>) {
   const { classes, cx, theme } = useStyles();
@@ -137,7 +140,7 @@ export default function ExplorePost({
               likePost(event, postId)
             }
           >
-            <Heart />
+            {userLike ? <Heart /> : <HeartOutline />}
           </ActionIcon>
           <Text size="sm" inline>
             {likeCount}
@@ -151,7 +154,13 @@ export default function ExplorePost({
 
       <Group position="apart" className={classes.footer}>
         <Group spacing={8} mr={0}>
-          <ActionIcon className={classes.action} color="aqua">
+          <ActionIcon
+            className={classes.action}
+            color="aqua"
+            onClick={(event: MouseEvent<HTMLButtonElement>) =>
+              showPin(event, postId)
+            }
+          >
             <Pin />
           </ActionIcon>
           <ActionIcon
@@ -167,8 +176,9 @@ export default function ExplorePost({
             onClick={(event: MouseEvent<HTMLButtonElement>) =>
               favouritePost(event, postId)
             }
+            color="yellow"
           >
-            <Star />
+            {userFavourite ? <Star /> : <StarOutline />}
           </ActionIcon>
           <ActionIcon
             className={classes.action}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, MouseEvent } from "react";
+import { useEffect, useState, MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { backendUrl } from "../../utils";
@@ -39,6 +39,20 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { userInfo } = UseApp();
 
+  const mockPost = {
+    id: 0,
+    title: "title",
+    photoLink: "photo",
+    content: "content",
+    areaId: 0,
+    pinId: 0,
+    forumPost: false,
+    explorePost: "explore",
+    externalLink: "external",
+    likeCount: 0,
+    userId: 0,
+  };
+
   const [allPosts, setAllPosts] = useState<AllPost>({});
   const [allAreas, setAllAreas] = useState<Area[]>([]);
   const [allCategories, setAllCategories] = useState<Category[]>([]);
@@ -49,8 +63,10 @@ export default function HomePage() {
   const [displayCategories, setDisplayCategories] = useState<boolean>(false);
   const [displayHashtags, setDisplayHashtags] = useState<boolean>(false);
   const [selectedPostId, setSelectedPostId] = useState<number>(0);
-  const [selectedPost, setSelectedPost] = useState<Post>();
+  const [selectedPost, setSelectedPost] = useState<Post>(mockPost);
   const [assocThreads, setAssocThreads] = useState<AssocThread[]>([]);
+  const [userLikePosts, setUserLikePosts] = useState<number[]>([]);
+  const [userFavouritePosts, setUserFavouritePosts] = useState<number[]>([]);
 
   // show child components
   const [pinDrawerOn, setPinDrawerOn] = useState<boolean>(false);
@@ -90,9 +106,30 @@ export default function HomePage() {
   //   } catch (err) {}
   // };
 
+  const getUserLikes = async () => {
+    try {
+      const response = await axios.get(
+        `${backendUrl}/users/${userInfo.id}/like`
+      );
+      setUserLikePosts(response.data);
+      console.log("userlikes", response.data);
+    } catch (err) {}
+  };
+
+  const getUserFavourites = async () => {
+    try {
+      const response = await axios.get(
+        `${backendUrl}/users/${userInfo.id}/favourite`
+      );
+      setUserFavouritePosts(response.data);
+    } catch (err) {}
+  };
+
   useEffect(() => {
     getExplorePosts();
     getAreas();
+    getUserLikes();
+    getUserFavourites();
   }, []);
 
   // api call to get filtered posts based on selected area, categories, hashtags
@@ -146,12 +183,12 @@ export default function HomePage() {
           );
           setAllHashtags(assocHashtags.data);
           setDisplayHashtags(true);
-          console.log("did this run?");
+
           // get all relevant posts filtered by area and category
           const areaCategoryPosts = await axios.get(
             `${backendUrl}/posts/explore?areaId=${selectedAreas}&categoryIds=${updatedCategoryIds}`
           );
-          console.log("areaCatPosts", areaCategoryPosts.data);
+
           setAllPosts(areaCategoryPosts.data);
         } else {
           // turn off showing hashtags if no categories are selected
@@ -163,13 +200,10 @@ export default function HomePage() {
           setAllPosts(areaPosts.data);
         }
 
-        // const areaCategoriesPost = await axios.get(`${backendUrl}/`);
-
         setSelectedCategories(updatedCategoryIds);
         break;
 
       case "hashtag":
-        console.log("hashtag", name, id);
         const hashtagId = Number(id);
         let updatedHashtagIds: number[] = [];
 
@@ -255,6 +289,7 @@ export default function HomePage() {
       ...prev,
       [postId]: updatedLikePost.data,
     }));
+    getUserLikes();
   };
 
   // // handleFavourite
@@ -265,6 +300,7 @@ export default function HomePage() {
     await axios.post(
       `${backendUrl}/users/${userInfo.id}/post/${postId}/favourites`
     );
+    getUserFavourites();
   };
 
   // // handleAssocThread
@@ -273,7 +309,7 @@ export default function HomePage() {
     postId: number
   ) => {
     const assocThreads = await axios.get(
-      `${backendUrl}/posts/${postId}/threads`
+      `${backendUrl}/posts/thread?postId=${postId}`
     );
     setAssocThreads(assocThreads.data);
     setThreadDisplayDrawerOn(true);
@@ -289,27 +325,33 @@ export default function HomePage() {
   };
 
   const listPosts = (Object.values(allPosts) as Post[]).map(
-    (post: Post, index) => (
-      <Grid.Col sm={5} md={4} lg={3} xl={2} key={post.id}>
-        <ExplorePost
-          postId={post.id}
-          photoLink={post.photoLink}
-          externalLink={post.externalLink}
-          title={post.title}
-          content={post.content}
-          explorePost={post.explorePost}
-          userId={post.userId}
-          likeCount={post.likeCount}
-          showPin={handleShowPin}
-          likePost={handleLikePost}
-          favouritePost={handleFavouritePost}
-          showAssocThread={handleShowAssocThread}
-          shareLink={handleShareLink}
-        />
-      </Grid.Col>
-    )
-  );
+    (post: Post, index) => {
+      const like = userLikePosts.includes(post.id);
+      const favourite = userFavouritePosts.includes(post.id);
 
+      return (
+        <Grid.Col sm={5} md={4} lg={3} xl={2} key={post.id}>
+          <ExplorePost
+            postId={post.id}
+            photoLink={post.photoLink}
+            externalLink={post.externalLink}
+            title={post.title}
+            content={post.content}
+            explorePost={post.explorePost}
+            userId={post.userId}
+            likeCount={post.likeCount}
+            showPin={handleShowPin}
+            likePost={handleLikePost}
+            favouritePost={handleFavouritePost}
+            showAssocThread={handleShowAssocThread}
+            shareLink={handleShareLink}
+            userLike={like}
+            userFavourite={favourite}
+          />
+        </Grid.Col>
+      );
+    }
+  );
   return (
     <Container fluid>
       {/* FOR SEARCH FILTERS */}

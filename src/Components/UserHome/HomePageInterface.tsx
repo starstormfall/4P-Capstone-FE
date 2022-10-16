@@ -58,9 +58,15 @@ export interface PostCard {
     event: React.MouseEvent<HTMLButtonElement>,
     postId: number
   ) => void;
+  userLike: boolean;
+  userFavourite: boolean;
 }
 
 export interface AssocThread {
   id: number;
   topic: string;
+  postsCount: number;
+  usersCount: number;
+  lastPost: string;
+  lasPostCreated: string;
 }
