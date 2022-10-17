@@ -230,6 +230,7 @@ export default function PinMap(props: Props) {
   const [pins, setPins] = useState<PinLocationInformation[]>([]);
 
   // States for saving heatmap info to set heatmap on google map.
+  const [heatmapVisible, setHeatmapVisible] = useState(false);
   const [heatmapData, setHeatmapData] = useState<
     google.maps.visualization.WeightedLocation[]
   >([]);
@@ -295,7 +296,7 @@ export default function PinMap(props: Props) {
   useEffect(() => {
     getCurrentPin();
     getAllInitialPinsToArea();
-  }, [checkIn]);
+  }, [checkIn, crowdValue]);
 
   const getCurrentPin = async () => {
     const response = await axios.get(
@@ -335,6 +336,28 @@ export default function PinMap(props: Props) {
         });
       });
 
+      setHeatmapVisible(true);
+
+      const leftoverPinMarkers = [...pinMarkers].filter(
+        (element) => element.id !== props.pinId
+      );
+
+      const destinationPins = leftoverPinMarkers.map((pin) => {
+        const newObject = {
+          lat: pin.position.lat,
+          lng: pin.position.lng,
+        };
+
+        return newObject;
+      });
+
+      setDestinationAddresses(destinationPins);
+    }
+  }, [currentPin, originalMap, pinMarkers, checkIn]);
+
+  // useEffect to set heatMapData when setHeatmap is turned to true. Also renders latest current pin info. Is triggered upon first load of google maps and triggered after submitting crowd data.
+  useEffect(() => {
+    if (originalMap && currentPin) {
       setHeatmapData([
         {
           location: new window.google.maps.LatLng(
@@ -364,23 +387,8 @@ export default function PinMap(props: Props) {
       } else {
         setCrowdMapWeight(100);
       }
-
-      const leftoverPinMarkers = [...pinMarkers].filter(
-        (element) => element.id !== props.pinId
-      );
-
-      const destinationPins = leftoverPinMarkers.map((pin) => {
-        const newObject = {
-          lat: pin.position.lat,
-          lng: pin.position.lng,
-        };
-
-        return newObject;
-      });
-
-      setDestinationAddresses(destinationPins);
     }
-  }, [currentPin, originalMap, pinMarkers, checkIn]);
+  }, [currentPin, originalMap, pinMarkers]);
 
   // Function to call within googlemaps distance matrix service, to process the response provided back from matrix service.
   // Obtains closest place with same category to the current pin. Allows displaying of the data of that place. Renders pin data, post and crowd data of pin as JSX.
@@ -517,6 +525,7 @@ export default function PinMap(props: Props) {
       });
 
       if (distanceFromPoint <= 100) {
+        setHeatmapVisible(false);
         setErrorCheckIn(false);
         let crowdIntensity;
         if (crowdValue === "very crowded") {
@@ -570,12 +579,13 @@ export default function PinMap(props: Props) {
                   fullscreenControl: false,
                 }}
               >
-                <HeatmapLayer
-                  data={heatmapData}
-                  options={{ radius: crowdMapWeight, opacity: 0.4 }}
-                  // onUnmount={onUnmount}
-                />
-
+                {heatmapVisible && (
+                  <HeatmapLayer
+                    data={heatmapData}
+                    options={{ radius: crowdMapWeight, opacity: 0.4 }}
+                    // onUnmount={onUnmount}
+                  />
+                )}
                 {control && currentPin && destinationAddresses && (
                   <DistanceMatrixService
                     options={{
@@ -645,7 +655,6 @@ export default function PinMap(props: Props) {
                     }}
                   />
                 )}
-
                 {/* MARKER FOR USER LIVE LOCATION */}
                 {currentPosition && isLoaded ? (
                   <MarkerF
@@ -654,7 +663,6 @@ export default function PinMap(props: Props) {
                     position={currentPosition}
                   />
                 ) : null}
-
                 {/* MARKERS FOR ALL PINS WITHIN STATE */}
                 {pinMarkers.map((element, index) => {
                   const { id, name, position, categoryId } = element;
