@@ -75,35 +75,36 @@ export default function ThreadSingle() {
   // Div > Container > Card > Text;
 
   //
-  const allComments = [];
-  if (singleThread.data) {
-    for (let i = 0; i < singleThread.data.length; i++) {
-      allComments.push(
-        <div>
-          <Container>
-            {/* add friend button */}
-            <Card>
-              <Avatar
-                src={singleThread.data.user.photoLink}
-                alt={singleThread.data.user.name}
-                radius="xl"
-                size="lg"
-              />
-              <Text>
-                {singleThread.data.user.name} added a comment on{" "}
-                {singleThread.data.post.createdAt}:
-              </Text>
-              <Text>{singleThread.data.post.content}</Text>
-            </Card>
-          </Container>
-        </div>
-      );
-    }
-  }
+  // const allComments = [];
+  // if (singleThread.data) {
+  //   for (let i = 0; i < singleThread.data.length; i++) {
+  //     allComments.push(
+  //       <div>
+  //         <Container>
+  //           {/* add friend button */}
+  //           <Card>
+  //             <Avatar
+  //               src={singleThread.data.user.photoLink}
+  //               alt={singleThread.data.user.name}
+  //               radius="xl"
+  //               size="lg"
+  //             />
+  //             <Text>
+  //               {singleThread.data.user.name} added a comment on{" "}
+  //               {singleThread.data.post.createdAt}:
+  //             </Text>
+  //             <Text>{singleThread.data.post.content}</Text>
+  //           </Card>
+  //         </Container>
+  //       </div>
+  //     );
+  //   }
+  // }
 
   return (
     <div>
-      <Container>
+      hi
+      {/* <Container>
         <Card>
           <Text>Thread Title:{singleThread.data[0].thread.topic}</Text>
           <Text></Text>
@@ -123,10 +124,10 @@ export default function ThreadSingle() {
             <Card>
               <Text>Be the first to comment!</Text>
               {/* add comment function here */}
-            </Card>
+      {/* </Card>
           </div>
         )}
-      </Container>
+      </Container> */}
     </div>
   );
 }
