@@ -5,7 +5,6 @@ import {
   useJsApiLoader,
   MarkerF,
   InfoWindowF,
-  InfoBoxF,
   HeatmapLayer,
   DistanceMatrixService,
 } from "@react-google-maps/api";
@@ -32,6 +31,7 @@ import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import axios from "axios";
 
+// Styles for crowd check in banner
 const useStyles = createStyles((theme) => ({
   wrapper: {
     display: "flex",
@@ -96,6 +96,7 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+// Defining interfaces
 interface Props {
   postId: number;
   pinId: number;
@@ -192,21 +193,22 @@ interface PinLocationInformation {
 }
 
 export default function PinMap(props: Props) {
-  console.log(props.postId);
-  console.log(props.pinId);
-  console.log(props.areaId);
   const { classes } = useStyles();
   const navigate = useNavigate();
 
+  // Usage of Context to obtain userId.
+  const { userId } = UseApp();
+
+  // Google map library and API definition
   const [libraries] = useState<
     ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
   >(["visualization", "places"]);
-  const { userId } = UseApp();
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY as string,
     libraries: libraries,
   });
 
+  // States for loading all prefectures, categories and hashtags.
   const [allAvailableAreas, setAllAvailableAreas] = useState<Area[]>([]);
   const [allAvailableCategories, setAllAvailableCategories] = useState<
     Category[]
@@ -215,32 +217,38 @@ export default function PinMap(props: Props) {
     []
   );
 
+  // States for map display.
   const [originalMap, setOriginalMap] = useState<google.maps.Map | null>(null);
   const [currentPosition, setCurrentPosition] = useState<Position>();
   const [mapCenter, setMapCenter] = useState<Position>();
   const [zoomLevel, setZoomLevel] = useState(12);
+
+  // States for saving pin infos from BE in different formats, to set markers on google map.
   const [pinMarkers, setPinMarkers] = useState<MarkerPositions[]>([]);
   const [currentPin, setCurrentPin] = useState<PinLocationInformation>();
   const [currentPinInfo, setCurrentPinInfo] = useState<MarkerPositions>();
   const [pins, setPins] = useState<PinLocationInformation[]>([]);
+
+  // States for saving heatmap info to set heatmap on google map.
   const [heatmapData, setHeatmapData] = useState<
     google.maps.visualization.WeightedLocation[]
   >([]);
-
   const [crowdMapWeight, setCrowdMapWeight] = useState(0);
+
+  // States for user to submit crowd data.
   const [checkIn, setCheckIn] = useState(false);
   const [crowdValue, setCrowdValue] = useState<string | null>("");
   const [errorCheckIn, setErrorCheckIn] = useState(false);
 
-  //For Googlemaps DistanceMatrix Service. To get distances.
+  // States for Googlemap DistanceMatrix Service. To get distances.
   const [control, setControl] = useState(true);
   const [destinationAddresses, setDestinationAddresses] = useState<Position[]>(
     []
   );
   const [nearbyPlaceDist, setNearbyPlaceDist] = useState<Distance[]>([]);
 
+  // Marker style for current location of user based on GPS. Requires google map instance to be loaded.
   let blueDot;
-
   if (isLoaded) {
     blueDot = {
       fillColor: "purple",
@@ -252,6 +260,7 @@ export default function PinMap(props: Props) {
     };
   }
 
+  // useEffect api call to get all areas(prefectures)
   const getAreas = async () => {
     try {
       const response = await axios.get(`${backendUrl}/info/areas`);
@@ -259,6 +268,7 @@ export default function PinMap(props: Props) {
     } catch (err) {}
   };
 
+  // useEffect api call to get all categories
   const getCategories = async () => {
     try {
       const response = await axios.get(`${backendUrl}/info/categories`);
@@ -266,6 +276,7 @@ export default function PinMap(props: Props) {
     } catch (err) {}
   };
 
+  // useEffect api call to get all hashtags
   const getHashtags = async () => {
     try {
       const response = await axios.get(`${backendUrl}/info/hashtags`);
@@ -279,6 +290,8 @@ export default function PinMap(props: Props) {
     getAreas();
   }, []);
 
+  // useEffect api call to get info of one pin, and to get info of all pins in the same prefecture.
+  // useEffect is recalled when user checks in to refresh latest crowd data.
   useEffect(() => {
     getCurrentPin();
     getAllInitialPinsToArea();
@@ -308,6 +321,7 @@ export default function PinMap(props: Props) {
     setPinMarkers(newMarkersRes);
   };
 
+  //  useEffect to set center of google map after both google map and one pin info is loaded. Get permissions from user to share current location. Obtain latest crowd info of the one pin. Set latlng positions of remaining pins to obtain closest pins.
   useEffect(() => {
     if (originalMap && currentPin) {
       setMapCenter({ lat: currentPin.lat, lng: currentPin.lng });
@@ -368,28 +382,14 @@ export default function PinMap(props: Props) {
     }
   }, [currentPin, originalMap, pinMarkers, checkIn]);
 
-  console.log(originalMap);
-  console.log(currentPosition);
-  console.log(currentPin);
-  console.log(pins);
-  console.log(pinMarkers);
-  console.log(mapCenter);
-  console.log(heatmapData);
-  console.log(crowdMapWeight);
-
+  // Function to call within googlemaps distance matrix service, to process the response provided back from matrix service.
+  // Obtains closest place with same category to the current pin. Allows displaying of the data of that place. Renders pin data, post and crowd data of pin as JSX.
   const displayNearbyPlaces = () => {
     if (nearbyPlaceDist.length !== 0) {
       const infoToReturn = nearbyPlaceDist.map((place, j) => {
-        //place.position is the index within destination address
-
-        console.log(destinationAddresses[place.position]);
-        //this gives me lat long of each place.
-
         const originalPin: PinLocationInformation | undefined = pins.find(
           (pin) => pin.lat === destinationAddresses[place.position].lat
         );
-
-        console.log(originalPin);
 
         if (originalPin) {
           const allCrowds = originalPin.crowds.slice(0, 1).map((crowd, i) => {
@@ -473,11 +473,13 @@ export default function PinMap(props: Props) {
     }
   };
 
+  // Function that handles user when user clicks check in. Sets states for jsx to render.
   const handleCheckIn = () => {
     setCheckIn(!checkIn);
     setErrorCheckIn(false);
   };
 
+  // Helper function to calculate the distance between the pin position and the user's live position.
   const calcDistanceTwoPoints = (point1: Position, point2: Position) => {
     let latPoint1 = point1.lat / 57.29577951;
     let latPoint2 = point2.lat / 57.29577951;
@@ -497,6 +499,7 @@ export default function PinMap(props: Props) {
     );
   };
 
+  // Function triggered when user clicks submit crowd data. Checks if user is within 100m of the pin. If no, send error banner. If yes, create data within BE.
   const handleSubmitCrowd: React.MouseEventHandler<HTMLButtonElement> = async (
     e
   ) => {
@@ -592,15 +595,18 @@ export default function PinMap(props: Props) {
                               distance: place.distance.value,
                             };
 
+                            // For each response object, finds the corresponding pin info in state.
                             const distancePin = pinMarkers.find(
                               (pin) =>
                                 pin.position === destinationAddresses[index]
                             );
 
+                            // Finds the current pin info in state.
                             const originPin = pinMarkers.find(
                               (pin) => pin.position.lat === currentPin.lat
                             );
 
+                            // Checks if the response object has common category as the current pin info.
                             if (originPin && distancePin) {
                               const response = originPin.categoryId.map(
                                 (category) => {
@@ -620,6 +626,8 @@ export default function PinMap(props: Props) {
                             return [distanceObject];
                           }
                         );
+
+                        // Sets the response object into state, for those that passed the filter. Sorts the objects by distance, from nearest to furthest. Saves only the closest 3 reponse objects.
                         if (
                           nearbyDistanceObjects.flat().length > 0 &&
                           !nearbyDistanceObjects
@@ -637,6 +645,8 @@ export default function PinMap(props: Props) {
                     }}
                   />
                 )}
+
+                {/* MARKER FOR USER LIVE LOCATION */}
                 {currentPosition && isLoaded ? (
                   <MarkerF
                     key={`current location`}
@@ -644,6 +654,8 @@ export default function PinMap(props: Props) {
                     position={currentPosition}
                   />
                 ) : null}
+
+                {/* MARKERS FOR ALL PINS WITHIN STATE */}
                 {pinMarkers.map((element, index) => {
                   const { id, name, position, categoryId } = element;
 

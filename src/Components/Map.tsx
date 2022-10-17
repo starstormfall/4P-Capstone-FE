@@ -33,7 +33,7 @@ import { UseApp } from "./Context";
 import axios from "axios";
 import { addAbortSignal } from "stream";
 
-//apparently center of japan
+// Define centers for each region for google maps.
 const center = {
   lat: 36.2048,
   lng: 138.2529,
@@ -54,6 +54,7 @@ const osaka = {
   lng: 135.49706560580577,
 };
 
+// Styles for crowd check in banner
 const useStyles = createStyles((theme) => ({
   wrapper: {
     display: "flex",
@@ -118,6 +119,7 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+// Defining interfaces
 interface MarkerPositions {
   position: {
     lat: number;
@@ -212,6 +214,7 @@ export default function Map() {
   const { classes } = useStyles();
   const navigate = useNavigate();
 
+  // Google map library and API definition
   const [libraries] = useState<
     ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
   >(["visualization", "places"]);
@@ -221,6 +224,7 @@ export default function Map() {
     libraries: libraries,
   });
 
+  // States for loading all prefectures, categories and hashtags.
   const [allAvailableAreas, setAllAvailableAreas] = useState<Area[]>([]);
   const [allAvailableCategories, setAllAvailableCategories] = useState<
     Category[]
@@ -229,28 +233,39 @@ export default function Map() {
     []
   );
 
+  // States for map display.
   const [originalMap, setOriginalMap] = useState<google.maps.Map | null>(null);
   const [currentPosition, setCurrentPosition] = useState<Position>();
   const [mapCenter, setMapCenter] = useState(center);
   const [zoomLevel, setZoomLevel] = useState(7);
+
+  // States for saving pin infos from BE in different formats, to set markers on google map.
   const [pins, setPins] = useState<PinLocationInformation[]>([]);
   const [pinMarkers, setPinMarkers] = useState<MarkerPositions[]>([]);
+
+  // States for saving pinId and index of current pin within the pins array state when marker on map is selected.
   const [activeMarker, setActiveMarker] = useState<number | null>(null);
   const [activeWindow, setActiveWindow] = useState<number | null>(null);
+
+  // States for saving heatmap info to set heatmap on google map.
   const [heatmapData, setHeatmapData] = useState<
     google.maps.visualization.WeightedLocation[]
   >([]);
+  const [crowdMapWeight, setCrowdMapWeight] = useState(0);
+
+  // States for filtering by region, category and hashtag. Boolean to render out next row of buttons to click.
   const [categoryVisible, setCategoryVisible] = useState(false);
   const [hashtagVisible, setHashtagVisible] = useState(false);
   const [filterRegion, setFilterRegion] = useState(0);
   const [filterCategory, setFilterCategory] = useState(0);
   const [filterHash, setFilterHash] = useState(0);
-  const [crowdMapWeight, setCrowdMapWeight] = useState(0);
+
+  // States for user to submit crowd data.
   const [checkIn, setCheckIn] = useState(false);
   const [crowdValue, setCrowdValue] = useState<string | null>("");
   const [errorCheckIn, setErrorCheckIn] = useState(false);
 
-  //For Googlemaps DistanceMatrix Service. To get distances.
+  // States for Googlemap DistanceMatrix Service. To get distances.
   const [control, setControl] = useState(true);
   const [originAddress, setOriginAddress] = useState<Position[]>();
   const [destinationAddresses, setDestinationAddresses] = useState<Position[]>(
@@ -258,8 +273,8 @@ export default function Map() {
   );
   const [nearbyPlaceDist, setNearbyPlaceDist] = useState<Distance[]>([]);
 
+  // Marker style for current location of user based on GPS. Requires google map instance to be loaded.
   let blueDot;
-
   if (isLoaded) {
     blueDot = {
       fillColor: "purple",
@@ -271,9 +286,7 @@ export default function Map() {
     };
   }
 
-  console.log(crowdValue);
-  console.log(currentPosition);
-
+  //  useEffect to set center of google map after google map is loaded. Get permissions from user to share current location.
   useEffect(() => {
     if (originalMap) {
       originalMap.panTo(center);
@@ -286,6 +299,37 @@ export default function Map() {
     }
   }, [originalMap]);
 
+  // useEffect api call to get all areas(prefectures)
+  const getAreas = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/info/areas`);
+      setAllAvailableAreas(response.data);
+    } catch (err) {}
+  };
+
+  // useEffect api call to get all categories
+  const getCategories = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/info/categories`);
+      setAllAvailableCategories(response.data);
+    } catch (err) {}
+  };
+
+  // useEffect api call to get all hashtags
+  const getHashtags = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/info/hashtags`);
+      setAllAvailableHashtags(response.data);
+    } catch (err) {}
+  };
+
+  useEffect(() => {
+    getCategories();
+    getHashtags();
+    getAreas();
+  }, []);
+
+  // Function for api call to get all pins info and corresponding pin markers info, depending on region, category and hashtag filters. Set into states.
   const getAllInitialPins = async () => {
     if (filterRegion === 0 && filterCategory === 0) {
       const response = await axios.get(`${backendUrl}/maps/allPins`);
@@ -355,43 +399,12 @@ export default function Map() {
     }
   };
 
-  const getAreas = async () => {
-    try {
-      const response = await axios.get(`${backendUrl}/info/areas`);
-      setAllAvailableAreas(response.data);
-    } catch (err) {}
-  };
-
-  const getCategories = async () => {
-    try {
-      const response = await axios.get(`${backendUrl}/info/categories`);
-      setAllAvailableCategories(response.data);
-    } catch (err) {}
-  };
-
-  const getHashtags = async () => {
-    try {
-      const response = await axios.get(`${backendUrl}/info/hashtags`);
-      setAllAvailableHashtags(response.data);
-    } catch (err) {}
-  };
-
-  useEffect(() => {
-    getCategories();
-    getHashtags();
-    getAreas();
-  }, []);
-
   useEffect(() => {
     getAllInitialPins();
   }, [filterRegion, filterCategory, filterHash, checkIn]);
 
-  //   // //sort by distance.
-  //   // //get the closest 3 places.
-  //   // //slice?
-  //   // //compare index with destinationaddresses index.
-  //   // //get the latlng of the destination addresses. Find in pins for the ones that match the latlng
-
+  // Function to call within googlemaps distance matrix service, to process the response provided back from matrix service.
+  // Obtains 3 closest places with same category to the selected pin. Allows displaying of the data of those places. Renders pin data, 3 posts and 3 latest crowd data of pin as JSX.
   const displayNearbyPlaces = () => {
     if (nearbyPlaceDist.length !== 0) {
       const infoToReturn = nearbyPlaceDist.map((place, j) => {
@@ -473,7 +486,6 @@ export default function Map() {
 
           return (
             <div key={originalPin.placeName}>
-              <Text>NEARBY SIMILAR PLACES OF INTEREST</Text>
               <Text>
                 {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}km away
               </Text>
@@ -493,6 +505,7 @@ export default function Map() {
     }
   };
 
+  // Function that resets map markers, map center, closest distance pins, and sets new region ids, category ids and hashtag ids into state accordingly.
   const handleFilter = (event: React.MouseEvent<HTMLButtonElement>) => {
     const { id, name } = event.currentTarget;
 
@@ -563,6 +576,7 @@ export default function Map() {
     }
   };
 
+  // Renders out area buttons for further filters.
   const listAreas = allAvailableAreas.map((area: Area, index) => {
     if (area.id === filterRegion) {
       return (
@@ -592,6 +606,7 @@ export default function Map() {
     }
   });
 
+  // Renders out category buttons for further filters.
   const listCategories = allAvailableCategories.map(
     (category: Category, index) => {
       if (category.id === filterCategory) {
@@ -623,6 +638,7 @@ export default function Map() {
     }
   );
 
+  // Renders out hashtag buttons for further filters.
   const listHashtags = allAvailableHashtags.map((hashtag: Hashtag, index) => {
     if (filterCategory === hashtag.categoryId) {
       if (hashtag.id === filterHash) {
@@ -654,6 +670,7 @@ export default function Map() {
     } else return null;
   });
 
+  // Function for obtaining info of pin that is selected on map. Centers the map, obtains crowd data of pin, renders on map. Sets state with all other pin infos for google maps matrix service to calculate nearest pins.
   const handleActiveMarker = async (marker: number, index: number) => {
     setControl(true);
     setOriginAddress([]);
@@ -710,6 +727,8 @@ export default function Map() {
   console.log(activeWindow);
   console.log(nearbyPlaceDist);
 
+  // Function to obtain info of current selected pin.
+  // Obtains 3 closest places with same category to the selected pin. Allows displaying of the data of those places. Renders pin data, 3 posts and 3 latest crowd data of pin as JSX.
   const findPinInfo = () => {
     if (activeMarker !== null && activeWindow !== null) {
       // const index = pins.findIndex((item) => item.id === activeMarker);
@@ -810,6 +829,7 @@ export default function Map() {
   console.log(pinMarkers);
   console.log(pins);
 
+  // Function to reset states when pin is unselected on map.
   const handleResetMarker = () => {
     setActiveMarker(null);
     setActiveWindow(null);
@@ -823,16 +843,19 @@ export default function Map() {
     setMapCenter(center);
   };
 
+  // Function to remove instance of heatmap on googlemaps when unneeded.
   const onUnmount = () => {
     setHeatmapData([{ location: null, weight: 0 }]);
     setCrowdMapWeight(0);
   };
 
+  // Function that handles user when user clicks check in. Sets states for jsx to render
   const handleCheckIn = () => {
     setCheckIn(!checkIn);
     setErrorCheckIn(false);
   };
 
+  // Helper function to calculate the distance between the pin position and the user's live position.
   const calcDistanceTwoPoints = (point1: Position, point2: Position) => {
     let latPoint1 = point1.lat / 57.29577951;
     let latPoint2 = point2.lat / 57.29577951;
@@ -852,6 +875,9 @@ export default function Map() {
     );
   };
 
+  // Function triggered when user clicks submit crowd data. Checks if user selected check in with location or check in without location.
+  // If with location, checks if user is within 100m of the pin. If no, send error banner. If yes, create data within BE.
+  // If without location, create data within BE.
   const handleSubmitCrowd: React.MouseEventHandler<HTMLButtonElement> = async (
     e
   ) => {
@@ -1003,15 +1029,18 @@ export default function Map() {
                             distance: place.distance.value,
                           };
 
+                          // For each response object, finds the corresponding pin info in state.
                           const distancePin = pinMarkers.find(
                             (pin) =>
                               pin.position === destinationAddresses[index]
                           );
 
+                          // Finds the current pin info in state.
                           const originPin = pinMarkers.find(
                             (pin) => pin.position === originAddress[0]
                           );
 
+                          // Checks if the response object has common category as the current pin info. Checks if category filter is in place. If category filter in place, filters by set category instead.
                           if (originPin && distancePin) {
                             if (filterCategory !== 0) {
                               if (
@@ -1043,6 +1072,8 @@ export default function Map() {
                           return [distanceObject];
                         }
                       );
+
+                      // Sets the response object into state, for those that passed the filter. Sorts the objects by distance, from nearest to furthest. Saves only the closest 3 reponse objects.
                       if (
                         nearbyDistanceObjects.flat().length > 0 &&
                         !nearbyDistanceObjects
@@ -1060,6 +1091,8 @@ export default function Map() {
                   }}
                 />
               )}
+
+            {/* MARKER FOR USER LIVE LOCATION */}
             {currentPosition && isLoaded ? (
               <MarkerF
                 key={`current location`}
@@ -1067,7 +1100,8 @@ export default function Map() {
                 position={currentPosition}
               />
             ) : null}
-            {/* <Marker position={center} /> */}
+
+            {/* MARKERS FOR ALL PINS WITHIN STATE. CHECKS IF CATEGORY FILTER IS SET. */}
             {pinMarkers.map((element, index) => {
               const { id, name, position, categoryId } = element;
 
@@ -1316,6 +1350,9 @@ export default function Map() {
             <>
               <Card>{findPinInfo()}</Card>
             </>
+          ) : null}
+          {nearbyPlaceDist.length > 0 ? (
+            <Text>NEARBY SIMILAR PLACES OF INTEREST</Text>
           ) : null}
           {nearbyPlaceDist.length > 0 ? displayNearbyPlaces() : null}
         </>
