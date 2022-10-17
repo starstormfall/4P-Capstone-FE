@@ -14,6 +14,10 @@ export interface Hashtag {
   categoryId: number;
 }
 
+export interface AllPost {
+  [key: number]: Post;
+}
+
 export interface Post {
   id: number;
   title: string;
@@ -29,6 +33,7 @@ export interface Post {
 }
 
 export interface PostCard {
+  postId: number;
   photoLink: string;
   externalLink: string;
   title: string;
@@ -36,4 +41,32 @@ export interface PostCard {
   explorePost: string;
   userId: number;
   likeCount: number;
+  showPin: (event: React.MouseEvent<HTMLButtonElement>, postId: number) => void;
+  likePost: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    postId: number
+  ) => void;
+  favouritePost: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    postId: number
+  ) => void;
+  showAssocThread: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    postId: number
+  ) => void;
+  shareLink: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    postId: number
+  ) => void;
+  userLike: boolean;
+  userFavourite: boolean;
+}
+
+export interface AssocThread {
+  id: number;
+  topic: string;
+  postsCount: number;
+  usersCount: number;
+  lastPost: string;
+  lasPostCreated: string;
 }
