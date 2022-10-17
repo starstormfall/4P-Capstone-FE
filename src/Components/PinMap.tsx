@@ -1,6 +1,801 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  GoogleMap,
+  useJsApiLoader,
+  MarkerF,
+  InfoWindowF,
+  InfoBoxF,
+  HeatmapLayer,
+  DistanceMatrixService,
+} from "@react-google-maps/api";
+import {
+  Button,
+  Group,
+  Grid,
+  Loader,
+  Text,
+  Card,
+  Image,
+  ScrollArea,
+  Badge,
+  Overlay,
+  createStyles,
+  Title,
+  TextInput,
+  Select,
+  Alert,
+  Anchor,
+} from "@mantine/core";
+import { IconAlertCircle } from "@tabler/icons";
+import { backendUrl } from "../utils";
+import { UseApp } from "./Context";
+import axios from "axios";
 
-export default function PinMap() {
-  return <div>PinMap Page</div>;
+const useStyles = createStyles((theme) => ({
+  wrapper: {
+    display: "flex",
+    alignItems: "center",
+    padding: theme.spacing.xs * 2,
+    borderRadius: theme.radius.md,
+    backgroundColor:
+      theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.white,
+    border: `1px solid ${
+      theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[3]
+    }`,
+
+    [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
+      flexDirection: "column-reverse",
+      padding: theme.spacing.xs,
+    },
+  },
+
+  image: {
+    maxWidth: "40%",
+
+    [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
+      maxWidth: "100%",
+    },
+  },
+
+  body: {
+    paddingRight: theme.spacing.xl * 4,
+
+    [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
+      paddingRight: 0,
+      marginTop: theme.spacing.xs,
+    },
+  },
+
+  title: {
+    color: theme.colorScheme === "dark" ? theme.white : theme.black,
+    fontFamily: `Greycliff CF, ${theme.fontFamily}`,
+    lineHeight: 1,
+    marginBottom: theme.spacing.xs,
+  },
+
+  controls: {
+    display: "flex",
+    marginTop: theme.spacing.xs,
+  },
+
+  inputWrapper: {
+    width: "100%",
+    flex: "1",
+  },
+
+  input: {
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+    borderRight: 0,
+  },
+
+  control: {
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+  },
+}));
+
+interface Props {
+  postId: number;
+  pinId: number;
+  areaId: number;
+}
+
+interface Area {
+  id: number;
+  prefecture: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
+}
+
+interface Hashtag {
+  id: number;
+  name: string;
+  categoryId: number;
+}
+
+interface Position {
+  lat: number;
+  lng: number;
+}
+
+interface Distance {
+  position: number;
+  distance: number;
+}
+
+interface MarkerPositions {
+  position: {
+    lat: number;
+    lng: number;
+  };
+  id: number;
+  name: string;
+  areaId: number;
+  categoryId: number[];
+  hashtagId: number[];
+  latestCrowdIntensity: string;
+  latestCrowdSize: string;
+  latestCrowdTime: Date;
+}
+
+interface CrowdPinInformation {
+  recordedAt: Date;
+  crowdSize: string;
+  crowdIntensity: string;
+}
+
+interface CategoryIdInfo {
+  categoryId: number;
+}
+
+interface HashtagIdInfo {
+  hashtagId: number;
+}
+
+interface PostPinInformation {
+  id: number;
+  title: string;
+  photoLink: string;
+  content: string;
+  areaId: number;
+  pinId: number;
+  locationName: string;
+  forumPost: boolean;
+  explorePost: string;
+  externalLink: string;
+  likeCount: number;
+  userId: number;
+  createdAt: Date;
+  updatedAt: Date;
+  postCategories: CategoryIdInfo[];
+  postHashtags: HashtagIdInfo[];
+}
+
+interface PinLocationInformation {
+  id: number;
+  lat: number;
+  lng: number;
+  placeName: string;
+  areaId: number;
+  createdAt: Date;
+  updatedAt: Date;
+  area: {
+    prefecture: string;
+  };
+  crowds: CrowdPinInformation[];
+  posts: PostPinInformation[];
+}
+
+export default function PinMap(props: Props) {
+  console.log(props.postId);
+  console.log(props.pinId);
+  console.log(props.areaId);
+  const { classes } = useStyles();
+  const navigate = useNavigate();
+
+  const [libraries] = useState<
+    ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
+  >(["visualization", "places"]);
+  const { userId } = UseApp();
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY as string,
+    libraries: libraries,
+  });
+
+  const [allAvailableAreas, setAllAvailableAreas] = useState<Area[]>([]);
+  const [allAvailableCategories, setAllAvailableCategories] = useState<
+    Category[]
+  >([]);
+  const [allAvailableHashtags, setAllAvailableHashtags] = useState<Hashtag[]>(
+    []
+  );
+
+  const [originalMap, setOriginalMap] = useState<google.maps.Map | null>(null);
+  const [currentPosition, setCurrentPosition] = useState<Position>();
+  const [mapCenter, setMapCenter] = useState<Position>();
+  const [zoomLevel, setZoomLevel] = useState(12);
+  const [pinMarkers, setPinMarkers] = useState<MarkerPositions[]>([]);
+  const [currentPin, setCurrentPin] = useState<PinLocationInformation>();
+  const [currentPinInfo, setCurrentPinInfo] = useState<MarkerPositions>();
+  const [pins, setPins] = useState<PinLocationInformation[]>([]);
+  const [heatmapData, setHeatmapData] = useState<
+    google.maps.visualization.WeightedLocation[]
+  >([]);
+
+  const [crowdMapWeight, setCrowdMapWeight] = useState(0);
+  const [checkIn, setCheckIn] = useState(false);
+  const [crowdValue, setCrowdValue] = useState<string | null>("");
+  const [errorCheckIn, setErrorCheckIn] = useState(false);
+
+  //For Googlemaps DistanceMatrix Service. To get distances.
+  const [control, setControl] = useState(true);
+  const [destinationAddresses, setDestinationAddresses] = useState<Position[]>(
+    []
+  );
+  const [nearbyPlaceDist, setNearbyPlaceDist] = useState<Distance[]>([]);
+
+  let blueDot;
+
+  if (isLoaded) {
+    blueDot = {
+      fillColor: "purple",
+      fillOpacity: 1,
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 10,
+      strokeColor: "beige",
+      strokeWeight: 3,
+    };
+  }
+
+  const getAreas = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/info/areas`);
+      setAllAvailableAreas(response.data);
+    } catch (err) {}
+  };
+
+  const getCategories = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/info/categories`);
+      setAllAvailableCategories(response.data);
+    } catch (err) {}
+  };
+
+  const getHashtags = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/info/hashtags`);
+      setAllAvailableHashtags(response.data);
+    } catch (err) {}
+  };
+
+  useEffect(() => {
+    getCategories();
+    getHashtags();
+    getAreas();
+  }, []);
+
+  useEffect(() => {
+    getCurrentPin();
+    getAllInitialPinsToArea();
+  }, [checkIn]);
+
+  const getCurrentPin = async () => {
+    const response = await axios.get(
+      `${backendUrl}/maps/onePin/${props.pinId}`
+    );
+    setCurrentPin(response.data);
+  };
+
+  const getAllInitialPinsToArea = async () => {
+    const response = await axios.get(
+      `${backendUrl}/maps/allPins?areaId=${props.areaId}`
+    );
+
+    const markersRes = await axios.get(
+      `${backendUrl}/maps/allPins?type=markers`
+    );
+
+    const newMarkersRes = markersRes.data.filter(
+      (pin: MarkerPositions) => Number(pin.areaId) === Number(props.areaId)
+    );
+
+    setPins(response.data);
+    setPinMarkers(newMarkersRes);
+  };
+
+  useEffect(() => {
+    if (originalMap && currentPin) {
+      setMapCenter({ lat: currentPin.lat, lng: currentPin.lng });
+
+      originalMap.panTo({ lat: currentPin.lat, lng: currentPin.lng });
+
+      navigator.geolocation.getCurrentPosition((position) => {
+        setCurrentPosition({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      });
+
+      setHeatmapData([
+        {
+          location: new window.google.maps.LatLng(
+            currentPin.lat,
+            currentPin.lng
+          ),
+          weight: 1000000,
+        },
+      ]);
+
+      const currentPinMarker = pinMarkers.find((pin) => pin.id === props.pinId);
+
+      if (currentPinMarker) {
+        setCurrentPinInfo(currentPinMarker);
+      }
+
+      if (
+        currentPinMarker &&
+        currentPinMarker.latestCrowdSize === "little crowd"
+      ) {
+        setCrowdMapWeight(10);
+      } else if (
+        currentPinMarker &&
+        currentPinMarker.latestCrowdSize === "somewhat crowded"
+      ) {
+        setCrowdMapWeight(40);
+      } else {
+        setCrowdMapWeight(100);
+      }
+
+      const leftoverPinMarkers = [...pinMarkers].filter(
+        (element) => element.id !== props.pinId
+      );
+
+      const destinationPins = leftoverPinMarkers.map((pin) => {
+        const newObject = {
+          lat: pin.position.lat,
+          lng: pin.position.lng,
+        };
+
+        return newObject;
+      });
+
+      setDestinationAddresses(destinationPins);
+    }
+  }, [currentPin, originalMap, pinMarkers, checkIn]);
+
+  console.log(originalMap);
+  console.log(currentPosition);
+  console.log(currentPin);
+  console.log(pins);
+  console.log(pinMarkers);
+  console.log(mapCenter);
+  console.log(heatmapData);
+  console.log(crowdMapWeight);
+
+  const displayNearbyPlaces = () => {
+    if (nearbyPlaceDist.length !== 0) {
+      const infoToReturn = nearbyPlaceDist.map((place, j) => {
+        //place.position is the index within destination address
+
+        console.log(destinationAddresses[place.position]);
+        //this gives me lat long of each place.
+
+        const originalPin: PinLocationInformation | undefined = pins.find(
+          (pin) => pin.lat === destinationAddresses[place.position].lat
+        );
+
+        console.log(originalPin);
+
+        if (originalPin) {
+          const allCrowds = originalPin.crowds.slice(0, 1).map((crowd, i) => {
+            const { crowdIntensity, crowdSize, recordedAt } = crowd;
+            return (
+              <>
+                <Card key={new Date(recordedAt).toLocaleString()}>
+                  <Text>{new Date(recordedAt).toLocaleString()} </Text>
+                  <Text>{crowdIntensity}</Text>
+                  <Text>{crowdSize}</Text>
+                </Card>
+              </>
+            );
+          });
+
+          const allPosts = originalPin.posts.map((post, i) => {
+            if (i < 3) {
+              const { postCategories, postHashtags } = post;
+              const allCategories = postCategories.map((category) => {
+                const { categoryId } = category;
+                return (
+                  <Badge
+                    variant="gradient"
+                    gradient={{ from: "aqua", to: "purple" }}
+                    key={categoryId}
+                  >
+                    {allAvailableCategories[categoryId - 1].name.toUpperCase()}
+                  </Badge>
+                );
+              });
+              const allHashtags = postHashtags.map((hashtag) => {
+                const { hashtagId } = hashtag;
+                return (
+                  <Badge
+                    variant="gradient"
+                    gradient={{ from: "purple", to: "beige" }}
+                    key={hashtagId}
+                  >
+                    {allAvailableHashtags[hashtagId - 1].name}
+                  </Badge>
+                );
+              });
+
+              return (
+                <Card key={post.title}>
+                  {allCategories}
+                  <br />
+                  {allHashtags}
+                  <Text>Title: {post.title}</Text>
+                  <Anchor
+                    href={post.externalLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <img src={post.photoLink} alt={post.title} height={400} />
+                  </Anchor>
+                  <Text>Likes: {post.likeCount}</Text>
+                </Card>
+              );
+            } else return null;
+          });
+
+          return (
+            <div key={originalPin.placeName}>
+              <Text>
+                {originalPin.placeName}:
+                {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}KM away{" "}
+              </Text>
+              {/* <Text>
+                {allAvailableAreas[originalPin.areaId - 1].prefecture}
+              </Text> */}
+              <Text>LATEST CROWD ESTIMATE</Text>
+              {allCrowds}
+              {/* {allPosts} */}
+            </div>
+          );
+        }
+      });
+
+      return infoToReturn;
+    }
+  };
+
+  const handleCheckIn = () => {
+    setCheckIn(!checkIn);
+    setErrorCheckIn(false);
+  };
+
+  const calcDistanceTwoPoints = (point1: Position, point2: Position) => {
+    let latPoint1 = point1.lat / 57.29577951;
+    let latPoint2 = point2.lat / 57.29577951;
+    let lngPoint1 = point1.lng / 57.29577951;
+    let lngPoint2 = point1.lng / 57.29577951;
+
+    return (
+      3963.0 *
+      1.609344 *
+      1000 *
+      Math.acos(
+        Math.sin(latPoint1) * Math.sin(latPoint2) +
+          Math.cos(latPoint1) *
+            Math.cos(latPoint2) *
+            Math.cos(lngPoint2 - lngPoint1)
+      )
+    );
+  };
+
+  const handleSubmitCrowd: React.MouseEventHandler<HTMLButtonElement> = async (
+    e
+  ) => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      setCurrentPosition({
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      });
+    });
+
+    if (currentPosition && currentPin) {
+      const distanceFromPoint = calcDistanceTwoPoints(currentPosition, {
+        lat: currentPin.lat,
+        lng: currentPin.lng,
+      });
+
+      if (distanceFromPoint <= 100) {
+        setErrorCheckIn(false);
+        let crowdIntensity;
+        if (crowdValue === "very crowded") {
+          crowdIntensity = ">100 pax";
+          setCrowdMapWeight(100);
+        } else if (crowdValue === "somewhat crowded") {
+          crowdIntensity = "30 to 100 pax";
+          setCrowdMapWeight(40);
+        } else {
+          crowdIntensity = "<30 pax";
+          setCrowdMapWeight(10);
+        }
+
+        const objectBody = {
+          userId: userId,
+          crowdSize: crowdValue,
+          crowdIntensity: crowdIntensity,
+        };
+
+        await axios.post(
+          `${backendUrl}/maps/${props.pinId}/createCrowdData`,
+          objectBody
+        );
+
+        setCrowdValue("");
+        setCheckIn(false);
+      } else {
+        setErrorCheckIn(true);
+      }
+    }
+  };
+
+  return (
+    <>
+      <br />
+      {isLoaded && pinMarkers.length > 0 ? (
+        <>
+          <Grid>
+            <Grid.Col span={6}>
+              <GoogleMap
+                onLoad={(map) => setOriginalMap(map)}
+                zoom={zoomLevel}
+                mapContainerStyle={{
+                  width: "20vw",
+                  height: "20vw",
+                  position: "fixed",
+                }}
+                options={{
+                  streetViewControl: false,
+                  mapTypeControl: false,
+                  fullscreenControl: false,
+                }}
+              >
+                <HeatmapLayer
+                  data={heatmapData}
+                  options={{ radius: crowdMapWeight, opacity: 0.4 }}
+                  // onUnmount={onUnmount}
+                />
+
+                {control && currentPin && destinationAddresses && (
+                  <DistanceMatrixService
+                    options={{
+                      destinations: destinationAddresses,
+                      origins: [{ lat: currentPin.lat, lng: currentPin.lng }],
+                      travelMode: google.maps.TravelMode.DRIVING,
+                    }}
+                    callback={async (res) => {
+                      console.log("RESPONSE", res);
+                      setControl(false);
+
+                      if (res !== null) {
+                        const nearbyDistanceObjects = res.rows[0].elements.map(
+                          (place, index) => {
+                            const distanceObject = {
+                              position: index,
+                              distance: place.distance.value,
+                            };
+
+                            const distancePin = pinMarkers.find(
+                              (pin) =>
+                                pin.position === destinationAddresses[index]
+                            );
+
+                            const originPin = pinMarkers.find(
+                              (pin) => pin.position.lat === currentPin.lat
+                            );
+
+                            if (originPin && distancePin) {
+                              const response = originPin.categoryId.map(
+                                (category) => {
+                                  if (
+                                    distancePin.categoryId.includes(category)
+                                  ) {
+                                    return distanceObject;
+                                  } else
+                                    return {
+                                      position: -1,
+                                      distance: Number.MAX_SAFE_INTEGER,
+                                    };
+                                }
+                              );
+                              return response.flat();
+                            }
+                            return [distanceObject];
+                          }
+                        );
+                        if (
+                          nearbyDistanceObjects.flat().length > 0 &&
+                          !nearbyDistanceObjects
+                            .flat()
+                            .some((element) => element === null)
+                        ) {
+                          setNearbyPlaceDist(
+                            nearbyDistanceObjects
+                              .flat(2)
+                              .sort((a, b) => a.distance - b.distance)
+                              .slice(0, 3)
+                          );
+                        }
+                      }
+                    }}
+                  />
+                )}
+                {currentPosition && isLoaded ? (
+                  <MarkerF
+                    key={`current location`}
+                    icon={blueDot}
+                    position={currentPosition}
+                  />
+                ) : null}
+                {pinMarkers.map((element, index) => {
+                  const { id, name, position, categoryId } = element;
+
+                  if (categoryId.length > 1) {
+                    const arrayOfMarkers = categoryId.map((category, index) => {
+                      let markerIcon = "";
+                      if (category === 1) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
+                      } else if (category === 2) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
+                      } else if (category === 3) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
+                      } else {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
+                      }
+
+                      return (
+                        <MarkerF
+                          key={`${id} ${category}`}
+                          icon={{
+                            url: `${markerIcon}`,
+                            scaledSize: new google.maps.Size(50, 50),
+                          }}
+                          position={{
+                            lat: position.lat + index * 0.0001,
+                            lng: position.lng + index * 0.0001,
+                          }}
+                        />
+                      );
+                    });
+
+                    return arrayOfMarkers.map((marker) => marker);
+                  } else {
+                    let markerIcon = "";
+                    if (categoryId[0] === 1) {
+                      markerIcon =
+                        "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
+                    } else if (categoryId[0] === 2) {
+                      markerIcon =
+                        "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
+                    } else if (categoryId[0] === 3) {
+                      markerIcon =
+                        "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
+                    } else {
+                      markerIcon =
+                        "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
+                    }
+
+                    return (
+                      <MarkerF
+                        key={id}
+                        icon={{
+                          url: `${markerIcon}`,
+                          scaledSize: new google.maps.Size(50, 50),
+                        }}
+                        position={position}
+                      />
+                    );
+                  }
+                })}
+              </GoogleMap>
+              <Button color="greyBlue" onClick={() => navigate("../map")}>
+                SEARCH AROUND THE AREA
+              </Button>
+            </Grid.Col>
+            <Grid.Col span={6}>
+              {currentPinInfo && (
+                <>
+                  <Text>{currentPinInfo.name}</Text>
+                  <Text>
+                    Current Crowd Estimate: {currentPinInfo.latestCrowdSize} -{" "}
+                    {currentPinInfo.latestCrowdIntensity} at{" "}
+                    {new Date(currentPinInfo.latestCrowdTime).toLocaleString()}
+                  </Text>
+                </>
+              )}
+
+              <Button color="greyBlue" onClick={handleCheckIn}>
+                CHECK IN FOR XX POINTS
+              </Button>
+              {checkIn && currentPin ? (
+                <>
+                  {errorCheckIn ? (
+                    <Alert
+                      icon={<IconAlertCircle size={16} />}
+                      title="Bummer!"
+                      color="aqua"
+                    >
+                      You are not within the vicinity of the place you are
+                      trying to check in at! Please move closer and try again
+                    </Alert>
+                  ) : null}
+                  <div className={classes.wrapper}>
+                    <div>
+                      <Text weight={300} size="lg" mb={5}>
+                        At {currentPin.placeName} and want to check in?
+                      </Text>
+                      {/* <Text size="sm" color="dimmed">
+                        Earn XX points if you provide your feedback and help the
+                        community!
+                      </Text> */}
+
+                      <Select
+                        style={{ marginTop: 20, zIndex: 2 }}
+                        data={[
+                          {
+                            value: "very crowded",
+                            label: "Very Crowded (> 100 people)",
+                            name: ">100 pax",
+                          },
+                          {
+                            value: "somewhat crowded",
+                            label: "Somewhat Crowded (30 to 100 people)",
+                            name: "30 to 100 pax",
+                          },
+                          {
+                            value: "little crowd",
+                            label: "Little Crowd (< 30 people)",
+                            name: "<30 pax",
+                          },
+                        ]}
+                        placeholder="Pick one"
+                        label="Current Crowd Estimate"
+                        classNames={classes}
+                        value={crowdValue}
+                        onChange={setCrowdValue}
+                      />
+                      <div className={classes.controls}>
+                        <Button
+                          className={classes.control}
+                          onClick={handleSubmitCrowd}
+                          name="with location"
+                        >
+                          CHECK IN
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : null}
+              <Text>NEARBY SIMILAR PLACES OF INTEREST</Text>
+              {nearbyPlaceDist.length > 0 ? displayNearbyPlaces() : null}
+            </Grid.Col>
+          </Grid>
+        </>
+      ) : (
+        <Loader />
+      )}
+    </>
+  );
 }

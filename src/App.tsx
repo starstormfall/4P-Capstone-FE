@@ -60,7 +60,8 @@ function App() {
 
                 {/* Map homepage */}
                 <Route path="/map" element={<Map />} />
-                <Route path="/map/:pinId" element={<PinMap />} />
+                {/* Put Pinmap as a child component of explore page post? and no route here*/}
+                {/* <Route path="/map/:pinId" element={<PinMap />} /> */}
               </Route>
               <Route path="*" element={<NothingFound />} />
             </Routes>

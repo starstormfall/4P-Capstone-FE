@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   GoogleMap,
-  InfoWindow,
-  Marker,
   useJsApiLoader,
   MarkerF,
   InfoWindowF,
@@ -10,7 +8,7 @@ import {
   HeatmapLayer,
   DistanceMatrixService,
 } from "@react-google-maps/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Button,
   Group,
@@ -26,7 +24,10 @@ import {
   Title,
   TextInput,
   Select,
+  Alert,
+  Anchor,
 } from "@mantine/core";
+import { IconAlertCircle } from "@tabler/icons";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import axios from "axios";
@@ -36,6 +37,21 @@ import { addAbortSignal } from "stream";
 const center = {
   lat: 36.2048,
   lng: 138.2529,
+};
+
+const tokyo = {
+  lat: 35.68309653980229,
+  lng: 139.7525871479461,
+};
+
+const hokkaido = {
+  lat: 43.27748330255431,
+  lng: 142.61770892207522,
+};
+
+const osaka = {
+  lat: 34.66801615290104,
+  lng: 135.49706560580577,
 };
 
 const useStyles = createStyles((theme) => ({
@@ -165,7 +181,7 @@ interface PinLocationInformation {
   posts: PostPinInformation[];
 }
 
-export interface Area {
+interface Area {
   id: number;
   prefecture: string;
 }
@@ -192,8 +208,9 @@ interface Distance {
 }
 
 export default function Map() {
+  // TO DO ADDITION OF POINTS WHEN CHECK IN
   const { classes } = useStyles();
-  // to allow user to check in on crowd. If current location is used, give more points!
+  const navigate = useNavigate();
 
   const [libraries] = useState<
     ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
@@ -212,6 +229,8 @@ export default function Map() {
     []
   );
 
+  const [originalMap, setOriginalMap] = useState<google.maps.Map | null>(null);
+  const [currentPosition, setCurrentPosition] = useState<Position>();
   const [mapCenter, setMapCenter] = useState(center);
   const [zoomLevel, setZoomLevel] = useState(7);
   const [pins, setPins] = useState<PinLocationInformation[]>([]);
@@ -229,6 +248,7 @@ export default function Map() {
   const [crowdMapWeight, setCrowdMapWeight] = useState(0);
   const [checkIn, setCheckIn] = useState(false);
   const [crowdValue, setCrowdValue] = useState<string | null>("");
+  const [errorCheckIn, setErrorCheckIn] = useState(false);
 
   //For Googlemaps DistanceMatrix Service. To get distances.
   const [control, setControl] = useState(true);
@@ -238,7 +258,33 @@ export default function Map() {
   );
   const [nearbyPlaceDist, setNearbyPlaceDist] = useState<Distance[]>([]);
 
+  let blueDot;
+
+  if (isLoaded) {
+    blueDot = {
+      fillColor: "purple",
+      fillOpacity: 1,
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 10,
+      strokeColor: "beige",
+      strokeWeight: 3,
+    };
+  }
+
   console.log(crowdValue);
+  console.log(currentPosition);
+
+  useEffect(() => {
+    if (originalMap) {
+      originalMap.panTo(center);
+      navigator.geolocation.getCurrentPosition((position) => {
+        setCurrentPosition({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      });
+    }
+  }, [originalMap]);
 
   const getAllInitialPins = async () => {
     if (filterRegion === 0 && filterCategory === 0) {
@@ -348,13 +394,13 @@ export default function Map() {
 
   const displayNearbyPlaces = () => {
     if (nearbyPlaceDist.length !== 0) {
-      const infoToReturn = nearbyPlaceDist.map((place) => {
+      const infoToReturn = nearbyPlaceDist.map((place, j) => {
         //place.position is the index within destination address
 
         console.log(destinationAddresses[place.position]);
         //this gives me lat long of each place.
 
-        const originalPin = pins.find(
+        const originalPin: PinLocationInformation | undefined = pins.find(
           (pin) => pin.lat === destinationAddresses[place.position].lat
         );
 
@@ -365,7 +411,7 @@ export default function Map() {
             const { crowdIntensity, crowdSize, recordedAt } = crowd;
             return (
               <>
-                <Card>
+                <Card key={new Date(recordedAt).toLocaleString()}>
                   <Text>{new Date(recordedAt).toLocaleString()} </Text>
                   <Text>{crowdIntensity}</Text>
                   <Text>{crowdSize}</Text>
@@ -380,22 +426,30 @@ export default function Map() {
               const allCategories = postCategories.map((category) => {
                 const { categoryId } = category;
                 return (
-                  <Button key={categoryId}>
+                  <Badge
+                    variant="gradient"
+                    gradient={{ from: "aqua", to: "purple" }}
+                    key={categoryId}
+                  >
                     {allAvailableCategories[categoryId - 1].name.toUpperCase()}
-                  </Button>
+                  </Badge>
                 );
               });
               const allHashtags = postHashtags.map((hashtag) => {
                 const { hashtagId } = hashtag;
                 return (
-                  <Button key={hashtagId}>
+                  <Badge
+                    variant="gradient"
+                    gradient={{ from: "purple", to: "beige" }}
+                    key={hashtagId}
+                  >
                     {allAvailableHashtags[hashtagId - 1].name}
-                  </Button>
+                  </Badge>
                 );
               });
 
               return (
-                <Card>
+                <Card key={post.title}>
                   {allCategories}
                   <br />
                   {allHashtags}
@@ -404,7 +458,13 @@ export default function Map() {
                     Posted: {new Date(post.createdAt).toLocaleDateString()}
                   </Text>
                   <Text>{post.content}</Text>
-                  <img src={post.photoLink} alt={post.title} height={400} />
+                  <Anchor
+                    href={post.externalLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <img src={post.photoLink} alt={post.title} height={400} />
+                  </Anchor>
                   <Text>Likes: {post.likeCount}</Text>
                 </Card>
               );
@@ -412,17 +472,19 @@ export default function Map() {
           });
 
           return (
-            <>
+            <div key={originalPin.placeName}>
               <Text>NEARBY SIMILAR PLACES OF INTEREST</Text>
+              <Text>
+                {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}km away
+              </Text>
               <Text>{originalPin.placeName}</Text>
               <Text>
                 {allAvailableAreas[originalPin.areaId - 1].prefecture}
               </Text>
               <Text>LATEST CROWD ESTIMATES</Text>
               {allCrowds}
-              <br />
               {allPosts}
-            </>
+            </div>
           );
         }
       });
@@ -456,9 +518,22 @@ export default function Map() {
       if (filterRegion !== areaId) {
         setCategoryVisible(true);
         setFilterRegion(areaId);
+
+        if (originalMap) {
+          if (areaId === 1) {
+            originalMap.panTo(tokyo);
+          } else if (areaId === 2) {
+            originalMap.panTo(hokkaido);
+          } else {
+            originalMap.panTo(osaka);
+          }
+        }
       } else if (filterRegion === areaId) {
         setCategoryVisible(false);
         setFilterRegion(0);
+        if (originalMap) {
+          originalMap.panTo(center);
+        }
       }
     } else if (name === "category") {
       setHashtagVisible(true);
@@ -591,6 +666,11 @@ export default function Map() {
     const realIndex = pinMarkers.findIndex((item) => item.id === marker);
     setActiveMarker(marker);
     setActiveWindow(realIndex);
+
+    if (originalMap) {
+      originalMap.panTo(pinMarkers[realIndex].position);
+    }
+
     setHeatmapData([
       {
         location: new window.google.maps.LatLng(
@@ -628,6 +708,7 @@ export default function Map() {
     setDestinationAddresses(destinationPins);
   };
   console.log(activeWindow);
+  console.log(nearbyPlaceDist);
 
   const findPinInfo = () => {
     if (activeMarker !== null && activeWindow !== null) {
@@ -642,7 +723,7 @@ export default function Map() {
         const { crowdIntensity, crowdSize, recordedAt } = crowd;
         return (
           <>
-            <Card>
+            <Card key={new Date(recordedAt).toLocaleString()}>
               <Text>{new Date(recordedAt).toLocaleString()} </Text>
               <Text>{crowdIntensity}</Text>
               <Text>{crowdSize}</Text>
@@ -680,7 +761,7 @@ export default function Map() {
           });
 
           return (
-            <Card>
+            <Card key={post.title}>
               {allCategories}
               <br />
               {allHashtags}
@@ -689,7 +770,13 @@ export default function Map() {
                 Posted: {new Date(post.createdAt).toLocaleDateString()}
               </Text>
               <Text>{post.content}</Text>
-              <img src={post.photoLink} alt={post.title} height={400} />
+              <Anchor
+                href={post.externalLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img src={post.photoLink} alt={post.title} height={400} />
+              </Anchor>
               <Text>Likes: {post.likeCount}</Text>
             </Card>
           );
@@ -697,7 +784,7 @@ export default function Map() {
       });
 
       return (
-        <>
+        <div key={pinMarkers[activeWindow].name}>
           <Text>{pinMarkers[activeWindow].name}</Text>
           <Text>
             {
@@ -711,11 +798,11 @@ export default function Map() {
           {allCrowds}
           <br />
           <Button color="greyBlue" onClick={handleCheckIn}>
-            Check in for XX points
+            CHECK IN FOR XX POINTS
           </Button>
           <br />
           {allPosts}
-        </>
+        </div>
       );
     }
   };
@@ -742,37 +829,107 @@ export default function Map() {
   };
 
   const handleCheckIn = () => {
-    setCheckIn(true);
+    setCheckIn(!checkIn);
+    setErrorCheckIn(false);
   };
 
-  const handleSubmitCrowd: React.MouseEventHandler<
-    HTMLButtonElement
-  > = async () => {
-    let crowdIntensity;
-    if (crowdValue === "very crowded") {
-      crowdIntensity = ">100 pax";
-      setCrowdMapWeight(100);
-    } else if (crowdValue === "somewhat crowded") {
-      crowdIntensity = "30 to 100 pax";
-      setCrowdMapWeight(40);
-    } else {
-      crowdIntensity = "<30 pax";
-      setCrowdMapWeight(10);
-    }
+  const calcDistanceTwoPoints = (point1: Position, point2: Position) => {
+    let latPoint1 = point1.lat / 57.29577951;
+    let latPoint2 = point2.lat / 57.29577951;
+    let lngPoint1 = point1.lng / 57.29577951;
+    let lngPoint2 = point1.lng / 57.29577951;
 
-    const objectBody = {
-      userId: userId,
-      crowdSize: crowdValue,
-      crowdIntensity: crowdIntensity,
-    };
-
-    await axios.post(
-      `${backendUrl}/maps/${activeMarker}/createCrowdData`,
-      objectBody
+    return (
+      3963.0 *
+      1.609344 *
+      1000 *
+      Math.acos(
+        Math.sin(latPoint1) * Math.sin(latPoint2) +
+          Math.cos(latPoint1) *
+            Math.cos(latPoint2) *
+            Math.cos(lngPoint2 - lngPoint1)
+      )
     );
+  };
 
-    setCrowdValue("");
-    setCheckIn(false);
+  const handleSubmitCrowd: React.MouseEventHandler<HTMLButtonElement> = async (
+    e
+  ) => {
+    console.log(e.currentTarget.name);
+
+    if (e.currentTarget.name === "with location") {
+      navigator.geolocation.getCurrentPosition((position) => {
+        setCurrentPosition({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      });
+
+      if (currentPosition && originAddress) {
+        const distanceFromPoint = calcDistanceTwoPoints(
+          currentPosition,
+          originAddress[0]
+        );
+
+        if (distanceFromPoint <= 100) {
+          setErrorCheckIn(false);
+          let crowdIntensity;
+          if (crowdValue === "very crowded") {
+            crowdIntensity = ">100 pax";
+            setCrowdMapWeight(100);
+          } else if (crowdValue === "somewhat crowded") {
+            crowdIntensity = "30 to 100 pax";
+            setCrowdMapWeight(40);
+          } else {
+            crowdIntensity = "<30 pax";
+            setCrowdMapWeight(10);
+          }
+
+          const objectBody = {
+            userId: userId,
+            crowdSize: crowdValue,
+            crowdIntensity: crowdIntensity,
+          };
+
+          await axios.post(
+            `${backendUrl}/maps/${activeMarker}/createCrowdData`,
+            objectBody
+          );
+
+          setCrowdValue("");
+          setCheckIn(false);
+        } else {
+          setErrorCheckIn(true);
+        }
+      }
+    } else {
+      setErrorCheckIn(false);
+      let crowdIntensity;
+      if (crowdValue === "very crowded") {
+        crowdIntensity = ">100 pax";
+        setCrowdMapWeight(100);
+      } else if (crowdValue === "somewhat crowded") {
+        crowdIntensity = "30 to 100 pax";
+        setCrowdMapWeight(40);
+      } else {
+        crowdIntensity = "<30 pax";
+        setCrowdMapWeight(10);
+      }
+
+      const objectBody = {
+        userId: userId,
+        crowdSize: crowdValue,
+        crowdIntensity: crowdIntensity,
+      };
+
+      await axios.post(
+        `${backendUrl}/maps/${activeMarker}/createCrowdData`,
+        objectBody
+      );
+
+      setCrowdValue("");
+      setCheckIn(false);
+    }
   };
 
   return (
@@ -800,13 +957,15 @@ export default function Map() {
         <Group>{listHashtags} </Group>
       ) : null}
       <br />
+
       {isLoaded && pinMarkers.length > 0 ? (
         <>
           <GoogleMap
             onClick={() => handleResetMarker()}
             center={mapCenter}
+            onLoad={(map) => setOriginalMap(map)}
             zoom={zoomLevel}
-            mapContainerStyle={{ width: "70%", height: "100%" }}
+            mapContainerStyle={{ width: "70vw", height: "80vh" }}
             options={{
               streetViewControl: false,
               mapTypeControl: false,
@@ -901,7 +1060,13 @@ export default function Map() {
                   }}
                 />
               )}
-
+            {currentPosition && isLoaded ? (
+              <MarkerF
+                key={`current location`}
+                icon={blueDot}
+                position={currentPosition}
+              />
+            ) : null}
             {/* <Marker position={center} /> */}
             {pinMarkers.map((element, index) => {
               const { id, name, position, categoryId } = element;
@@ -1080,6 +1245,16 @@ export default function Map() {
           </GoogleMap>
           {checkIn && activeWindow ? (
             <>
+              {errorCheckIn ? (
+                <Alert
+                  icon={<IconAlertCircle size={16} />}
+                  title="Bummer!"
+                  color="aqua"
+                >
+                  You are not within the vicinity of the place you are trying to
+                  check in at! Please move closer and try again
+                </Alert>
+              ) : null}
               <div className={classes.wrapper}>
                 <div className={classes.body}>
                   <Text weight={500} size="lg" mb={5}>
@@ -1119,8 +1294,17 @@ export default function Map() {
                     <Button
                       className={classes.control}
                       onClick={handleSubmitCrowd}
+                      name="with location"
                     >
-                      Check In{" "}
+                      Check In With Location for XX more Points
+                    </Button>
+                    <br />
+                    <Button
+                      className={classes.control}
+                      onClick={handleSubmitCrowd}
+                      name="without location"
+                    >
+                      Check In Without Location
                     </Button>
                   </div>
                 </div>
