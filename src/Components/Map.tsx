@@ -193,7 +193,7 @@ interface Distance {
 
 export default function Map() {
   const { classes } = useStyles();
-  // to allow user to check in on crowd
+  // to allow user to check in on crowd. If current location is used, give more points!
 
   const [libraries] = useState<
     ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
