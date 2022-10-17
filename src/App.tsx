@@ -6,7 +6,7 @@ import NothingFound from "./Components/NothingFound/NothingFound";
 import ExplorePage from "./Components/ExplorePage";
 import HomePage from "./Components/UserHome/HomePage";
 import UserForm from "./Components/UserForm";
-import UserFavourites from "./Components/UserFavourites";
+import UserFavourites from "./Components/Favourites/UserFavourites";
 import ForumMain from "./Components/ForumMain";
 import ThreadSingle from "./Components/TheadSingle";
 import BeFriendPage from "./Components/BeFriendPage";
@@ -38,6 +38,7 @@ function App() {
                 <Route path="/createaccount" element={<UserForm />} />
                 {/* Logged in user homepage (explorepage) */}
                 <Route path="/home" element={<HomePage />} />
+
                 {/* User's Favourites page */}
                 <Route path="/favourite" element={<UserFavourites />} />
                 {/* Forum page */}
