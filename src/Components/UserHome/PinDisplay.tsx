@@ -8,7 +8,7 @@ import { Container, Grid } from "@mantine/core";
 
 // import child components
 import ExplorePost from "./ExplorePost";
-import PinMap from "../PinMap";
+import PinMap from "../UserHome/PinMap";
 
 interface Props {
   selectedPost: Post | undefined;

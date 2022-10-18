@@ -14,7 +14,6 @@ import FriendList from "./Components/FriendList";
 import ChatRoomList from "./Components/ChatRoomList";
 import ChatRoom from "./Components/ChatRoom";
 import Map from "./Components/Map";
-import PinMap from "./Components/PinMap";
 import { AppContextProvider } from "./Components/Context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 

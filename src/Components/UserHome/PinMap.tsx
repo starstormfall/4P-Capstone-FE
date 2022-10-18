@@ -27,9 +27,19 @@ import {
   Anchor,
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons";
-import { backendUrl } from "../utils";
-import { UseApp } from "./Context";
+import { backendUrl } from "../../utils";
+import { UseApp } from "../Context";
 import axios from "axios";
+import {
+  Area,
+  Category,
+  Hashtag,
+  Position,
+  Distance,
+  MarkerPositions,
+  PinLocationInformation,
+} from "./HomePageInterface";
+import NearbyPlaces from "./NearbyPlaces";
 
 // Styles for crowd check in banner
 const useStyles = createStyles((theme) => ({
@@ -101,95 +111,6 @@ interface Props {
   postId: number;
   pinId: number;
   areaId: number;
-}
-
-interface Area {
-  id: number;
-  prefecture: string;
-}
-
-interface Category {
-  id: number;
-  name: string;
-}
-
-interface Hashtag {
-  id: number;
-  name: string;
-  categoryId: number;
-}
-
-interface Position {
-  lat: number;
-  lng: number;
-}
-
-interface Distance {
-  position: number;
-  distance: number;
-}
-
-interface MarkerPositions {
-  position: {
-    lat: number;
-    lng: number;
-  };
-  id: number;
-  name: string;
-  areaId: number;
-  categoryId: number[];
-  hashtagId: number[];
-  latestCrowdIntensity: string;
-  latestCrowdSize: string;
-  latestCrowdTime: Date;
-}
-
-interface CrowdPinInformation {
-  recordedAt: Date;
-  crowdSize: string;
-  crowdIntensity: string;
-}
-
-interface CategoryIdInfo {
-  categoryId: number;
-}
-
-interface HashtagIdInfo {
-  hashtagId: number;
-}
-
-interface PostPinInformation {
-  id: number;
-  title: string;
-  photoLink: string;
-  content: string;
-  areaId: number;
-  pinId: number;
-  locationName: string;
-  forumPost: boolean;
-  explorePost: string;
-  externalLink: string;
-  likeCount: number;
-  userId: number;
-  createdAt: Date;
-  updatedAt: Date;
-  postCategories: CategoryIdInfo[];
-  postHashtags: HashtagIdInfo[];
-}
-
-interface PinLocationInformation {
-  id: number;
-  lat: number;
-  lng: number;
-  placeName: string;
-  areaId: number;
-  createdAt: Date;
-  updatedAt: Date;
-  area: {
-    prefecture: string;
-  };
-  crowds: CrowdPinInformation[];
-  posts: PostPinInformation[];
 }
 
 export default function PinMap(props: Props) {
@@ -389,97 +310,6 @@ export default function PinMap(props: Props) {
       }
     }
   }, [currentPin, originalMap, pinMarkers]);
-
-  // Function to call within googlemaps distance matrix service, to process the response provided back from matrix service.
-  // Obtains closest place with same category to the current pin. Allows displaying of the data of that place. Renders pin data, post and crowd data of pin as JSX.
-  const displayNearbyPlaces = () => {
-    if (nearbyPlaceDist.length !== 0) {
-      const infoToReturn = nearbyPlaceDist.map((place, j) => {
-        const originalPin: PinLocationInformation | undefined = pins.find(
-          (pin) => pin.lat === destinationAddresses[place.position].lat
-        );
-
-        if (originalPin) {
-          const allCrowds = originalPin.crowds.slice(0, 1).map((crowd, i) => {
-            const { crowdIntensity, crowdSize, recordedAt } = crowd;
-            return (
-              <>
-                <Card key={new Date(recordedAt).toLocaleString()}>
-                  <Text>{new Date(recordedAt).toLocaleString()} </Text>
-                  <Text>{crowdIntensity}</Text>
-                  <Text>{crowdSize}</Text>
-                </Card>
-              </>
-            );
-          });
-
-          const allPosts = originalPin.posts.map((post, i) => {
-            if (i < 3) {
-              const { postCategories, postHashtags } = post;
-              const allCategories = postCategories.map((category) => {
-                const { categoryId } = category;
-                return (
-                  <Badge
-                    variant="gradient"
-                    gradient={{ from: "aqua", to: "purple" }}
-                    key={categoryId}
-                  >
-                    {allAvailableCategories[categoryId - 1].name.toUpperCase()}
-                  </Badge>
-                );
-              });
-              const allHashtags = postHashtags.map((hashtag) => {
-                const { hashtagId } = hashtag;
-                return (
-                  <Badge
-                    variant="gradient"
-                    gradient={{ from: "purple", to: "beige" }}
-                    key={hashtagId}
-                  >
-                    {allAvailableHashtags[hashtagId - 1].name}
-                  </Badge>
-                );
-              });
-
-              return (
-                <Card key={post.title}>
-                  {allCategories}
-                  <br />
-                  {allHashtags}
-                  <Text>Title: {post.title}</Text>
-                  <Anchor
-                    href={post.externalLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <img src={post.photoLink} alt={post.title} height={400} />
-                  </Anchor>
-                  <Text>Likes: {post.likeCount}</Text>
-                </Card>
-              );
-            } else return null;
-          });
-
-          return (
-            <div key={originalPin.placeName}>
-              <Text>
-                {originalPin.placeName}:
-                {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}KM away{" "}
-              </Text>
-              {/* <Text>
-                {allAvailableAreas[originalPin.areaId - 1].prefecture}
-              </Text> */}
-              <Text>LATEST CROWD ESTIMATE</Text>
-              {allCrowds}
-              {/* {allPosts} */}
-            </div>
-          );
-        }
-      });
-
-      return infoToReturn;
-    }
-  };
 
   // Function that handles user when user clicks check in. Sets states for jsx to render.
   const handleCheckIn = () => {
@@ -809,7 +639,16 @@ export default function PinMap(props: Props) {
                 </>
               ) : null}
               <Text>NEARBY SIMILAR PLACES OF INTEREST</Text>
-              {nearbyPlaceDist.length > 0 ? displayNearbyPlaces() : null}
+              {nearbyPlaceDist.length > 0 && pins.length !== 0 ? (
+                <NearbyPlaces
+                  nearbyPlaceDist={nearbyPlaceDist}
+                  pins={pins}
+                  destinationAddresses={destinationAddresses}
+                  allAvailableCategories={allAvailableCategories}
+                  allAvailableHashtags={allAvailableHashtags}
+                  allAvailableAreas={allAvailableAreas}
+                />
+              ) : null}
             </Grid.Col>
           </Grid>
         </>
