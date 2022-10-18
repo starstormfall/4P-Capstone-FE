@@ -8,6 +8,7 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
+import { useAuth0 } from "@auth0/auth0-react";
 import ChatRoom from "./ChatRoom";
 
 //create interface for the data
@@ -35,6 +36,7 @@ type FriendDataInformation = {
 
 export default function BeFriendPage() {
   const { userInfo } = UseApp();
+  const { getAccessTokenSilently } = useAuth0();
 
   const useFriendList = useQuery(["friendlist"], () =>
     axios
