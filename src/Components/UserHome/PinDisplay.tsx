@@ -8,6 +8,7 @@ import { Container, Grid } from "@mantine/core";
 
 // import child components
 import ExplorePost from "./ExplorePost";
+import PinMap from "../UserHome/PinMap";
 
 interface Props {
   selectedPost: Post | undefined;
@@ -31,7 +32,15 @@ export default function PinDisplay({ selectedPost }: Props) {
             showPin={handleShowPin}
           /> */}
         </Grid.Col>
-        <Grid.Col span={6}> Map </Grid.Col>
+        <Grid.Col span={6}>
+          {selectedPost && (
+            <PinMap
+              postId={Number(selectedPost.id)}
+              pinId={Number(selectedPost.pinId)}
+              areaId={Number(selectedPost.areaId)}
+            />
+          )}
+        </Grid.Col>
       </Grid>
     </Container>
   );
