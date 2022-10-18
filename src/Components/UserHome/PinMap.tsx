@@ -40,6 +40,7 @@ import {
   PinLocationInformation,
 } from "./HomePageInterface";
 import NearbyPlaces from "./NearbyPlaces";
+import { useAuth0 } from "@auth0/auth0-react";
 
 // Styles for crowd check in banner
 const useStyles = createStyles((theme) => ({
@@ -120,6 +121,15 @@ export default function PinMap(props: Props) {
   // Usage of Context to obtain userId and userInfo.
   const { userId, userInfo } = UseApp();
 
+  // Obtain methods for auth0 authentication.
+  const {
+    isAuthenticated,
+    user,
+    loginWithRedirect,
+    logout,
+    getAccessTokenSilently,
+  } = useAuth0();
+
   // Google map library and API definition
   const [libraries] = useState<
     ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
@@ -170,6 +180,15 @@ export default function PinMap(props: Props) {
     []
   );
   const [nearbyPlaceDist, setNearbyPlaceDist] = useState<Distance[]>([]);
+
+  // useEffect for checking auth0 authentication upon load.
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log(user);
+    } else {
+      loginWithRedirect();
+    }
+  }, []);
 
   // Marker style for current location of user based on GPS. Requires google map instance to be loaded.
   let blueDot;
@@ -222,19 +241,38 @@ export default function PinMap(props: Props) {
   }, [checkIn, crowdValue]);
 
   const getCurrentPin = async () => {
+    const accessToken = await getAccessTokenSilently({
+      audience: process.env.REACT_APP_AUDIENCE,
+      scope: process.env.REACT_APP_SCOPE,
+    });
+
     const response = await axios.get(
-      `${backendUrl}/maps/onePin/${props.pinId}`
+      `${backendUrl}/maps/onePin/${props.pinId}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
     );
     setCurrentPin(response.data);
   };
 
   const getAllInitialPinsToArea = async () => {
+    const accessToken = await getAccessTokenSilently({
+      audience: process.env.REACT_APP_AUDIENCE,
+      scope: process.env.REACT_APP_SCOPE,
+    });
+
     const response = await axios.get(
-      `${backendUrl}/maps/allPins?areaId=${props.areaId}`
+      `${backendUrl}/maps/allPins?areaId=${props.areaId}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
     );
 
     const markersRes = await axios.get(
-      `${backendUrl}/maps/allPins?type=markers`
+      `${backendUrl}/maps/allPins?type=markers`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
     );
 
     const newMarkersRes = markersRes.data.filter(
@@ -378,9 +416,17 @@ export default function PinMap(props: Props) {
           crowdIntensity: crowdIntensity,
         };
 
+        const accessToken = await getAccessTokenSilently({
+          audience: process.env.REACT_APP_AUDIENCE,
+          scope: process.env.REACT_APP_SCOPE,
+        });
+
         await axios.post(
           `${backendUrl}/maps/${props.pinId}/createCrowdData`,
-          objectBody
+          objectBody,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
         );
 
         const newUserScoreObj = {
@@ -395,7 +441,10 @@ export default function PinMap(props: Props) {
 
         const userResponse = await axios.put(
           `${backendUrl}/users/update/${userId}`,
-          newUserScoreObj
+          newUserScoreObj,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
         );
 
         setCrowdValue("");

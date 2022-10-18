@@ -30,8 +30,10 @@ import {
 import { IconAlertCircle } from "@tabler/icons";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
+import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
 import { addAbortSignal } from "stream";
+import { getTokenSourceMapRange } from "typescript";
 
 // Define centers for each region for google maps.
 const center = {
@@ -226,6 +228,15 @@ export default function Map() {
   // Usage of Context to obtain userId and userInfo.
   const { userId, userInfo } = UseApp();
 
+  // Obtain methods for auth0 authentication.
+  const {
+    isAuthenticated,
+    user,
+    loginWithRedirect,
+    logout,
+    getAccessTokenSilently,
+  } = useAuth0();
+
   // States for loading all prefectures, categories and hashtags.
   const [allAvailableAreas, setAllAvailableAreas] = useState<Area[]>([]);
   const [allAvailableCategories, setAllAvailableCategories] = useState<
@@ -276,6 +287,15 @@ export default function Map() {
     []
   );
   const [nearbyPlaceDist, setNearbyPlaceDist] = useState<Distance[]>([]);
+
+  // useEffect for checking auth0 authentication upon load.
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log(user);
+    } else {
+      loginWithRedirect();
+    }
+  }, []);
 
   // Marker style for current location of user based on GPS. Requires google map instance to be loaded.
   let blueDot;
@@ -336,20 +356,41 @@ export default function Map() {
   // Function for api call to get all pins info and corresponding pin markers info, depending on region, category and hashtag filters. Set into states.
   const getAllInitialPins = async () => {
     if (filterRegion === 0 && filterCategory === 0) {
-      const response = await axios.get(`${backendUrl}/maps/allPins`);
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
+      const response = await axios.get(`${backendUrl}/maps/allPins`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const markersRes = await axios.get(
-        `${backendUrl}/maps/allPins?type=markers`
+        `${backendUrl}/maps/allPins?type=markers`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       setPins(response.data);
       setPinMarkers(markersRes.data);
     } else if (filterRegion !== 0 && filterCategory === 0) {
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
       const response = await axios.get(
-        `${backendUrl}/maps/allPins?areaId=${filterRegion}`
+        `${backendUrl}/maps/allPins?areaId=${filterRegion}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const markersRes = await axios.get(
-        `${backendUrl}/maps/allPins?type=markers`
+        `${backendUrl}/maps/allPins?type=markers`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const newMarkersRes = markersRes.data.filter(
@@ -359,12 +400,23 @@ export default function Map() {
       setPins(response.data);
       setPinMarkers(newMarkersRes);
     } else if (filterRegion !== 0 && filterCategory !== 0 && filterHash === 0) {
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
       const response = await axios.get(
-        `${backendUrl}/maps/allPins?areaId=${filterRegion}&categoryId=${filterCategory}`
+        `${backendUrl}/maps/allPins?areaId=${filterRegion}&categoryId=${filterCategory}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const markersRes = await axios.get(
-        `${backendUrl}/maps/allPins?type=markers`
+        `${backendUrl}/maps/allPins?type=markers`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const newMarkersRes = await markersRes.data.filter(
@@ -378,12 +430,23 @@ export default function Map() {
       setPins(response.data);
       setPinMarkers(newMarkersCatRes);
     } else if (filterRegion !== 0 && filterCategory !== 0 && filterHash !== 0) {
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
       const response = await axios.get(
-        `${backendUrl}/maps/allPins?areaId=${filterRegion}&categoryId=${filterCategory}&hashtagId=${filterHash}`
+        `${backendUrl}/maps/allPins?areaId=${filterRegion}&categoryId=${filterCategory}&hashtagId=${filterHash}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const markersRes = await axios.get(
-        `${backendUrl}/maps/allPins?type=markers`
+        `${backendUrl}/maps/allPins?type=markers`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const newMarkersRes = await markersRes.data.filter(
@@ -927,9 +990,17 @@ export default function Map() {
             crowdIntensity: crowdIntensity,
           };
 
+          const accessToken = await getAccessTokenSilently({
+            audience: process.env.REACT_APP_AUDIENCE,
+            scope: process.env.REACT_APP_SCOPE,
+          });
+
           await axios.post(
             `${backendUrl}/maps/${activeMarker}/createCrowdData`,
-            objectBody
+            objectBody,
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }
           );
 
           const newUserScoreObj = {
@@ -944,7 +1015,10 @@ export default function Map() {
 
           const userResponse = await axios.put(
             `${backendUrl}/users/update/${userId}`,
-            newUserScoreObj
+            newUserScoreObj,
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }
           );
 
           setCrowdValue("");
@@ -976,9 +1050,17 @@ export default function Map() {
         crowdIntensity: crowdIntensity,
       };
 
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
       await axios.post(
         `${backendUrl}/maps/${activeMarker}/createCrowdData`,
-        objectBody
+        objectBody,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const newUserScoreObj = {
@@ -993,7 +1075,10 @@ export default function Map() {
 
       const userResponse = await axios.put(
         `${backendUrl}/users/update/${userId}`,
-        newUserScoreObj
+        newUserScoreObj,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       setCrowdValue("");
