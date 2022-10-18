@@ -117,8 +117,8 @@ export default function PinMap(props: Props) {
   const { classes } = useStyles();
   const navigate = useNavigate();
 
-  // Usage of Context to obtain userId.
-  const { userId } = UseApp();
+  // Usage of Context to obtain userId and userInfo.
+  const { userId, userInfo } = UseApp();
 
   // Google map library and API definition
   const [libraries] = useState<
@@ -161,6 +161,8 @@ export default function PinMap(props: Props) {
   const [checkIn, setCheckIn] = useState(false);
   const [crowdValue, setCrowdValue] = useState<string | null>("");
   const [errorCheckIn, setErrorCheckIn] = useState(false);
+  const [successCheckIn, setSuccessCheckIn] = useState(false);
+  const [newUserScore, setNewUserScore] = useState(0);
 
   // States for Googlemap DistanceMatrix Service. To get distances.
   const [control, setControl] = useState(true);
@@ -315,6 +317,7 @@ export default function PinMap(props: Props) {
   const handleCheckIn = () => {
     setCheckIn(!checkIn);
     setErrorCheckIn(false);
+    setSuccessCheckIn(false);
   };
 
   // Helper function to calculate the distance between the pin position and the user's live position.
@@ -337,7 +340,7 @@ export default function PinMap(props: Props) {
     );
   };
 
-  // Function triggered when user clicks submit crowd data. Checks if user is within 100m of the pin. If no, send error banner. If yes, create data within BE.
+  // Function triggered when user clicks submit crowd data. Checks if user is within 100m of the pin. If no, send error banner. If yes, create data within BE and update user score.
   const handleSubmitCrowd: React.MouseEventHandler<HTMLButtonElement> = async (
     e
   ) => {
@@ -380,10 +383,28 @@ export default function PinMap(props: Props) {
           objectBody
         );
 
+        const newUserScoreObj = {
+          email: userInfo.email,
+          score: Number(userInfo.score + 10),
+          name: userInfo.name,
+          nationality: userInfo.nationality,
+          lastLogin: userInfo.lastLogin,
+          photoLink: userInfo.photoLink,
+          loginStreak: userInfo.loginStreak,
+        };
+
+        const userResponse = await axios.put(
+          `${backendUrl}/users/update/${userId}`,
+          newUserScoreObj
+        );
+
         setCrowdValue("");
         setCheckIn(false);
+        setSuccessCheckIn(true);
+        setNewUserScore(userResponse.data.score);
       } else {
         setErrorCheckIn(true);
+        setSuccessCheckIn(false);
       }
     }
   };
@@ -637,6 +658,17 @@ export default function PinMap(props: Props) {
                     </div>
                   </div>
                 </>
+              ) : null}
+              {successCheckIn ? (
+                <Alert
+                  icon={<IconAlertCircle size={16} />}
+                  title="Congratulations!"
+                  color="aqua"
+                >
+                  You have successfully checked in. Thank you for helping the
+                  community! You have earned 10 points for your contribution and
+                  have {newUserScore} points now.
+                </Alert>
               ) : null}
               <Text>NEARBY SIMILAR PLACES OF INTEREST</Text>
               {nearbyPlaceDist.length > 0 && pins.length !== 0 ? (
