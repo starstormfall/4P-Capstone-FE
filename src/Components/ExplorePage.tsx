@@ -9,7 +9,7 @@ import { UseApp } from "./Context";
 import { Button, Container, Image, Grid } from "@mantine/core";
 
 export default function ExplorePage() {
-  console.log(backendUrl);
+  // console.log(backendUrl);
   const navigate = useNavigate();
 
   const [allPhotos, setAllPhotos] = useState([]);
@@ -33,68 +33,69 @@ export default function ExplorePage() {
     getAccessTokenSilently,
   } = useAuth0();
 
-  const { setUserEmail, setUserInfo, setUserName, setUserPhoto, setUserId } =
-    UseApp();
+  // const { setUserEmail, setUserInfo, setUserName, setUserPhoto, setUserId } =
+  //   UseApp();
 
   const handleLogin = () => {
     console.log("User logging in!");
     loginWithRedirect();
   };
 
-  const updateUser = async (user: any) => {
-    const accessToken = await getAccessTokenSilently({
-      audience: process.env.REACT_APP_AUDIENCE,
-      scope: process.env.REACT_APP_SCOPE,
-    });
+  // const updateUser = async (user: any) => {
+  //   const accessToken = await getAccessTokenSilently({
+  //     audience: process.env.REACT_APP_AUDIENCE,
+  //     scope: process.env.REACT_APP_SCOPE,
+  //   });
 
-    const response = await axios.post(
-      `${backendUrl}/users/`,
-      {
-        //refer BE controller
-        email: user.email,
-      },
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }
-    );
-    console.log(response.data);
-    if (response) {
-      setUserEmail(response.data[0].email);
-    }
-  };
+  //   const response = await axios.post(
+  //     `${backendUrl}/users/`,
+  //     {
+  //       //refer BE controller
+  //       email: user.email,
+  //     },
+  //     {
+  //       headers: { Authorization: `Bearer ${accessToken}` },
+  //     }
+  //   );
+  //   console.log(response.data);
+  //   if (response) {
+  //     setUserEmail(response.data[0].email);
+  //   }
+  // };
 
-  const getUserInfo = async () => {
-    await updateUser(user);
+  // const getUserInfo = async () => {
+  //   await updateUser(user);
 
-    const response = await axios.get(`${backendUrl}/users/${user?.email}`);
-    console.log(response.data);
-    if (response) {
-      setUserId(response.data.id);
-      setUserName(response.data.name);
-      setUserPhoto(response.data.photoLink);
-      setUserInfo(response.data);
-    }
-  };
+  //   const response = await axios.get(`${backendUrl}/users/${user?.email}`);
+  //   console.log(response.data);
+  //   if (response) {
+  //     setUserId(response.data.id);
+  //     setUserName(response.data.name);
+  //     setUserPhoto(response.data.photoLink);
+  //     setUserInfo(response.data);
+  //   }
+  // };
 
   useEffect(() => {
     getPhotos();
-    if (isAuthenticated) {
-      getUserInfo();
-      console.log("user", user);
-    }
-  }, [user]);
+    // if (isAuthenticated) {
+    //   getUserInfo();
+    //   navigate("/home");
+    //   console.log("user", user);
+    // }
+  }, []);
 
   return (
     <Container size="xl">
       <Image src={tdflLogo} fit="contain" height={300} alt="logo" />
       <Button onClick={() => navigate("/home")}> Home </Button>
       <Button onClick={handleLogin}>LOGIN BUTTON</Button>
-      <Button onClick={() => logout()}>LOG OUT BUTTON</Button>
-      <Button onClick={() => navigate("/befriend")}>nav to befriend</Button>
-      <Button onClick={() => navigate("/createaccount")}>
+      {/* <Button onClick={() => logout()}>LOG OUT BUTTON</Button> */}
+      {/* <Button onClick={() => navigate("/befriend")}>nav to befriend</Button> */}
+      {/* <Button onClick={() => navigate("/createaccount")}>
         nav to userform
       </Button>
-      <Button onClick={() => navigate("/map")}>nav to map</Button>
+      <Button onClick={() => navigate("/map")}>nav to map</Button> */}
       <Grid>
         <Grid.Col xs={4}>
           <Image
