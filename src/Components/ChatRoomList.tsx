@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { UseApp } from "./Context";
+import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
 import {
   Button,
@@ -68,12 +69,30 @@ interface ChatroomInformation {
 
 export default function ChatRoomList(props: Props) {
   const { userId } = UseApp();
+  // Obtain methods for auth0 authentication.
+  const {
+    isAuthenticated,
+    user,
+    loginWithRedirect,
+    logout,
+    getAccessTokenSilently,
+  } = useAuth0();
+
   const [newUser, setNewUser] = useState<string[]>([]);
   const [allFriends, setAllFriends] = useState<Friend[]>();
   const [addChatroom, setAddChatroom] = useState(false);
   const [chatroomName, setChatroomName] = useState("");
   const [allChatrooms, setAllChatrooms] = useState<ChatroomInformation[]>([]);
   // const [openChatroom, setOpenChatroom] = useState(false);
+
+  // useEffect for checking auth0 authentication upon load.
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log(user);
+    } else {
+      loginWithRedirect();
+    }
+  }, []);
 
   useEffect(() => {
     let allUserFriends: Friend[] = [];
@@ -105,7 +124,17 @@ export default function ChatRoomList(props: Props) {
 
   const getAllChatrooms = async () => {
     if (userId) {
-      const response = await axios.get(`${backendUrl}/chats/${userId}/allchat`);
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
+      const response = await axios.get(
+        `${backendUrl}/chats/${userId}/allchat`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
 
       setAllChatrooms(response.data.allChatrooms);
     }
@@ -137,7 +166,14 @@ export default function ChatRoomList(props: Props) {
         usersToAdd: usersToAdd,
       };
 
-      await axios.post(`${backendUrl}/chats/createchatroom`, objectBody);
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
+      await axios.post(`${backendUrl}/chats/createchatroom`, objectBody, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
 
       //response.data.newRoom.id
       //response.data.newRoom.roomName

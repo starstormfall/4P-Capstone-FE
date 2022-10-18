@@ -30,8 +30,10 @@ import {
 import { IconAlertCircle } from "@tabler/icons";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
+import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
 import { addAbortSignal } from "stream";
+import { getTokenSourceMapRange } from "typescript";
 
 // Define centers for each region for google maps.
 const center = {
@@ -218,11 +220,22 @@ export default function Map() {
   const [libraries] = useState<
     ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
   >(["visualization", "places"]);
-  const { userId } = UseApp();
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY as string,
     libraries: libraries,
   });
+
+  // Usage of Context to obtain userId and userInfo.
+  const { userId, userInfo } = UseApp();
+
+  // Obtain methods for auth0 authentication.
+  const {
+    isAuthenticated,
+    user,
+    loginWithRedirect,
+    logout,
+    getAccessTokenSilently,
+  } = useAuth0();
 
   // States for loading all prefectures, categories and hashtags.
   const [allAvailableAreas, setAllAvailableAreas] = useState<Area[]>([]);
@@ -264,6 +277,8 @@ export default function Map() {
   const [checkIn, setCheckIn] = useState(false);
   const [crowdValue, setCrowdValue] = useState<string | null>("");
   const [errorCheckIn, setErrorCheckIn] = useState(false);
+  const [successCheckIn, setSuccessCheckIn] = useState(false);
+  const [newUserScore, setNewUserScore] = useState(0);
 
   // States for Googlemap DistanceMatrix Service. To get distances.
   const [control, setControl] = useState(true);
@@ -272,6 +287,15 @@ export default function Map() {
     []
   );
   const [nearbyPlaceDist, setNearbyPlaceDist] = useState<Distance[]>([]);
+
+  // useEffect for checking auth0 authentication upon load.
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log(user);
+    } else {
+      loginWithRedirect();
+    }
+  }, []);
 
   // Marker style for current location of user based on GPS. Requires google map instance to be loaded.
   let blueDot;
@@ -332,20 +356,41 @@ export default function Map() {
   // Function for api call to get all pins info and corresponding pin markers info, depending on region, category and hashtag filters. Set into states.
   const getAllInitialPins = async () => {
     if (filterRegion === 0 && filterCategory === 0) {
-      const response = await axios.get(`${backendUrl}/maps/allPins`);
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
+      const response = await axios.get(`${backendUrl}/maps/allPins`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const markersRes = await axios.get(
-        `${backendUrl}/maps/allPins?type=markers`
+        `${backendUrl}/maps/allPins?type=markers`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       setPins(response.data);
       setPinMarkers(markersRes.data);
     } else if (filterRegion !== 0 && filterCategory === 0) {
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
       const response = await axios.get(
-        `${backendUrl}/maps/allPins?areaId=${filterRegion}`
+        `${backendUrl}/maps/allPins?areaId=${filterRegion}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const markersRes = await axios.get(
-        `${backendUrl}/maps/allPins?type=markers`
+        `${backendUrl}/maps/allPins?type=markers`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const newMarkersRes = markersRes.data.filter(
@@ -355,12 +400,23 @@ export default function Map() {
       setPins(response.data);
       setPinMarkers(newMarkersRes);
     } else if (filterRegion !== 0 && filterCategory !== 0 && filterHash === 0) {
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
       const response = await axios.get(
-        `${backendUrl}/maps/allPins?areaId=${filterRegion}&categoryId=${filterCategory}`
+        `${backendUrl}/maps/allPins?areaId=${filterRegion}&categoryId=${filterCategory}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const markersRes = await axios.get(
-        `${backendUrl}/maps/allPins?type=markers`
+        `${backendUrl}/maps/allPins?type=markers`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const newMarkersRes = await markersRes.data.filter(
@@ -374,12 +430,23 @@ export default function Map() {
       setPins(response.data);
       setPinMarkers(newMarkersCatRes);
     } else if (filterRegion !== 0 && filterCategory !== 0 && filterHash !== 0) {
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
       const response = await axios.get(
-        `${backendUrl}/maps/allPins?areaId=${filterRegion}&categoryId=${filterCategory}&hashtagId=${filterHash}`
+        `${backendUrl}/maps/allPins?areaId=${filterRegion}&categoryId=${filterCategory}&hashtagId=${filterHash}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const markersRes = await axios.get(
-        `${backendUrl}/maps/allPins?type=markers`
+        `${backendUrl}/maps/allPins?type=markers`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       const newMarkersRes = await markersRes.data.filter(
@@ -515,6 +582,7 @@ export default function Map() {
     setCrowdMapWeight(0);
     setMapCenter(center);
     setZoomLevel(7);
+    setSuccessCheckIn(false);
 
     if (name === "prefecture") {
       setFilterCategory(0);
@@ -841,6 +909,7 @@ export default function Map() {
     setHeatmapData([{ location: null, weight: 0 }]);
     setCrowdMapWeight(0);
     setMapCenter(center);
+    setSuccessCheckIn(false);
   };
 
   // Function to remove instance of heatmap on googlemaps when unneeded.
@@ -853,7 +922,11 @@ export default function Map() {
   const handleCheckIn = () => {
     setCheckIn(!checkIn);
     setErrorCheckIn(false);
+    setSuccessCheckIn(false);
   };
+
+  console.log(checkIn);
+  console.log(activeWindow);
 
   // Helper function to calculate the distance between the pin position and the user's live position.
   const calcDistanceTwoPoints = (point1: Position, point2: Position) => {
@@ -876,8 +949,8 @@ export default function Map() {
   };
 
   // Function triggered when user clicks submit crowd data. Checks if user selected check in with location or check in without location.
-  // If with location, checks if user is within 100m of the pin. If no, send error banner. If yes, create data within BE.
-  // If without location, create data within BE.
+  // If with location, checks if user is within 100m of the pin. If no, send error banner. If yes, create data within BE, and update score of user.
+  // If without location, create data within BE, and update score of user.
   const handleSubmitCrowd: React.MouseEventHandler<HTMLButtonElement> = async (
     e
   ) => {
@@ -917,15 +990,44 @@ export default function Map() {
             crowdIntensity: crowdIntensity,
           };
 
+          const accessToken = await getAccessTokenSilently({
+            audience: process.env.REACT_APP_AUDIENCE,
+            scope: process.env.REACT_APP_SCOPE,
+          });
+
           await axios.post(
             `${backendUrl}/maps/${activeMarker}/createCrowdData`,
-            objectBody
+            objectBody,
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }
+          );
+
+          const newUserScoreObj = {
+            email: userInfo.email,
+            score: Number(userInfo.score + 10),
+            name: userInfo.name,
+            nationality: userInfo.nationality,
+            lastLogin: userInfo.lastLogin,
+            photoLink: userInfo.photoLink,
+            loginStreak: userInfo.loginStreak,
+          };
+
+          const userResponse = await axios.put(
+            `${backendUrl}/users/update/${userId}`,
+            newUserScoreObj,
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }
           );
 
           setCrowdValue("");
           setCheckIn(false);
+          setSuccessCheckIn(true);
+          setNewUserScore(userResponse.data.score);
         } else {
           setErrorCheckIn(true);
+          setSuccessCheckIn(false);
         }
       }
     } else {
@@ -948,13 +1050,41 @@ export default function Map() {
         crowdIntensity: crowdIntensity,
       };
 
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
       await axios.post(
         `${backendUrl}/maps/${activeMarker}/createCrowdData`,
-        objectBody
+        objectBody,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+
+      const newUserScoreObj = {
+        email: userInfo.email,
+        score: Number(userInfo.score + 10),
+        name: userInfo.name,
+        nationality: userInfo.nationality,
+        lastLogin: userInfo.lastLogin,
+        photoLink: userInfo.photoLink,
+        loginStreak: userInfo.loginStreak,
+      };
+
+      const userResponse = await axios.put(
+        `${backendUrl}/users/update/${userId}`,
+        newUserScoreObj,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
 
       setCrowdValue("");
       setCheckIn(false);
+      setSuccessCheckIn(true);
+      setNewUserScore(userResponse.data.score);
     }
   };
 
@@ -1345,6 +1475,17 @@ export default function Map() {
                 {/* <Image src={image.src} className={classes.image} /> */}
               </div>
             </>
+          ) : null}
+          {activeWindow !== null && successCheckIn ? (
+            <Alert
+              icon={<IconAlertCircle size={16} />}
+              title="Congratulations!"
+              color="aqua"
+            >
+              You have successfully checked in. Thank you for helping the
+              community! You have earned 10 points for your contribution and
+              have {newUserScore} points now.
+            </Alert>
           ) : null}
           {activeWindow !== null ? (
             <>

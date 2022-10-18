@@ -19,6 +19,7 @@ import {
 } from "@mantine/core";
 import { IconArrowsMinimize } from "@tabler/icons";
 import { UseApp } from "./Context";
+import { useAuth0 } from "@auth0/auth0-react";
 
 interface ServerToClientEvents {
   // noArg: () => void;
@@ -152,6 +153,15 @@ const useStyles = createStyles((theme) => ({
 
 export default function ChatRoom(props: Props) {
   const { userId, userName, userPhoto } = UseApp();
+  // Obtain methods for auth0 authentication.
+  const {
+    isAuthenticated,
+    user,
+    loginWithRedirect,
+    logout,
+    getAccessTokenSilently,
+  } = useAuth0();
+
   // const { chatroomId } = useParams<chatroomParams>();
   const { chatroomId } = props;
   const [allMessages, setAllMessages] = useState<LoadedMessage[]>([]);
@@ -166,6 +176,15 @@ export default function ChatRoom(props: Props) {
   const [allUsers, setAllUsers] = useState<AllUsers[]>();
   const { classes } = useStyles();
 
+  // useEffect for checking auth0 authentication upon load.
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log(user);
+    } else {
+      loginWithRedirect();
+    }
+  }, []);
+
   // Allows users to join socket room upon load.
   useEffect(() => {
     console.log("joining chatroom running");
@@ -174,8 +193,16 @@ export default function ChatRoom(props: Props) {
 
   const getAllUsers = async () => {
     if (chatroomId) {
+      const accessToken = await getAccessTokenSilently({
+        audience: process.env.REACT_APP_AUDIENCE,
+        scope: process.env.REACT_APP_SCOPE,
+      });
+
       const response = await axios.get(
-        `${backendUrl}/chats/${userId}/${chatroomId}`
+        `${backendUrl}/chats/${userId}/${chatroomId}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
       setAllUsers(response.data.allUsers);
     }
