@@ -55,14 +55,13 @@ export default function BeFriendPage() {
   return (
     <div>
       BeFriendPage Page
-      <Grid justify="space-between" align="center">
+      <Grid justify="space-between" align="start">
         <Grid.Col span={4}>
           {<FriendList friendListData={useFriendList.data} />}
         </Grid.Col>
         <Grid.Col span={4}>
           {openChatroom ? (
             <>
-              current chatroom
               <ChatRoom
                 friendListData={useFriendList.data}
                 chatroomId={chatroomId}
@@ -86,11 +85,9 @@ export default function BeFriendPage() {
             setChatroomHostId={setChatroomHostId}
             setChatroomTitle={setChatroomTitle}
           />
-        </Grid.Col>
-        <Grid.Col span={4}>
-          <FriendRequestList friendListData={useFriendList.data} />
-        </Grid.Col>
-        <Grid.Col span={4}>
+          <br />
+          <br />
+          <br />
           <ChatRoomList
             friendListData={useFriendList.data}
             chatroomType="invited"
@@ -101,6 +98,21 @@ export default function BeFriendPage() {
             setChatroomHostId={setChatroomHostId}
             setChatroomTitle={setChatroomTitle}
           />
+        </Grid.Col>
+        <Grid.Col span={4}>
+          <FriendRequestList friendListData={useFriendList.data} />
+        </Grid.Col>
+        <Grid.Col span={4}>
+          {/* <ChatRoomList
+            friendListData={useFriendList.data}
+            chatroomType="invited"
+            openChatroom={openChatroom}
+            setOpenChatroom={setOpenChatroom}
+            setChatroomId={setChatroomId}
+            setChatroomActive={setChatroomActive}
+            setChatroomHostId={setChatroomHostId}
+            setChatroomTitle={setChatroomTitle}
+          /> */}
         </Grid.Col>
       </Grid>
       <Outlet />

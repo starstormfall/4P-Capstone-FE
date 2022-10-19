@@ -10,7 +10,31 @@ import {
   Container,
   MultiSelect,
   TextInput,
+  Group,
+  Box,
+  Collapse,
+  ThemeIcon,
+  UnstyledButton,
+  createStyles,
+  ScrollArea,
+  Modal,
+  Title,
 } from "@mantine/core";
+import {
+  TablerIcon,
+  IconCalendarStats,
+  IconChevronLeft,
+  IconChevronRight,
+  IconCircleCheck,
+  IconCircleOff,
+  IconUser,
+  IconUsers,
+  IconSquarePlus,
+  IconMessages,
+  IconMessageDots,
+} from "@tabler/icons";
+// import {CheckmarkCircle} from "@easy-eva-icons/react"
+
 import { backendUrl } from "../utils";
 
 interface FriendDataInformation {
@@ -67,7 +91,88 @@ interface ChatroomInformation {
   };
 }
 
+const useStyles = createStyles((theme) => ({
+  control: {
+    fontWeight: 500,
+    display: "block",
+    width: "100%",
+    padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+    color: theme.colorScheme === "dark" ? theme.colors.dark[0] : theme.black,
+    fontSize: theme.fontSizes.sm,
+
+    "&:hover": {
+      backgroundColor:
+        theme.colorScheme === "dark"
+          ? theme.colors.dark[7]
+          : theme.colors.gray[0],
+      color: theme.colorScheme === "dark" ? theme.white : theme.black,
+    },
+  },
+
+  link: {
+    fontWeight: 500,
+    display: "block",
+    // textDecoration: "none",
+    padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+    paddingLeft: 31,
+    marginLeft: 30,
+    fontSize: theme.fontSizes.sm,
+    // color:
+    //   theme.colorScheme === "dark"
+    //     ? theme.colors.dark[0]
+    //     : theme.colors.gray[7],
+    borderLeft: `1px solid ${
+      theme.colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
+    }`,
+
+    "&:hover": {
+      backgroundColor:
+        theme.colorScheme === "dark"
+          ? theme.colors.dark[7]
+          : theme.colors.gray[0],
+      color: theme.colorScheme === "dark" ? theme.white : theme.black,
+    },
+  },
+
+  chevron: {
+    transition: "transform 200ms ease",
+  },
+
+  chatNew: {
+    // alignSelf: "self-end",
+    justifyContent: "flex-end",
+    padding: "10px 12px",
+  },
+
+  roomNew: {
+    // alignSelf: "self-end",
+    justifyContent: "flex-end",
+    padding: "10px 0px 0px 374px",
+  },
+
+  // modal: {
+  //   display: "flex",
+  //   flexDirection: "column",
+  //   justifyContent: "space-between",
+  // },
+}));
+
+interface Links {
+  label: string;
+  link: string;
+  chatroomId: number;
+  active: boolean;
+  hostUserId: number;
+}
+
 export default function ChatRoomList(props: Props) {
+  const { classes, theme } = useStyles();
+  // const [links, setLinks] = useState<Links[]>([]);
+  let links: Links[] = [];
+  const hasLinks = Array.isArray(links);
+  const [opened, setOpened] = useState(false);
+  const ChevronIcon = theme.dir === "ltr" ? IconChevronRight : IconChevronLeft;
+
   const { userId } = UseApp();
   // Obtain methods for auth0 authentication.
   const {
@@ -137,12 +242,140 @@ export default function ChatRoomList(props: Props) {
       );
 
       setAllChatrooms(response.data.allChatrooms);
+      console.log(response.data.allChatrooms);
+
+      // response.data.allChatrooms.forEach((chatroom: ChatroomInformation) => {
+      //   setLinks([...links, { label: chatroom.chatroom.roomName, link: "./" }]);
+      // });
     }
   };
 
   useEffect(() => {
     getAllChatrooms();
   }, [chatroomName, props.openChatroom]);
+
+  // let links: Links[] = [];
+  if (allChatrooms.length > 0) {
+    allChatrooms.forEach((chatroom) => {
+      const newObj = {
+        label: chatroom.chatroom.roomName,
+        link: "./",
+        chatroomId: chatroom.chatroomId,
+        active: chatroom.chatroom.active,
+        hostUserId: chatroom.chatroom.hostUserId,
+      };
+
+      links.push(newObj);
+
+      // setLinks([...links, { label: chatroom.chatroom.roomName, link: "./" }]);
+    });
+  }
+
+  const hostedRooms = links.map((link) => {
+    if (links.length > 0 && userId && userId === link.hostUserId) {
+      return (
+        <>
+          {link.active ? (
+            <Text<"a">
+              component="a"
+              className={classes.link}
+              color={theme.colors.gray[7]}
+              href={link.link}
+              key={link.label}
+              onClick={(event) =>
+                handleChatroom(
+                  event,
+                  link.chatroomId,
+                  link.active,
+                  link.hostUserId,
+                  link.label
+                )
+              }
+            >
+              <IconCircleCheck size={15} color="#599EBF" /> {link.label}
+            </Text>
+          ) : (
+            <Text<"a">
+              component="a"
+              className={classes.link}
+              // strikethrough
+              color="#B4ADCC"
+              href={link.link}
+              key={link.label}
+              onClick={(event) =>
+                handleChatroom(
+                  event,
+                  link.chatroomId,
+                  link.active,
+                  link.hostUserId,
+                  link.label
+                )
+              }
+            >
+              <IconCircleOff size={15} color="#C1BBD5" /> {link.label}
+            </Text>
+          )}
+        </>
+      );
+    }
+  });
+
+  const invitedRooms = links.map((link) => {
+    if (links.length > 0 && userId && userId !== link.hostUserId) {
+      return (
+        <>
+          {link.active ? (
+            <Text<"a">
+              component="a"
+              className={classes.link}
+              color={theme.colors.gray[7]}
+              href={link.link}
+              key={link.label}
+              onClick={(event) =>
+                handleChatroom(
+                  event,
+                  link.chatroomId,
+                  link.active,
+                  link.hostUserId,
+                  link.label
+                )
+              }
+            >
+              <IconCircleCheck size={15} color="#599EBF" /> {link.label}
+            </Text>
+          ) : (
+            <Text<"a">
+              component="a"
+              className={classes.link}
+              // strikethrough
+              color="#B4ADCC"
+              href={link.link}
+              key={link.label}
+              onClick={(event) =>
+                handleChatroom(
+                  event,
+                  link.chatroomId,
+                  link.active,
+                  link.hostUserId,
+                  link.label
+                )
+              }
+            >
+              <IconCircleOff size={15} color="#C1BBD5" /> {link.label}
+            </Text>
+          )}
+        </>
+      );
+    }
+  });
+
+  // useEffect(() => {
+  //   if (allChatrooms.length > 0) {
+  //     allChatrooms.forEach((chatroom) => {
+  //       setLinks([...links, { label: chatroom.chatroom.roomName, link: "./" }]);
+  //     });
+  //   }
+  // }, [allChatrooms]);
 
   const handleAddRoom = () => {
     setAddChatroom(!addChatroom);
@@ -193,6 +426,7 @@ export default function ChatRoomList(props: Props) {
     hostUserId: number,
     roomName: string
   ): void => {
+    e.preventDefault();
     if (props.setOpenChatroom) {
       props.setChatroomId(Number(chatroomId));
       props.setOpenChatroom(!props.openChatroom);
@@ -279,40 +513,165 @@ export default function ChatRoomList(props: Props) {
   return (
     <>
       {props.chatroomType === "hosted" ? (
-        <>
-          <div>ChatRoomList Page</div>
-          <Button onClick={handleAddRoom}>New Chat</Button>
-          {addChatroom && allFriends && allFriends.length !== 0 ? (
-            <>
-              <TextInput
-                placeholder="All things Japan"
-                label="Chatroom Name"
-                withAsterisk
-                onChange={handleChange}
-              />
-              <Text>Friends to Add</Text>
-              <MultiSelect
-                value={newUser}
-                onChange={setNewUser}
-                data={allFriends}
-              />
-              <Button onClick={handleCreateRoom}>Create Chatroom</Button>
-            </>
-          ) : null}
+        <div align-self="flex-start">
+          {/* <Button onClick={handleAddRoom}>New Chat</Button> */}
+
           {allChatrooms ? (
             <>
-              <Text>Hosted Chatrooms</Text>
-              {hostedChatrooms}
+              <Box
+                sx={(theme) => ({
+                  minHeight: 250,
+                  padding: theme.spacing.md,
+                  backgroundColor:
+                    theme.colorScheme === "dark"
+                      ? theme.colors.dark[6]
+                      : theme.white,
+                  borderRadius: theme.radius.lg,
+                  boxShadow: theme.shadows.lg,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                })}
+              >
+                {/* {hostedChatrooms} */}
+                <>
+                  <UnstyledButton
+                    onClick={() => setOpened((o) => !o)}
+                    className={classes.control}
+                  >
+                    <Group position="apart" spacing={0}>
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <ThemeIcon variant="light" size={30}>
+                          <IconUser size={18} />
+                        </ThemeIcon>
+                        <Box ml="md">HOSTED CHATROOMS</Box>
+                      </Box>
+
+                      {hasLinks && (
+                        <ChevronIcon
+                          className={classes.chevron}
+                          size={14}
+                          stroke={1.5}
+                          style={{
+                            transform: opened
+                              ? `rotate(${theme.dir === "rtl" ? -90 : 90}deg)`
+                              : "none",
+                          }}
+                        />
+                      )}
+                    </Group>
+                  </UnstyledButton>
+                  {hasLinks ? (
+                    <Collapse in={opened}>
+                      <ScrollArea style={{ height: 120 }}>
+                        {hostedRooms}
+                      </ScrollArea>
+                    </Collapse>
+                  ) : null}
+                  <UnstyledButton>
+                    <Group className={classes.chatNew}>
+                      <IconSquarePlus
+                        onClick={handleAddRoom}
+                        size={26}
+                        color="#7491A8"
+                      />
+                    </Group>
+                  </UnstyledButton>
+                </>
+              </Box>
             </>
           ) : null}
-        </>
+          {addChatroom && allFriends && allFriends.length !== 0 ? (
+            <>
+              <Modal
+                opened={addChatroom}
+                onClose={() => setAddChatroom(false)}
+                title="New Chatroom"
+                radius="md"
+              >
+                <TextInput
+                  placeholder="All things Japan"
+                  label="Title"
+                  withAsterisk
+                  required
+                  onChange={handleChange}
+                  // className={classes.modal}
+                />
+                <br />
+                <Text size="sm">Friends to Add</Text>
+                <MultiSelect
+                  value={newUser}
+                  onChange={setNewUser}
+                  data={allFriends}
+                />
+                <br />
+                <UnstyledButton>
+                  <Group className={classes.roomNew}>
+                    <IconMessageDots
+                      onClick={handleCreateRoom}
+                      size={26}
+                      color="#7491A8"
+                    />
+                  </Group>
+                </UnstyledButton>
+                {/* <Button onClick={handleCreateRoom}>Create Chatroom</Button> */}
+              </Modal>
+            </>
+          ) : null}
+        </div>
       ) : (
         <>
           {allChatrooms ? (
-            <>
-              <Text>Invited Chatrooms</Text>
-              {invitedChatrooms}
-            </>
+            <div align-self="flex-start">
+              <Box
+                sx={(theme) => ({
+                  minHeight: 250,
+                  padding: theme.spacing.md,
+                  backgroundColor:
+                    theme.colorScheme === "dark"
+                      ? theme.colors.dark[6]
+                      : theme.white,
+                  borderRadius: theme.radius.lg,
+                  boxShadow: theme.shadows.lg,
+                })}
+              >
+                {/* {invitedChatrooms} */}
+                <>
+                  <UnstyledButton
+                    onClick={() => setOpened((o) => !o)}
+                    className={classes.control}
+                  >
+                    <Group position="apart" spacing={0}>
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <ThemeIcon variant="light" size={30}>
+                          <IconUsers size={18} />
+                        </ThemeIcon>
+                        <Box ml="md">INVITED CHATROOMS</Box>
+                      </Box>
+                      {hasLinks && (
+                        <ChevronIcon
+                          className={classes.chevron}
+                          size={14}
+                          stroke={1.5}
+                          style={{
+                            transform: opened
+                              ? `rotate(${theme.dir === "rtl" ? -90 : 90}deg)`
+                              : "none",
+                          }}
+                        />
+                      )}
+                    </Group>
+                  </UnstyledButton>
+                  {hasLinks ? (
+                    <Collapse in={opened}>
+                      <ScrollArea style={{ height: 140 }}>
+                        {invitedRooms}
+                      </ScrollArea>
+                    </Collapse>
+                  ) : null}
+                </>
+              </Box>
+            </div>
           ) : null}
         </>
       )}
