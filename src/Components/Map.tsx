@@ -226,7 +226,7 @@ export default function Map() {
   });
 
   // Usage of Context to obtain userId and userInfo.
-  const { userId, userInfo } = UseApp();
+  const { userId, userInfo, setUserInfo } = UseApp();
 
   // Obtain methods for auth0 authentication.
   const {
@@ -1025,6 +1025,7 @@ export default function Map() {
           setCheckIn(false);
           setSuccessCheckIn(true);
           setNewUserScore(userResponse.data.score);
+          setUserInfo({ ...userInfo, score: newUserScoreObj.score });
         } else {
           setErrorCheckIn(true);
           setSuccessCheckIn(false);
@@ -1085,6 +1086,7 @@ export default function Map() {
       setCheckIn(false);
       setSuccessCheckIn(true);
       setNewUserScore(userResponse.data.score);
+      setUserInfo({ ...userInfo, score: newUserScoreObj.score });
     }
   };
 

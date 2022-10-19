@@ -94,6 +94,7 @@ export default function ExplorePage() {
       <Button onClick={() => navigate("/createaccount")}>
         nav to userform
       </Button>
+      <Button onClick={() => navigate("/rewards")}>nav to rewards</Button>
       <Grid>
         <Grid.Col xs={4}>
           <Image
