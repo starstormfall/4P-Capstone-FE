@@ -60,7 +60,8 @@ export default function FriendList({ friendListData }: Props) {
       {friendListData &&
         friendListData.map((user: FriendDataInformation) => (
           <div key={user.id}>
-            {user.addedUserId === userInfo?.id ? (
+            {user.addedUserId === userInfo?.id &&
+            user.status === "confirmed" ? (
               <Container>
                 <Card>
                   <Avatar
@@ -101,7 +102,7 @@ export default function FriendList({ friendListData }: Props) {
             ) : (
               <Container>
                 <Card>
-                  <Text>hi</Text>
+                  <Text>Others added you</Text>
                   <Avatar
                     src={user.addedUser.photoLink}
                     alt={user.addedUser.name}

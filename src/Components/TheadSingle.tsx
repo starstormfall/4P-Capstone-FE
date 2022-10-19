@@ -133,10 +133,10 @@ export default function ThreadSingle() {
   // Div > Container > Card > Text;
 
   const onFriendRequest = async (e: React.FormEvent<HTMLFormElement>) => {
-    const accessToken = await getAccessTokenSilently({
-      audience: process.env.REACT_APP_AUDIENCE,
-      scope: process.env.REACT_APP_SCOPE,
-    });
+    // const accessToken = await getAccessTokenSilently({
+    //   audience: process.env.REACT_APP_AUDIENCE,
+    //   scope: process.env.REACT_APP_SCOPE,
+    // });
     e.preventDefault();
     console.log(`Added as Friend!`);
     console.log(`added friend id`, friendAdded);
@@ -147,12 +147,13 @@ export default function ThreadSingle() {
         friendId: friendAdded,
         postId: postId,
         reason: reason,
-      },
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
       }
+      // {
+      //   headers: { Authorization: `Bearer ${accessToken}` },
+      // }
     );
     setFriendModalOpen(false);
+    setReason("");
   };
 
   // check for existing friend
@@ -216,8 +217,10 @@ export default function ThreadSingle() {
                   2. get the post/comment user
                   3. check friend array if logged in user and post user for status?
                   */}
-                  {allFriendsId?.includes(singleThreadData[i].post.userId) &&
+                  {allFriendsId?.includes(singleThreadData[i].post.user.id) &&
                   singleThreadData[i].post.userId !== userInfo.id ? (
+                    <Button disabled={true}>Existing Friend</Button>
+                  ) : (
                     <Button
                       onClick={() => {
                         setFriendModalOpen(true);
@@ -227,8 +230,6 @@ export default function ThreadSingle() {
                     >
                       Add Friend
                     </Button>
-                  ) : (
-                    <Button disabled={true}>Existing Friend</Button>
                   )}
                 </Group>
               </div>
@@ -243,6 +244,7 @@ export default function ThreadSingle() {
       );
     }
   }
+
   console.log(userInfo.id);
   // states for creating comment/post
   const [forumPost, setForumPost] = useState<boolean>(true);

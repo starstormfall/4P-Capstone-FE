@@ -250,7 +250,7 @@ export default function ForumMain() {
                 onChange={(e) => {
                   setChecked(e.currentTarget.checked);
                   setExplorePost("forum");
-                  setForumPost(true);
+                  // setForumPost(true);
                 }}
               />
               <button>Create Post!</button>
