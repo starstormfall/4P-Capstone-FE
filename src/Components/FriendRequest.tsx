@@ -17,7 +17,7 @@ import {
   ActionIcon,
 } from "@mantine/core";
 import { IconCheck, IconLetterX } from "@tabler/icons";
-
+import { useMutation } from "@tanstack/react-query";
 //create interface for the data
 interface FriendDataInformation {
   addedUser: {
@@ -47,11 +47,30 @@ interface FriendDataInformation {
 
 type Props = {
   friendListData: FriendDataInformation[];
+  setFriendList: React.Dispatch<
+    React.SetStateAction<FriendDataInformation[] | undefined>
+  >;
 };
 
-export default function FriendRequestList({ friendListData }: Props) {
+export default function FriendRequestList({
+  friendListData,
+  setFriendList,
+}: Props) {
+  const [updateRequest, setUpdateRequest] = useState<boolean>(false);
   const { userInfo } = UseApp();
   const { getAccessTokenSilently } = useAuth0();
+
+  const getFriendList = async () => {
+    const response = await axios.get(
+      `${backendUrl}/friends/${userInfo?.id}/allfriends`
+    );
+
+    setFriendList(response.data);
+  };
+
+  useEffect(() => {
+    getFriendList();
+  }, [updateRequest]);
 
   return (
     <div>
@@ -91,6 +110,7 @@ export default function FriendRequestList({ friendListData }: Props) {
                               },
                             }
                           );
+                          setUpdateRequest(!updateRequest);
                         }}
                       />
                     </ActionIcon>
@@ -113,6 +133,7 @@ export default function FriendRequestList({ friendListData }: Props) {
                               },
                             }
                           );
+                          setUpdateRequest(!updateRequest);
                         }}
                       />
                     </ActionIcon>

@@ -51,19 +51,30 @@ type AllPrefectureData = {
 
 export default function ForumMain() {
   // have a create post that can extend to explore page
+  const [forumList, setForumList] = useState<ThreadListData[]>();
+  const [updateForum, setUpdateForum] = useState<boolean>(false);
   const { getAccessTokenSilently } = useAuth0();
 
+  const getForumData = async () => {
+    const response = await axios.get(`${backendUrl}/posts/thread`);
+
+    setForumList(response.data);
+  };
+
+  useEffect(() => {
+    getForumData();
+  }, [updateForum]);
   // get all data
-  const forumList = useQuery(["threadList"], () =>
-    axios.get(`${backendUrl}/posts/thread`).then((res) => res.data)
-  );
-  console.log(forumList.data);
+  // const forumList = useQuery(["threadList"], () =>
+  //   axios.get(`${backendUrl}/posts/thread`).then((res) => res.data)
+  // );
+  console.log(forumList);
   // console.log("thread ID", forumList.data[0].threads[0].id);
 
   // map out all the threads by TOPIC (Div>Container>Link>Card>Text)
   let forumListFinal;
-  if (forumList.data) {
-    forumListFinal = forumList.data.map((list: ThreadListData) => {
+  if (forumList) {
+    forumListFinal = forumList.map((list: ThreadListData) => {
       return (
         <div>
           <Link to={`/exchange/${list.id}`}>
@@ -156,25 +167,25 @@ export default function ForumMain() {
     let imageUrl = await uploadImage(fileInputFile);
     console.log(imageUrl);
     console.log(`uploaded to Backend db`);
-    await axios.post(
-      `${backendUrl}/posts/create-thread`,
-      {
-        userId: userInfo.id,
-        content: content,
-        areaId: areaId,
-        forumPost: forumPost,
-        explorePost: explorePost,
-        externalLink: null,
-        title: title,
-        photoLink: imageUrl,
-        locationName: locationName,
-        topic: topic,
-      },
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }
-    );
+
+    const newForumPost = {
+      userId: userInfo.id,
+      content: content,
+      areaId: areaId,
+      forumPost: forumPost,
+      explorePost: explorePost,
+      externalLink: null,
+      title: title,
+      photoLink: imageUrl,
+      locationName: locationName,
+      topic: topic,
+    };
+
+    await axios.post(`${backendUrl}/posts/create-thread`, newForumPost, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
     setOpened(false);
+    setUpdateForum(!updateForum);
   };
 
   return (
@@ -262,7 +273,7 @@ export default function ForumMain() {
           <Button onClick={() => setOpened(true)}>Create Post!</Button>
         </Group>
       </div>
-
+      {updateForum}
       {forumListFinal}
     </div>
   );

@@ -22,6 +22,8 @@ import {
   Checkbox,
   Select,
   Avatar,
+  Indicator,
+  ActionIcon,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -29,6 +31,7 @@ import {
   ref as storageRef,
   uploadBytes,
 } from "firebase/storage";
+import { AwardOutline } from "@easy-eva-icons/react";
 
 type ThreadSingleData = {
   id: number;
@@ -70,6 +73,10 @@ type AllPrefectureData = {
   prefecture: string;
 };
 
+type friendListData = {
+  [key: number]: string;
+};
+
 export default function ThreadSingle() {
   const [threadId, setThreadId] = useState<string>();
   const [singleThreadData, setSingleThreadData] =
@@ -78,8 +85,11 @@ export default function ThreadSingle() {
   const [reason, setReason] = useState<string>("");
   const [friendAdded, setFriendAdded] = useState<number>();
   const [postId, setPostId] = useState<number>();
-  const [allFriendsId, setAllFriendsId] = useState<number[]>();
+  const [friendList, setFriendList] = useState<friendListData>();
   const [disablefriendButton, setDisableFriendButton] =
+    useState<boolean>(false);
+  const [updateComment, setUpdateComment] = useState<boolean>(false);
+  const [updateFriendRequest, setUpdateFriendRequest] =
     useState<boolean>(false);
 
   const { userInfo } = UseApp();
@@ -112,18 +122,18 @@ export default function ThreadSingle() {
         headers: { Authorization: `Bearer ${accessToken}` },
       }
     );
-
-    setAllFriendsId(response.data);
+    console.log(`FRIENDLIST`, response.data);
+    setFriendList(response.data);
   };
 
   // have a true/false state that updates the get request. and set in the dependency array of useEffect.
   useEffect(() => {
     singleThread();
     currentFriends();
-  }, []);
+  }, [updateComment, updateFriendRequest]);
 
   console.log(singleThreadData);
-  console.log(allFriendsId);
+  // console.log(friendList);
 
   if (threadId !== params.threadId) {
     setThreadId(params.threadId);
@@ -154,6 +164,7 @@ export default function ThreadSingle() {
     );
     setFriendModalOpen(false);
     setReason("");
+    setUpdateFriendRequest(!updateFriendRequest);
   };
 
   // check for existing friend
@@ -173,6 +184,50 @@ export default function ThreadSingle() {
   //   }
   // };
 
+  const checkFriendShip = (
+    friendshipStatus: string,
+    userId: number,
+    postId: number,
+    photoLink: string,
+    name: string
+  ) => {
+    switch (friendshipStatus) {
+      case "confirmed":
+        // return icon
+        return (
+          <Indicator inline label="Friend" size={16}>
+            <Avatar src={photoLink} alt={name} radius="xl" size="lg" />
+          </Indicator>
+        );
+
+      case "pending":
+        return (
+          <Indicator inline label="Pending" size={16}>
+            <Avatar src={photoLink} alt={name} radius="xl" size="lg" />
+          </Indicator>
+        );
+
+      case "myself":
+        return <Avatar src={photoLink} alt={name} radius="xl" size="lg" />;
+      default:
+        return (
+          <Group>
+            <Avatar src={photoLink} alt={name} radius="xl" size="lg" />
+            <Button
+              onClick={() => {
+                setFriendModalOpen(true);
+                setFriendAdded(userId);
+                setPostId(postId);
+              }}
+              leftIcon={<AwardOutline />}
+            >
+              Add Friend
+            </Button>
+          </Group>
+        );
+    }
+  };
+
   const allComments = [];
   if (singleThreadData) {
     for (let i = 1; i < singleThreadData.length; i++) {
@@ -180,13 +235,13 @@ export default function ThreadSingle() {
         <div>
           <Container key={singleThreadData[i].id}>
             <Card>
-              <Avatar
+              {/* <Avatar
                 src={singleThreadData[i].post.user.photoLink}
                 alt={singleThreadData[i].post.user.name}
                 radius="xl"
                 size="lg"
               />
-              {/* add friend button */}
+              add friend button */}
               <div>
                 <Modal
                   opened={friendModalOpen}
@@ -211,15 +266,26 @@ export default function ThreadSingle() {
                 </Modal>
 
                 <Group position="left">
+                  {friendList &&
+                    checkFriendShip(
+                      friendList[singleThreadData[i].post.userId],
+                      singleThreadData[i].post.userId,
+                      singleThreadData[i].post.id,
+                      singleThreadData[i].post.user.photoLink,
+                      singleThreadData[i].post.user.name
+                    )}
                   {/* validate for existing friends */}
                   {/* 
                  1. get the current logged in user
                   2. get the post/comment user
                   3. check friend array if logged in user and post user for status?
+
+                  SWITCH CASE
                   */}
-                  {allFriendsId?.includes(singleThreadData[i].post.user.id) &&
+
+                  {/* {allFriendsId?.includes(singleThreadData[i].post.user.id) &&
                   singleThreadData[i].post.userId !== userInfo.id ? (
-                    <Button disabled={true}>Existing Friend</Button>
+                    <Button disabled={true}>Added as Friend</Button>
                   ) : (
                     <Button
                       onClick={() => {
@@ -230,7 +296,7 @@ export default function ThreadSingle() {
                     >
                       Add Friend
                     </Button>
-                  )}
+                  )} */}
                 </Group>
               </div>
               <Text>
@@ -324,6 +390,7 @@ export default function ThreadSingle() {
       }
     );
     setOpened(false);
+    setUpdateComment(!updateComment);
   };
 
   return (
