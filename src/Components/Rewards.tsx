@@ -27,7 +27,7 @@ export default function Rewards() {
   const navigate = useNavigate();
 
   // Usage of Context to obtain userId and userInfo.
-  const { userId, userInfo } = UseApp();
+  const { userId, userInfo, setUserInfo } = UseApp();
 
   // Obtain methods for auth0 authentication.
   const {
@@ -53,6 +53,7 @@ export default function Rewards() {
       loginWithRedirect();
     }
   }, []);
+  console.log(userInfo);
 
   const handleExchange = async () => {
     setRewardError(false);
@@ -78,6 +79,7 @@ export default function Rewards() {
       });
 
       setNewUserScore(newUserScoreObj.score);
+      setUserInfo({ ...userInfo, score: newUserScoreObj.score });
 
       setRewardClaimed(true);
     } else {
