@@ -14,6 +14,7 @@ import FriendList from "./Components/FriendList";
 import ChatRoomList from "./Components/ChatRoomList";
 import ChatRoom from "./Components/ChatRoom";
 import Map from "./Components/Map";
+import Rewards from "./Components/Rewards";
 import { AppContextProvider } from "./Components/Context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -56,6 +57,8 @@ function App() {
                     element={<ChatRoom active={true} />}
                   /> */}
                 </Route>
+
+                <Route path="/rewards" element={<Rewards />} />
 
                 {/* Map homepage */}
                 <Route path="/map" element={<Map />} />

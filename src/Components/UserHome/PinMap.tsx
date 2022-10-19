@@ -119,7 +119,7 @@ export default function PinMap(props: Props) {
   const navigate = useNavigate();
 
   // Usage of Context to obtain userId and userInfo.
-  const { userId, userInfo } = UseApp();
+  const { userId, userInfo, setUserInfo } = UseApp();
 
   // Obtain methods for auth0 authentication.
   const {
@@ -451,6 +451,7 @@ export default function PinMap(props: Props) {
         setCheckIn(false);
         setSuccessCheckIn(true);
         setNewUserScore(userResponse.data.score);
+        setUserInfo({ ...userInfo, score: newUserScoreObj.score });
       } else {
         setErrorCheckIn(true);
         setSuccessCheckIn(false);
