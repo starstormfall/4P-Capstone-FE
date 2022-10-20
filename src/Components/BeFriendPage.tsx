@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate, Outlet, useOutletContext } from "react-router-dom";
+import { withAuthenticationRequired } from "@auth0/auth0-react";
+
 import { Grid } from "@mantine/core";
 import FriendList from "./FriendList";
 import FriendRequestList from "./FriendRequest";
@@ -9,6 +11,8 @@ import { useQuery } from "@tanstack/react-query";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import ChatRoom from "./ChatRoom";
+
+import { ContextType } from "../Styles/AppShell/AppShell";
 
 //create interface for the data
 type FriendDataInformation = {
@@ -33,7 +37,10 @@ type FriendDataInformation = {
   updatedAt: string;
 };
 
-export default function BeFriendPage() {
+function BeFriendPage() {
+  const [userLoggedIn, setUserLoggedIn] =
+    useOutletContext<ContextType["key"]>();
+
   const { userInfo } = UseApp();
 
   const useFriendList = useQuery(["friendlist"], () =>
@@ -49,6 +56,10 @@ export default function BeFriendPage() {
   const [chatroomTitle, setChatroomTitle] = useState("");
 
   console.log(openChatroom);
+
+  useEffect(() => {
+    setUserLoggedIn(!userLoggedIn);
+  }, []);
 
   return (
     <div>
@@ -105,3 +116,8 @@ export default function BeFriendPage() {
     </div>
   );
 }
+
+export default withAuthenticationRequired(BeFriendPage, {
+  // Show a message while the user waits to be redirected to the login page.
+  onRedirecting: () => <div>Redirecting you to the login page...</div>,
+});

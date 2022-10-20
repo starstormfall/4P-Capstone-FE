@@ -1,6 +1,6 @@
 import { useState, useEffect, MouseEvent } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
+import { Outlet, useOutletContext, useNavigate } from "react-router-dom";
+import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import axios from "axios";
 
 import { UseApp } from "../../Components/Context";
@@ -11,7 +11,6 @@ import {
   AppShell,
   Navbar,
   Header,
-  MediaQuery,
   Burger,
   useMantineTheme,
   Image,
@@ -22,25 +21,40 @@ import {
   Avatar,
   Text,
   ActionIcon,
+  Dialog,
 } from "@mantine/core";
 import { LogOut, Search } from "@easy-eva-icons/react";
 import { useStyles } from "./useStyles";
 import tdflLogo from "../../Images/tdflLogo.png";
 
-export default function TdflAppShell() {
+import { StreakDialog } from "../../Components/StreakDialog";
+
+export type ContextType = {
+  key: [
+    userLoggedIn: boolean,
+    setUserLoggedIn: React.Dispatch<React.SetStateAction<boolean>>
+  ];
+};
+
+function TdflAppShell() {
   const theme = useMantineTheme();
   const { userInfo } = UseApp();
   const [opened, setOpened] = useState(false);
   const { classes, cx } = useStyles();
   const navigate = useNavigate();
 
+  const [userLoggedIn, setUserLoggedIn] = useState<boolean>(false);
+
+  // render
+  const [streakDialogOn, setStreakDialogOn] = useState<boolean>(true);
+
   // for authentication
   const {
     isAuthenticated,
     user,
-    loginWithRedirect,
     logout,
     getAccessTokenSilently,
+    loginWithRedirect,
   } = useAuth0();
 
   const { setUserEmail, setUserInfo, setUserName, setUserPhoto, setUserId } =
@@ -84,16 +98,39 @@ export default function TdflAppShell() {
   useEffect(() => {
     if (isAuthenticated) {
       getUserInfo();
+
       console.log("user", user);
     } else {
-      navigate("/");
+      console.log("is this running here??");
+      loginWithRedirect();
     }
   }, [user]);
+
+  useEffect(() => {
+    console.log("THIS IS APP SHELL CONSOLE");
+    recordLogin();
+  }, [userLoggedIn]);
 
   // to check when was user last logged in and to update score if necessary
   const recordLogin = async () => {
     try {
-      const loginData = axios.put(`${backendUrl}/users/${userInfo.id}/login`);
+      const response = await axios.put(
+        `${backendUrl}/users/${userInfo.id}/login`
+      );
+
+      console.log(response.data);
+
+      switch (response.data.status) {
+        case "added streak":
+          setStreakDialogOn(true);
+          break;
+        case "reset streak":
+          setStreakDialogOn(true);
+          break;
+        default:
+          setStreakDialogOn(false);
+          break;
+      }
     } catch (err) {
       console.log(err);
     }
@@ -214,7 +251,22 @@ export default function TdflAppShell() {
         </Header>
       }
     >
-      <Outlet />
+      <Outlet context={[userLoggedIn, setUserLoggedIn]} />
+
+      <Dialog
+        opened={streakDialogOn}
+        withCloseButton
+        onClose={() => setStreakDialogOn(false)}
+        size="lg"
+        radius="md"
+      >
+        <StreakDialog />
+      </Dialog>
     </AppShell>
   );
 }
+
+export default withAuthenticationRequired(TdflAppShell, {
+  // Show a message while the user waits to be redirected to the login page.
+  onRedirecting: () => <div>Redirecting you to the login page...</div>,
+});

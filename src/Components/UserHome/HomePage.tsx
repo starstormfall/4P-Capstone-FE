@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { backendUrl } from "../../utils";
 import { UseApp } from "../../Components/Context";
+import { withAuthenticationRequired } from "@auth0/auth0-react";
 
 // import style components from mantine
 import {
@@ -35,7 +36,7 @@ import PinDisplay from "./PinDisplay";
 import ThreadDisplay from "./ThreadDisplay";
 import SharePost from "./SharePost";
 
-export default function HomePage() {
+function HomePage() {
   const navigate = useNavigate();
   const { userInfo } = UseApp();
 
@@ -112,7 +113,6 @@ export default function HomePage() {
         `${backendUrl}/users/${userInfo.id}/like`
       );
       setUserLikePosts(response.data);
-      console.log("userlikes", response.data);
     } catch (err) {}
   };
 
@@ -443,3 +443,8 @@ export default function HomePage() {
     </Container>
   );
 }
+
+export default withAuthenticationRequired(HomePage, {
+  // Show a message while the user waits to be redirected to the login page.
+  onRedirecting: () => <div>Redirecting you to the login page...</div>,
+});
