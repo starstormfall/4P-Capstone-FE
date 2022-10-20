@@ -107,16 +107,9 @@ export default function BeFriendPage() {
               setChatroomTitle={setChatroomTitle}
             />
           )}
-        </Grid.Col>
-        <Grid.Col span={4}>
-          {friendList && (
-            <FriendRequestList
-              friendListData={friendList}
-              setFriendList={setFriendList}
-            />
-          )}
-        </Grid.Col>
-        <Grid.Col span={4}>
+          <br />
+          <br />
+          <br />
           {friendList && (
             <ChatRoomList
               friendListData={friendList}
@@ -130,6 +123,15 @@ export default function BeFriendPage() {
             />
           )}
         </Grid.Col>
+        <Grid.Col span={4}>
+          {friendList && (
+            <FriendRequestList
+              friendListData={friendList}
+              setFriendList={setFriendList}
+            />
+          )}
+        </Grid.Col>
+        <Grid.Col span={4}></Grid.Col>
       </Grid>
       <Outlet />
     </div>
