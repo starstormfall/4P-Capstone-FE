@@ -75,7 +75,7 @@ const { getAccessTokenSilently } = useAuth0();
   return (
     <div>
       BeFriendPage Page
-      <Grid justify="space-between" align="center">
+      <Grid justify="space-between" align="start">
         <Grid.Col span={4}>
           {friendList && (
             <FriendList
@@ -87,7 +87,6 @@ const { getAccessTokenSilently } = useAuth0();
         <Grid.Col span={4}>
           {openChatroom ? (
             <>
-              current chatroom
               {friendList && (
                 <ChatRoom
                   friendListData={friendList}
@@ -115,16 +114,9 @@ const { getAccessTokenSilently } = useAuth0();
               setChatroomTitle={setChatroomTitle}
             />
           )}
-        </Grid.Col>
-        <Grid.Col span={4}>
-          {friendList && (
-            <FriendRequestList
-              friendListData={friendList}
-              setFriendList={setFriendList}
-            />
-          )}
-        </Grid.Col>
-        <Grid.Col span={4}>
+          <br />
+          <br />
+          <br />
           {friendList && (
             <ChatRoomList
               friendListData={friendList}
@@ -138,6 +130,15 @@ const { getAccessTokenSilently } = useAuth0();
             />
           )}
         </Grid.Col>
+        <Grid.Col span={4}>
+          {friendList && (
+            <FriendRequestList
+              friendListData={friendList}
+              setFriendList={setFriendList}
+            />
+          )}
+        </Grid.Col>
+        <Grid.Col span={4}></Grid.Col>
       </Grid>
       <Outlet />
     </div>

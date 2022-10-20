@@ -16,8 +16,15 @@ import {
   Avatar,
   Grid,
   createStyles,
+  Box,
+  Indicator,
+  UnstyledButton,
 } from "@mantine/core";
-import { IconArrowsMinimize } from "@tabler/icons";
+import {
+  IconArrowsDiagonalMinimize2,
+  IconSend,
+  IconSettings,
+} from "@tabler/icons";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
 
@@ -149,9 +156,20 @@ const useStyles = createStyles((theme) => ({
     paddingRight: 74,
     paddingBottom: theme.spacing.sm,
   },
+
+  selfFlexEnd: {
+    alignSelf: "flex-end",
+  },
+
+  justifyFlexEnd: {
+    justifyContent: "flex-end",
+    flexWrap: "nowrap",
+  },
 }));
 
 export default function ChatRoom(props: Props) {
+  const { classes, theme } = useStyles();
+
   const { userId, userName, userPhoto } = UseApp();
   // Obtain methods for auth0 authentication.
   const {
@@ -174,7 +192,6 @@ export default function ChatRoom(props: Props) {
     props.chatroomActive
   );
   const [allUsers, setAllUsers] = useState<AllUsers[]>();
-  const { classes } = useStyles();
 
   // useEffect for checking auth0 authentication upon load.
   useEffect(() => {
@@ -468,46 +485,101 @@ export default function ChatRoom(props: Props) {
 
   return (
     <Container size="xl">
-      <div>ChatRoom Page</div>
-      <IconArrowsMinimize onClick={handleMinimize} />
-      <Button onClick={handleLeave}>Leave Chatroom</Button>
-      {props.chatroomhostId === userId &&
-      allFriends &&
-      allFriends.length !== 0 ? (
-        <>
-          <MultiSelect
-            value={newUser}
-            onChange={setNewUser}
-            data={allFriends}
-            disabled={!active}
-          />
-          <Button onClick={handleAdd} disabled={!active}>
-            Invite Friend to Chat
-          </Button>
-          <Button onClick={handleActive} disabled={!active}>
-            Deactivate Room
-          </Button>
-        </>
-      ) : null}
-      <br />
-      <Text>{props.chatroomTitle}</Text>
-      <Text>Chat with {allChatUsers}</Text>
-      <br />
-      {allChatMessages}
-      <br />
-      {adminMessage.length !== 0 ? adminMessage : null}
-      <form onSubmit={handleSubmit}>
+      <Box
+        sx={(theme) => ({
+          minHeight: 250,
+          padding: theme.spacing.md,
+          backgroundColor:
+            theme.colorScheme === "dark" ? theme.colors.dark[6] : theme.white,
+          borderRadius: theme.radius.lg,
+          boxShadow: theme.shadows.lg,
+          display: "flex",
+          flexDirection: "column",
+          // justifyContent: "space-between",
+        })}
+      >
+        <Grid>
+          <Grid.Col span={6}>
+            <Text>ABC</Text>
+          </Grid.Col>
+          <Grid.Col span={6}>
+            <Group className={classes.justifyFlexEnd}>
+              <Text>ABC</Text>
+              {active ? (
+                <Indicator
+                  color="#4EB5BA"
+                  position="middle-start"
+                  size={15}
+                  withBorder
+                  zIndex={0}
+                >
+                  <div></div>
+                </Indicator>
+              ) : (
+                <Indicator
+                  color="red"
+                  position="middle-start"
+                  size={15}
+                  zIndex={0}
+                  withBorder
+                >
+                  <div></div>
+                </Indicator>
+              )}
+              <UnstyledButton>
+                <IconSettings size={20} color="#7491A8" />
+              </UnstyledButton>
+              <UnstyledButton>
+                <IconArrowsDiagonalMinimize2
+                  size={20}
+                  color="#7491A8"
+                  onClick={handleMinimize}
+                />
+              </UnstyledButton>
+            </Group>
+          </Grid.Col>
+        </Grid>
+
         <br />
-        <Textarea
-          disabled={!active}
-          placeholder="Send a new message."
-          value={newMessage}
-          onChange={handleChange}
-        />
-        <Button type="submit" disabled={!active}>
-          Submit
-        </Button>
-      </form>
+        <Button onClick={handleLeave}>Leave Chatroom</Button>
+        {props.chatroomhostId === userId &&
+        allFriends &&
+        allFriends.length !== 0 ? (
+          <>
+            <MultiSelect
+              value={newUser}
+              onChange={setNewUser}
+              data={allFriends}
+              disabled={!active}
+            />
+            <Button onClick={handleAdd} disabled={!active}>
+              Invite Friend to Chat
+            </Button>
+            <Button onClick={handleActive} disabled={!active}>
+              Deactivate Room
+            </Button>
+          </>
+        ) : null}
+        <br />
+        <Text>{props.chatroomTitle}</Text>
+        <Text>Chat with {allChatUsers}</Text>
+        <br />
+        {allChatMessages}
+        <br />
+        {adminMessage.length !== 0 ? adminMessage : null}
+        <form onSubmit={handleSubmit}>
+          <br />
+          <Textarea
+            disabled={!active}
+            placeholder="Send a new message."
+            value={newMessage}
+            onChange={handleChange}
+          />
+          <Button type="submit" disabled={!active}>
+            <IconSend />
+          </Button>
+        </form>
+      </Box>
     </Container>
   );
 }
