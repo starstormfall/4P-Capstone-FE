@@ -6,7 +6,6 @@ import NothingFound from "./Components/NothingFound/NothingFound";
 import ExplorePage from "./Components/ExplorePage";
 import HomePage from "./Components/UserHome/HomePage";
 import UserForm from "./Components/UserForm";
-import UserFavourites from "./Components/Favourites/UserFavourites";
 import ForumMain from "./Components/ForumMain";
 import ThreadSingle from "./Components/TheadSingle";
 import BeFriendPage from "./Components/BeFriendPage";
@@ -28,31 +27,28 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppContextProvider>
-        <BrowserRouter>
-          <MantineProvider theme={tdflTheme} withGlobalStyles withNormalizeCSS>
-            {/* Main page that does NOT require sign in*/}
-            <Routes>
-              <Route index element={<ExplorePage />} />
-              <Route path="/" element={<TdflAppShell />}>
-                {/* Account creation page */}
-                <Route path="/createaccount" element={<UserForm />} />
-                {/* Logged in user homepage (explorepage) */}
-                <Route path="/home" element={<HomePage />} />
+        {/* <BrowserRouter> */}
+        <MantineProvider theme={tdflTheme} withGlobalStyles withNormalizeCSS>
+          {/* Main page that does NOT require sign in*/}
+          <Routes>
+            <Route index element={<ExplorePage />} />
+            <Route path="/" element={<TdflAppShell />}>
+              {/* Account creation page */}
+              <Route path="/createaccount" element={<UserForm />} />
+              {/* Logged in user homepage (explorepage) */}
+              <Route path="/home" element={<HomePage />} />
+              {/* Forum page */}
+              <Route path="/exchange" element={<ForumMain />} />
+              {/* Individual Forum Thread (need forum creation page? or modal) */}
+              <Route path="/exchange/:threadId" element={<ThreadSingle />} />
 
-                {/* User's Favourites page */}
-                <Route path="/favourite" element={<UserFavourites />} />
-                {/* Forum page */}
-                <Route path="/exchange" element={<ForumMain />} />
-                {/* Individual Forum Thread (need forum creation page? or modal) */}
-                <Route path="/exchange/:threadId" element={<ThreadSingle />} />
-
-                {/* Befriend page that house <friendList/> and <Chatrooms/> */}
-                <Route path="/befriend" element={<BeFriendPage />}>
-                  {/* Befriend (friend list in Befriend) */}
-                  {/* <Route path="/befriend/friendlist" element={<FriendList />} /> */}
-                  {/* Befriend (all user's chatrooms) */}
-                  {/* <Route path="/befriend/chatroom" element={<ChatRoomList />} /> */}
-                  {/* <Route
+              {/* Befriend page that house <friendList/> and <Chatrooms/> */}
+              <Route path="/befriend" element={<BeFriendPage />}>
+                {/* Befriend (friend list in Befriend) */}
+                {/* <Route path="/befriend/friendlist" element={<FriendList />} /> */}
+                {/* Befriend (all user's chatrooms) */}
+                {/* <Route path="/befriend/chatroom" element={<ChatRoomList />} /> */}
+                {/* <Route
                     path="/befriend/chatroom/:chatroomId"
                     element={<ChatRoom active={true} />}
                   /> */}
@@ -68,7 +64,7 @@ function App() {
               <Route path="*" element={<NothingFound />} />
             </Routes>
           </MantineProvider>
-        </BrowserRouter>
+   {/* </BrowserRouter> */}
       </AppContextProvider>
     </QueryClientProvider>
   );

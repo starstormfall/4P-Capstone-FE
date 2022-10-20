@@ -17,20 +17,24 @@ interface Props {
 }
 
 export default function ThreadDisplay({ assocThreads, selectedPost }: Props) {
-  const [tags, setTags] = useState({ categories: [], hashtags: [] });
+  const [tags, setTags] = useState({
+    categories: [],
+    hashtags: [],
+    prefecture: [],
+  });
 
-  const getCategoryHashtags = async () => {
+  const getTags = async () => {
     try {
       const response = await axios.get(
-        `${backendUrl}/posts/${selectedPost.id}/category-hashtag`
+        `${backendUrl}/posts/${selectedPost.id}/tags`
       );
       setTags(response.data);
     } catch (err) {}
   };
 
   useEffect(() => {
-    getCategoryHashtags();
-  });
+    getTags();
+  }, []);
 
   const showThreads = assocThreads.map((thread) => (
     <div key={thread.id}>
@@ -48,6 +52,8 @@ export default function ThreadDisplay({ assocThreads, selectedPost }: Props) {
           {tags.categories}
           <br />
           {tags.hashtags}
+          <br />
+          {tags.prefecture}
           {/* <ExplorePost
             postId={Number(post.postId)}
             pinId={Number(post.pinId)}

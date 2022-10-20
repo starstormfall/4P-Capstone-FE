@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate, Outlet, useOutletContext } from "react-router-dom";
+import { withAuthenticationRequired } from "@auth0/auth0-react";
+
 import { Grid } from "@mantine/core";
 import FriendList from "./FriendList";
 import FriendRequestList from "./FriendRequest";
@@ -10,6 +12,8 @@ import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
 import ChatRoom from "./ChatRoom";
+
+import { ContextType } from "../Styles/AppShell/AppShell";
 
 //create interface for the data
 type FriendDataInformation = {
@@ -34,10 +38,13 @@ type FriendDataInformation = {
   updatedAt: string;
 };
 
-export default function BeFriendPage() {
-  const [friendList, setFriendList] = useState<FriendDataInformation[]>();
+function BeFriendPage() {
+  const [userLoggedIn, setUserLoggedIn] =
+    useOutletContext<ContextType["key"]>();
+
+ const [friendList, setFriendList] = useState<FriendDataInformation[]>();
   const { userInfo } = UseApp();
-  const { getAccessTokenSilently } = useAuth0();
+const { getAccessTokenSilently } = useAuth0();
 
   const getFriendList = async () => {
     const response = await axios.get(
@@ -137,3 +144,8 @@ export default function BeFriendPage() {
     </div>
   );
 }
+
+export default withAuthenticationRequired(BeFriendPage, {
+  // Show a message while the user waits to be redirected to the login page.
+  onRedirecting: () => <div>Redirecting you to the login page...</div>,
+});
