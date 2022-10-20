@@ -157,8 +157,13 @@ const useStyles = createStyles((theme) => ({
     paddingBottom: theme.spacing.sm,
   },
 
-  flexEnd: {
+  selfFlexEnd: {
     alignSelf: "flex-end",
+  },
+
+  justifyFlexEnd: {
+    justifyContent: "flex-end",
+    flexWrap: "nowrap",
   },
 }));
 
@@ -493,40 +498,47 @@ export default function ChatRoom(props: Props) {
           // justifyContent: "space-between",
         })}
       >
-        <Group className={classes.flexEnd}>
-          <Text>ABC</Text>
-          {active ? (
-            <Indicator
-              color="#4EB5BA"
-              position="middle-start"
-              size={15}
-              withBorder
-              zIndex={0}
-            >
-              <div></div>
-            </Indicator>
-          ) : (
-            <Indicator
-              color="red"
-              position="middle-start"
-              size={15}
-              zIndex={0}
-              withBorder
-            >
-              <div></div>
-            </Indicator>
-          )}
-          <UnstyledButton>
-            <IconSettings size={20} color="#7491A8" />
-          </UnstyledButton>
-          <UnstyledButton>
-            <IconArrowsDiagonalMinimize2
-              size={20}
-              color="#7491A8"
-              onClick={handleMinimize}
-            />
-          </UnstyledButton>
-        </Group>
+        <Grid>
+          <Grid.Col span={6}>
+            <Text>ABC</Text>
+          </Grid.Col>
+          <Grid.Col span={6}>
+            <Group className={classes.justifyFlexEnd}>
+              <Text>ABC</Text>
+              {active ? (
+                <Indicator
+                  color="#4EB5BA"
+                  position="middle-start"
+                  size={15}
+                  withBorder
+                  zIndex={0}
+                >
+                  <div></div>
+                </Indicator>
+              ) : (
+                <Indicator
+                  color="red"
+                  position="middle-start"
+                  size={15}
+                  zIndex={0}
+                  withBorder
+                >
+                  <div></div>
+                </Indicator>
+              )}
+              <UnstyledButton>
+                <IconSettings size={20} color="#7491A8" />
+              </UnstyledButton>
+              <UnstyledButton>
+                <IconArrowsDiagonalMinimize2
+                  size={20}
+                  color="#7491A8"
+                  onClick={handleMinimize}
+                />
+              </UnstyledButton>
+            </Group>
+          </Grid.Col>
+        </Grid>
 
         <br />
         <Button onClick={handleLeave}>Leave Chatroom</Button>
