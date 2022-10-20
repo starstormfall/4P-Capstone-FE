@@ -35,14 +35,27 @@ type FriendDataInformation = {
 };
 
 export default function BeFriendPage() {
+  const [friendList, setFriendList] = useState<FriendDataInformation[]>();
   const { userInfo } = UseApp();
   const { getAccessTokenSilently } = useAuth0();
 
-  const useFriendList = useQuery(["friendlist"], () =>
-    axios
-      .get(`${backendUrl}/friends/${userInfo?.id}/allfriends`)
-      .then((res) => res.data)
-  );
+  const getFriendList = async () => {
+    const response = await axios.get(
+      `${backendUrl}/friends/${userInfo?.id}/allfriends`
+    );
+
+    setFriendList(response.data);
+  };
+
+  useEffect(() => {
+    getFriendList();
+  }, []);
+
+  // const useFriendList = useQuery(["friendlist"], () =>
+  //   axios
+  //     .get(`${backendUrl}/friends/${userInfo?.id}/allfriends`)
+  //     .then((res) => res.data)
+  // );
 
   const [openChatroom, setOpenChatroom] = useState(false);
   const [chatroomId, setChatroomId] = useState<number>();
@@ -57,62 +70,65 @@ export default function BeFriendPage() {
       BeFriendPage Page
       <Grid justify="space-between" align="start">
         <Grid.Col span={4}>
-          {<FriendList friendListData={useFriendList.data} />}
+          {friendList && (
+            <FriendList
+              friendListData={friendList}
+              setFriendList={setFriendList}
+            />
+          )}
         </Grid.Col>
         <Grid.Col span={4}>
           {openChatroom ? (
             <>
-              <ChatRoom
-                friendListData={useFriendList.data}
-                chatroomId={chatroomId}
-                chatroomActive={chatroomActive}
-                setOpenChatroom={setOpenChatroom}
-                openChatroom={openChatroom}
-                chatroomhostId={chatroomhostId}
-                chatroomTitle={chatroomTitle}
-              />
+              {friendList && (
+                <ChatRoom
+                  friendListData={friendList}
+                  chatroomId={chatroomId}
+                  chatroomActive={chatroomActive}
+                  setOpenChatroom={setOpenChatroom}
+                  openChatroom={openChatroom}
+                  chatroomhostId={chatroomhostId}
+                  chatroomTitle={chatroomTitle}
+                />
+              )}
             </>
           ) : null}
         </Grid.Col>
         <Grid.Col span={4}>
-          <ChatRoomList
-            friendListData={useFriendList.data}
-            chatroomType="hosted"
-            openChatroom={openChatroom}
-            setOpenChatroom={setOpenChatroom}
-            setChatroomId={setChatroomId}
-            setChatroomActive={setChatroomActive}
-            setChatroomHostId={setChatroomHostId}
-            setChatroomTitle={setChatroomTitle}
-          />
-          <br />
-          <br />
-          <br />
-          <ChatRoomList
-            friendListData={useFriendList.data}
-            chatroomType="invited"
-            openChatroom={openChatroom}
-            setOpenChatroom={setOpenChatroom}
-            setChatroomId={setChatroomId}
-            setChatroomActive={setChatroomActive}
-            setChatroomHostId={setChatroomHostId}
-            setChatroomTitle={setChatroomTitle}
-          />
+          {friendList && (
+            <ChatRoomList
+              friendListData={friendList}
+              chatroomType="hosted"
+              openChatroom={openChatroom}
+              setOpenChatroom={setOpenChatroom}
+              setChatroomId={setChatroomId}
+              setChatroomActive={setChatroomActive}
+              setChatroomHostId={setChatroomHostId}
+              setChatroomTitle={setChatroomTitle}
+            />
+          )}
         </Grid.Col>
         <Grid.Col span={4}>
-          <FriendRequestList friendListData={useFriendList.data} />
+          {friendList && (
+            <FriendRequestList
+              friendListData={friendList}
+              setFriendList={setFriendList}
+            />
+          )}
         </Grid.Col>
         <Grid.Col span={4}>
-          {/* <ChatRoomList
-            friendListData={useFriendList.data}
-            chatroomType="invited"
-            openChatroom={openChatroom}
-            setOpenChatroom={setOpenChatroom}
-            setChatroomId={setChatroomId}
-            setChatroomActive={setChatroomActive}
-            setChatroomHostId={setChatroomHostId}
-            setChatroomTitle={setChatroomTitle}
-          /> */}
+          {friendList && (
+            <ChatRoomList
+              friendListData={friendList}
+              chatroomType="invited"
+              openChatroom={openChatroom}
+              setOpenChatroom={setOpenChatroom}
+              setChatroomId={setChatroomId}
+              setChatroomActive={setChatroomActive}
+              setChatroomHostId={setChatroomHostId}
+              setChatroomTitle={setChatroomTitle}
+            />
+          )}
         </Grid.Col>
       </Grid>
       <Outlet />
