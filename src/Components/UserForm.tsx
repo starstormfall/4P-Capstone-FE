@@ -15,8 +15,9 @@ import {
   Textarea,
   NumberInput,
 } from "@mantine/core";
-import { useSetState } from "@mantine/hooks";
+
 import { UseApp } from "./Context";
+import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
 import { backendUrl } from "../utils";
 
@@ -26,13 +27,14 @@ export default function UserForm() {
   const [fileInputFile, setFileInputFile] = useState<File>();
   const [image, setImage] = useState<string>("");
   const { userInfo } = UseApp();
+  const { getAccessTokenSilently } = useAuth0();
 
-  const CLIENT_IMAGE_FOLDER_NAME = "profile pictures";
+  const PROFILE_IMAGE_FOLDER_NAME = "profile pictures";
   const uploadImage = async (fileInputFile?: File) => {
     // e.preventDefault();
     const storageRefInstance = storageRef(
       storage,
-      `${CLIENT_IMAGE_FOLDER_NAME}/${fileInputFile?.name}`
+      `${PROFILE_IMAGE_FOLDER_NAME}/${fileInputFile?.name}`
     );
     console.log(fileInputFile);
     if (fileInputFile) {
@@ -50,16 +52,26 @@ export default function UserForm() {
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
+    const accessToken = await getAccessTokenSilently({
+      audience: process.env.REACT_APP_AUDIENCE,
+      scope: process.env.REACT_APP_SCOPE,
+    });
     event.preventDefault();
     let imageUrl = await uploadImage(fileInputFile);
     console.log(imageUrl);
     console.log(`uploaded to Backend db`);
-    await axios.put(`${backendUrl}/users/update/${userInfo?.id}`, {
-      name: name,
-      nationality: nationality,
-      photoLink: imageUrl,
-      email: userInfo?.email,
-    });
+    await axios.put(
+      `${backendUrl}/users/update/${userInfo?.id}`,
+      {
+        name: name,
+        nationality: nationality,
+        photoLink: imageUrl,
+        email: userInfo?.email,
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
   };
 
   return (

@@ -139,6 +139,7 @@ export default function ExplorePage() {
           <Button onClick={handleLogin}>
             <Title order={5}>LOGIN | SIGNUP</Title>
           </Button>
+ <Button onClick={() => navigate("/rewards")}>nav to rewards</Button>
         </Grid.Col>
         <Grid.Col xs={4}>
           <Image
