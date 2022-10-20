@@ -29,8 +29,24 @@ import {
   Divider,
   Box,
   Container,
+  Collapse,
+  UnstyledButton,
+  ThemeIcon,
+  ChevronIcon,
+  Modal,
 } from "@mantine/core";
-import { IconAlertCircle } from "@tabler/icons";
+import {
+  IconAlertCircle,
+  IconToolsKitchen2,
+  IconBuildingSkyscraper,
+  IconFriends,
+  IconChevronLeft,
+  IconChevronRight,
+  IconMapPin,
+  IconMapPins,
+  IconUserCheck,
+} from "@tabler/icons";
+import { Heart, HeartOutline } from "@easy-eva-icons/react";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -64,13 +80,13 @@ const useStyles = createStyles((theme) => ({
   wrapper: {
     display: "flex",
     alignItems: "center",
-    padding: theme.spacing.xl * 2,
+    // padding: theme.spacing.xl * 2,
     borderRadius: theme.radius.md,
     backgroundColor:
       theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.white,
-    border: `1px solid ${
-      theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[3]
-    }`,
+    // border: `1px solid ${
+    //   theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[3]
+    // }`,
 
     [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
       flexDirection: "column-reverse",
@@ -87,7 +103,7 @@ const useStyles = createStyles((theme) => ({
   },
 
   body: {
-    paddingRight: theme.spacing.xl * 4,
+    // paddingRight: theme.spacing.xl * 4,
 
     [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
       paddingRight: 0,
@@ -112,6 +128,10 @@ const useStyles = createStyles((theme) => ({
     flex: "1",
   },
 
+  select: {
+    padding: 0,
+  },
+
   input: {
     borderTopRightRadius: 0,
     borderBottomRightRadius: 0,
@@ -121,6 +141,15 @@ const useStyles = createStyles((theme) => ({
   control: {
     borderTopLeftRadius: 0,
     borderBottomLeftRadius: 0,
+  },
+
+  chevron: {
+    transition: "transform 200ms ease",
+  },
+
+  crowdNew: {
+    // alignSelf: "self-end",
+    justifyContent: "flex-end",
   },
 }));
 
@@ -216,7 +245,7 @@ interface Distance {
 
 export default function Map() {
   // TO DO ADDITION OF POINTS WHEN CHECK IN
-  const { classes } = useStyles();
+  const { classes, theme } = useStyles();
   const navigate = useNavigate();
 
   // Google map library and API definition
@@ -291,6 +320,11 @@ export default function Map() {
   );
   const [nearbyPlaceDist, setNearbyPlaceDist] = useState<Distance[]>([]);
 
+  const [infoOpened, setInfoOpened] = useState(false);
+  const [crowdOpened, setCrowdOpened] = useState(false);
+  const [nearbyOpened, setNearbyOpened] = useState(false);
+  const ChevronIcon = theme.dir === "ltr" ? IconChevronRight : IconChevronLeft;
+
   // useEffect for checking auth0 authentication upon load.
   useEffect(() => {
     if (isAuthenticated) {
@@ -304,11 +338,11 @@ export default function Map() {
   let blueDot;
   if (isLoaded) {
     blueDot = {
-      fillColor: "purple",
+      fillColor: "#3F9DA1",
       fillOpacity: 1,
       path: google.maps.SymbolPath.CIRCLE,
       scale: 10,
-      strokeColor: "beige",
+      strokeColor: "#FFFFFF",
       strokeWeight: 3,
     };
   }
@@ -807,20 +841,7 @@ export default function Map() {
       //activemarker is the id.
       const realIndex = pins.findIndex((item) => item.id === activeMarker);
 
-      const { crowds, posts } = pins[realIndex];
-
-      const allCrowds = crowds.slice(0, 3).map((crowd, i) => {
-        const { crowdIntensity, crowdSize, recordedAt } = crowd;
-        return (
-          <>
-            <Card key={new Date(recordedAt).toLocaleString()}>
-              <Text>{new Date(recordedAt).toLocaleString()} </Text>
-              <Text>{crowdIntensity}</Text>
-              <Text>{crowdSize}</Text>
-            </Card>
-          </>
-        );
-      });
+      const { posts } = pins[realIndex];
 
       const allPosts = posts.map((post, i) => {
         if (i < 3) {
@@ -851,49 +872,96 @@ export default function Map() {
           });
 
           return (
-            <Card key={post.title}>
+            <div key={post.title}>
+              {/* <Card key={post.title}> */}
               {allCategories}
               <br />
               {allHashtags}
-              <Text>Title: {post.title}</Text>
-              <Text>
-                Posted: {new Date(post.createdAt).toLocaleDateString()}
-              </Text>
-              <Text>{post.content}</Text>
+              <br />
+              <br />
               <Anchor
                 href={post.externalLink}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <img src={post.photoLink} alt={post.title} height={400} />
+                <div
+                  style={{
+                    width: "25.5vw",
+                    marginLeft: "auto",
+                    marginRight: "auto",
+                  }}
+                >
+                  <Image radius="md" src={post.photoLink} alt={post.title} />
+                </div>
+                {/* <img src={post.photoLink} alt={post.title} width="100%" /> */}
               </Anchor>
-              <Text>Likes: {post.likeCount}</Text>
-            </Card>
+              <Text align="right">
+                <Heart color="red" />
+                {post.likeCount}
+              </Text>
+              <Text transform="uppercase">{post.title}</Text>
+              <Text color="dimmed" size="xs">
+                {new Date(post.createdAt).toLocaleDateString()}
+              </Text>
+              <Text size="sm">{post.content}</Text>
+
+              {/* </Card> */}
+            </div>
           );
         } else return null;
       });
 
       return (
         <div key={pinMarkers[activeWindow].name}>
-          <Text>{pinMarkers[activeWindow].name}</Text>
-          <Text>
+          <br />
+          <Button
+            color="greyBlue"
+            onClick={handleCheckIn}
+            rightIcon={<IconUserCheck />}
+          >
+            EARN 10 POINTS
+          </Button>
+          <br />
+          <br />
+          <Text transform="uppercase">{pinMarkers[activeWindow].name}</Text>
+          <Text color="dimmed" size="xs">
             {
               pins[Number(pins.findIndex((item) => item.id === activeMarker))]
                 .area.prefecture
             }
           </Text>
-          <br />
 
-          <Text>LATEST CROWD ESTIMATES</Text>
-          {allCrowds}
-          <br />
-          <Button color="greyBlue" onClick={handleCheckIn}>
-            CHECK IN FOR XX POINTS
-          </Button>
-          <br />
           {allPosts}
         </div>
       );
+    }
+  };
+
+  const findPinCrowd = () => {
+    if (activeMarker !== null && activeWindow !== null) {
+      // const index = pins.findIndex((item) => item.id === activeMarker);
+
+      //activemarker is the id.
+      const realIndex = pins.findIndex((item) => item.id === activeMarker);
+
+      const { crowds } = pins[realIndex];
+
+      const allCrowds = crowds.slice(0, 3).map((crowd, i) => {
+        const { crowdIntensity, crowdSize, recordedAt } = crowd;
+        return (
+          <>
+            <Card key={new Date(recordedAt).toLocaleString()}>
+              <Text transform="uppercase">{crowdIntensity}</Text>
+              <Text size="sm">{crowdSize}</Text>
+              <Text color="dimmed" size="xs">
+                {new Date(recordedAt).toLocaleString()}{" "}
+              </Text>
+            </Card>
+          </>
+        );
+      });
+
+      return <div key={pinMarkers[activeWindow].name}>{allCrowds}</div>;
     }
   };
 
@@ -1032,6 +1100,7 @@ export default function Map() {
         } else {
           setErrorCheckIn(true);
           setSuccessCheckIn(false);
+          setCheckIn(false);
         }
       }
     } else {
@@ -1139,14 +1208,111 @@ export default function Map() {
         </Grid.Col>
       </Grid>
       <br />
+      {errorCheckIn ? (
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          title="Bummer!"
+          color="#C1BBD5"
+          withCloseButton
+          closeButtonLabel="Close alert"
+          onClose={() => setErrorCheckIn(false)}
+        >
+          You are not within the vicinity of the place you are trying to check
+          in at! Please move closer and try again
+        </Alert>
+      ) : null}
+      {activeWindow !== null && successCheckIn ? (
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          title="Congratulations!"
+          color="aqua"
+          withCloseButton
+          closeButtonLabel="Close alert"
+          onClose={() => setSuccessCheckIn(false)}
+        >
+          You have successfully checked in. Thank you for helping the community!
+          You have earned 10 points for your contribution and have{" "}
+          {newUserScore} points now.
+        </Alert>
+      ) : null}
+      {checkIn && activeWindow ? (
+        <Modal
+          opened={checkIn}
+          onClose={() => setCheckIn(false)}
+          radius="md"
+          size="auto"
+          withCloseButton={false}
+          // centered
+        >
+          <div className={classes.wrapper}>
+            <div className={classes.body}>
+              <Text weight={500} size="lg" mb={5}>
+                At {pinMarkers[activeWindow].name} and want to check in?
+              </Text>
+              <Text size="sm" color="dimmed">
+                Earn 10 points if you provide your feedback and help the
+                community!
+              </Text>
+              <div className={classes.select}>
+                <Select
+                  style={{ marginTop: 20, zIndex: 2, padding: 0 }}
+                  data={[
+                    {
+                      value: "very crowded",
+                      label: "Very Crowded (> 100 people)",
+                      name: ">100 pax",
+                    },
+                    {
+                      value: "somewhat crowded",
+                      label: "Somewhat Crowded (30 to 100 people)",
+                      name: "30 to 100 pax",
+                    },
+                    {
+                      value: "little crowd",
+                      label: "Little Crowd (< 30 people)",
+                      name: "<30 pax",
+                    },
+                  ]}
+                  placeholder="Pick one"
+                  label="Current Crowd Estimate"
+                  classNames={classes}
+                  value={crowdValue}
+                  onChange={setCrowdValue}
+                />
+              </div>
+              <div>
+                <br />
+                <Group className={classes.crowdNew}>
+                  <Button onClick={handleSubmitCrowd} name="with location">
+                    <IconUserCheck />
+                  </Button>
+                </Group>
+                <br />
+                <Button
+                  className={classes.control}
+                  onClick={handleSubmitCrowd}
+                  name="without location"
+                >
+                  Check In Without Location
+                </Button>
+              </div>
+            </div>
+            {/* <Image src={image.src} className={classes.image} /> */}
+          </div>
+        </Modal>
+      ) : // <Container fluid>
+      // </Container>
+      null}
       {isLoaded && pinMarkers.length > 0 ? (
         <>
           {/* <Container style={{ width: "100%" }}> */}
           <Grid
-            grow
+            // grow
             gutter="md"
             style={{
               width: "100%",
+              margin: "-8px 0px",
+              justifyContent: "center",
             }}
           >
             <Box
@@ -1160,6 +1326,7 @@ export default function Map() {
                 borderRadius: theme.radius.lg,
                 boxShadow: theme.shadows.lg,
                 display: "flex",
+                width: "95vw",
                 // flexDirection: "column",
                 // justifyContent: "space-between",
               })}
@@ -1296,16 +1463,16 @@ export default function Map() {
                             if (category === filterCategory) {
                               if (category === 1) {
                                 markerIcon =
-                                  "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/soup.png";
                               } else if (category === 2) {
                                 markerIcon =
-                                  "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
                               } else if (category === 3) {
                                 markerIcon =
-                                  "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
                               } else {
                                 markerIcon =
-                                  "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
                               }
 
                               return (
@@ -1313,7 +1480,7 @@ export default function Map() {
                                   key={`${id} ${category}`}
                                   icon={{
                                     url: `${markerIcon}`,
-                                    scaledSize: new google.maps.Size(50, 50),
+                                    scaledSize: new google.maps.Size(30, 30),
                                     // scale: 0.0005,
                                   }}
                                   // icon={markerIcon}
@@ -1357,16 +1524,16 @@ export default function Map() {
                             let markerIcon = "";
                             if (category === 1) {
                               markerIcon =
-                                "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/soup.png";
                             } else if (category === 2) {
                               markerIcon =
-                                "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
                             } else if (category === 3) {
                               markerIcon =
-                                "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
                             } else {
                               markerIcon =
-                                "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
                             }
 
                             return (
@@ -1374,7 +1541,7 @@ export default function Map() {
                                 key={`${id} ${category}`}
                                 icon={{
                                   url: `${markerIcon}`,
-                                  scaledSize: new google.maps.Size(50, 50),
+                                  scaledSize: new google.maps.Size(30, 30),
                                   // scale: 0.0005,
                                 }}
                                 // icon={markerIcon}
@@ -1416,16 +1583,16 @@ export default function Map() {
                       let markerIcon = "";
                       if (categoryId[0] === 1) {
                         markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/soup.png";
                       } else if (categoryId[0] === 2) {
                         markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
                       } else if (categoryId[0] === 3) {
                         markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
                       } else {
                         markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
                       }
 
                       return (
@@ -1434,7 +1601,7 @@ export default function Map() {
                           icon={{
                             url: `${markerIcon}`,
                             // scale: 0.0005,
-                            scaledSize: new google.maps.Size(50, 50),
+                            scaledSize: new google.maps.Size(30, 30),
                           }}
                           // icon={markerIcon}
                           position={position}
@@ -1464,98 +1631,174 @@ export default function Map() {
                   })}
                 </GoogleMap>
               </Grid.Col>
-
               <Grid.Col span={4}>
-                {checkIn && activeWindow ? (
-                  <Container fluid>
-                    {errorCheckIn ? (
-                      <Alert
-                        icon={<IconAlertCircle size={16} />}
-                        title="Bummer!"
-                        color="aqua"
-                      >
-                        You are not within the vicinity of the place you are
-                        trying to check in at! Please move closer and try again
-                      </Alert>
-                    ) : null}
-                    <div className={classes.wrapper}>
-                      <div className={classes.body}>
-                        <Text weight={500} size="lg" mb={5}>
-                          At {pins[activeWindow].placeName} and want to check
-                          in?
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                          Earn XX points if you provide your feedback and help
-                          the community!
-                        </Text>
-
-                        <Select
-                          style={{ marginTop: 20, zIndex: 2 }}
-                          data={[
-                            {
-                              value: "very crowded",
-                              label: "Very Crowded (> 100 people)",
-                              name: ">100 pax",
-                            },
-                            {
-                              value: "somewhat crowded",
-                              label: "Somewhat Crowded (30 to 100 people)",
-                              name: "30 to 100 pax",
-                            },
-                            {
-                              value: "little crowd",
-                              label: "Little Crowd (< 30 people)",
-                              name: "<30 pax",
-                            },
-                          ]}
-                          placeholder="Pick one"
-                          label="Current Crowd Estimate"
-                          classNames={classes}
-                          value={crowdValue}
-                          onChange={setCrowdValue}
-                        />
-                        <div className={classes.controls}>
-                          <Button
-                            className={classes.control}
-                            onClick={handleSubmitCrowd}
-                            name="with location"
-                          >
-                            Check In With Location for XX more Points
-                          </Button>
-                          <br />
-                          <Button
-                            className={classes.control}
-                            onClick={handleSubmitCrowd}
-                            name="without location"
-                          >
-                            Check In Without Location
-                          </Button>
-                        </div>
-                      </div>
-                      {/* <Image src={image.src} className={classes.image} /> */}
-                    </div>
-                  </Container>
-                ) : null}
-                {activeWindow !== null && successCheckIn ? (
-                  <Alert
-                    icon={<IconAlertCircle size={16} />}
-                    title="Congratulations!"
-                    color="aqua"
+                <Box
+                  sx={(theme) => ({
+                    minHeight: "9vh",
+                    padding: theme.spacing.md,
+                    backgroundColor:
+                      theme.colorScheme === "dark"
+                        ? theme.colors.dark[6]
+                        : theme.white,
+                    borderRadius: theme.radius.lg,
+                    boxShadow: theme.shadows.xs,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    maxWidth: "31vw",
+                  })}
+                >
+                  <UnstyledButton
+                    disabled={activeWindow === null}
+                    onClick={() => {
+                      setInfoOpened((o) => !o);
+                      setCrowdOpened(false);
+                      setNearbyOpened(false);
+                    }}
+                    className={classes.control}
                   >
-                    You have successfully checked in. Thank you for helping the
-                    community! You have earned 10 points for your contribution
-                    and have {newUserScore} points now.
-                  </Alert>
-                ) : null}
-                {activeWindow !== null ? (
-                  <>
-                    <Card>{findPinInfo()}</Card>
-                  </>
-                ) : null}
-                {nearbyPlaceDist.length > 0 ? (
-                  <Text>NEARBY SIMILAR PLACES OF INTEREST</Text>
-                ) : null}
-                {nearbyPlaceDist.length > 0 ? displayNearbyPlaces() : null}
+                    <Group position="apart" spacing={0}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <ThemeIcon variant="light" size={30}>
+                          <IconMapPin size={18} />
+                        </ThemeIcon>
+                        <Box ml="md">
+                          <Title order={6}>INFORMATION</Title>
+                        </Box>
+                      </Box>
+                      <ChevronIcon
+                        className={classes.chevron}
+                        size={14}
+                        stroke={1.5}
+                        style={{
+                          transform: infoOpened
+                            ? `rotate(${theme.dir === "rtl" ? -90 : 90}deg)`
+                            : "none",
+                        }}
+                      />
+                    </Group>
+                  </UnstyledButton>
+                  <Collapse in={infoOpened}>
+                    <ScrollArea style={{ height: "36vh" }} offsetScrollbars>
+                      {findPinInfo()}
+                    </ScrollArea>
+                  </Collapse>
+                </Box>
+
+                <br />
+
+                <Box
+                  sx={(theme) => ({
+                    minHeight: "9vh",
+                    padding: theme.spacing.md,
+                    backgroundColor:
+                      theme.colorScheme === "dark"
+                        ? theme.colors.dark[6]
+                        : theme.white,
+                    borderRadius: theme.radius.lg,
+                    boxShadow: theme.shadows.xs,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    maxWidth: "31vw",
+                  })}
+                >
+                  <UnstyledButton
+                    disabled={activeWindow === null}
+                    onClick={() => {
+                      setCrowdOpened((o) => !o);
+                      setInfoOpened(false);
+                      setNearbyOpened(false);
+                    }}
+                    className={classes.control}
+                  >
+                    <Group position="apart" spacing={0}>
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <ThemeIcon variant="light" size={30}>
+                          <IconFriends size={18} />
+                        </ThemeIcon>
+                        <Box ml="md">
+                          <Title order={6}>LATEST CROWDS</Title>
+                        </Box>
+                      </Box>
+                      <ChevronIcon
+                        className={classes.chevron}
+                        size={14}
+                        stroke={1.5}
+                        style={{
+                          transform: crowdOpened
+                            ? `rotate(${theme.dir === "rtl" ? -90 : 90}deg)`
+                            : "none",
+                        }}
+                      />
+                    </Group>
+                  </UnstyledButton>
+                  <Collapse in={crowdOpened}>
+                    <ScrollArea style={{ height: "36vh" }} offsetScrollbars>
+                      {findPinCrowd()}
+                    </ScrollArea>
+                  </Collapse>
+                </Box>
+
+                <br />
+
+                <Box
+                  sx={(theme) => ({
+                    minHeight: "9vh",
+                    padding: theme.spacing.md,
+                    backgroundColor:
+                      theme.colorScheme === "dark"
+                        ? theme.colors.dark[6]
+                        : theme.white,
+                    borderRadius: theme.radius.lg,
+                    boxShadow: theme.shadows.xs,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    maxWidth: "31vw",
+                  })}
+                >
+                  <UnstyledButton
+                    disabled={!(nearbyPlaceDist.length > 0)}
+                    onClick={() => {
+                      setNearbyOpened((o) => !o);
+                      setCrowdOpened(false);
+                      setInfoOpened(false);
+                    }}
+                    className={classes.control}
+                  >
+                    <Group position="apart" spacing={0}>
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <ThemeIcon variant="light" size={30}>
+                          <IconMapPins size={18} />
+                        </ThemeIcon>
+                        <Box ml="md">
+                          <Title order={6}>SIMILAR NEARBY</Title>
+                        </Box>
+                      </Box>
+                      <ChevronIcon
+                        className={classes.chevron}
+                        size={14}
+                        stroke={1.5}
+                        style={{
+                          transform: nearbyOpened
+                            ? `rotate(${theme.dir === "rtl" ? -90 : 90}deg)`
+                            : "none",
+                        }}
+                      />
+                    </Group>
+                  </UnstyledButton>
+                  <Collapse in={nearbyOpened}>
+                    <ScrollArea style={{ height: "36vh" }} offsetScrollbars>
+                      {displayNearbyPlaces()}
+                    </ScrollArea>
+                  </Collapse>
+                </Box>
               </Grid.Col>
             </Box>
           </Grid>
