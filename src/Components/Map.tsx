@@ -26,6 +26,9 @@ import {
   Select,
   Alert,
   Anchor,
+  Divider,
+  Box,
+  Container,
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons";
 import { backendUrl } from "../utils";
@@ -1092,188 +1095,236 @@ export default function Map() {
 
   return (
     <>
-      <div>Map Page</div>
-      <ScrollArea style={{ height: 50 }}>
-        <div style={{ width: "100vw" }}>
-          <Group>
-            {allAvailableAreas && allAvailableAreas.length ? (
-              listAreas
-            ) : (
-              <Loader />
-            )}
-          </Group>
-        </div>
-      </ScrollArea>
+      <Grid>
+        <Grid.Col span={4}>
+          <ScrollArea style={{ height: 50 }}>
+            <div style={{ width: "xl" }}>
+              <Group position="center">
+                {allAvailableAreas && allAvailableAreas.length ? (
+                  listAreas
+                ) : (
+                  <Loader />
+                )}
+              </Group>
+            </div>
+          </ScrollArea>
+        </Grid.Col>
+        <Divider size="sm" orientation="vertical" />
+        <Grid.Col span={4}>
+          <ScrollArea style={{ height: 50 }}>
+            <div style={{ width: "xl" }}>
+              {allAvailableCategories &&
+              allAvailableCategories.length &&
+              categoryVisible ? (
+                <Group position="center">{listCategories}</Group>
+              ) : (
+                <Loader />
+              )}
+            </div>
+          </ScrollArea>
+        </Grid.Col>
+        <Divider size="sm" orientation="vertical" />
+        <Grid.Col span={3}>
+          <ScrollArea style={{ height: 50 }}>
+            <div style={{ width: "xl" }}>
+              {allAvailableHashtags &&
+              allAvailableHashtags.length &&
+              hashtagVisible ? (
+                <Group>{listHashtags} </Group>
+              ) : (
+                <Loader />
+              )}
+            </div>
+          </ScrollArea>
+        </Grid.Col>
+      </Grid>
       <br />
-      {allAvailableCategories &&
-      allAvailableCategories.length &&
-      categoryVisible ? (
-        <Group>{listCategories}</Group>
-      ) : null}
-      <br />
-      {allAvailableHashtags && allAvailableHashtags.length && hashtagVisible ? (
-        <Group>{listHashtags} </Group>
-      ) : null}
-      <br />
-
       {isLoaded && pinMarkers.length > 0 ? (
         <>
-          <GoogleMap
-            onClick={() => handleResetMarker()}
-            center={mapCenter}
-            onLoad={(map) => setOriginalMap(map)}
-            zoom={zoomLevel}
-            mapContainerStyle={{ width: "70vw", height: "80vh" }}
-            options={{
-              streetViewControl: false,
-              mapTypeControl: false,
-              fullscreenControl: false,
+          {/* <Container style={{ width: "100%" }}> */}
+          <Grid
+            grow
+            gutter="md"
+            style={{
+              width: "100%",
             }}
           >
-            {activeWindow !== null ? (
-              <HeatmapLayer
-                data={heatmapData}
-                options={{ radius: crowdMapWeight, opacity: 0.4 }}
-                onUnmount={onUnmount}
-              />
-            ) : null}
-
-            {activeWindow !== null &&
-              filterRegion !== 0 &&
-              control &&
-              originAddress &&
-              destinationAddresses && (
-                <DistanceMatrixService
+            <Box
+              sx={(theme) => ({
+                // minHeight: 250,
+                padding: theme.spacing.md,
+                backgroundColor:
+                  theme.colorScheme === "dark"
+                    ? theme.colors.dark[6]
+                    : theme.white,
+                borderRadius: theme.radius.lg,
+                boxShadow: theme.shadows.lg,
+                display: "flex",
+                // flexDirection: "column",
+                // justifyContent: "space-between",
+              })}
+            >
+              <Grid.Col span={8}>
+                <GoogleMap
+                  onClick={() => handleResetMarker()}
+                  center={mapCenter}
+                  onLoad={(map) => setOriginalMap(map)}
+                  zoom={zoomLevel}
+                  mapContainerStyle={{ width: "60vw", height: "70vh" }}
                   options={{
-                    destinations: destinationAddresses,
-                    origins: originAddress,
-                    travelMode: google.maps.TravelMode.DRIVING,
+                    streetViewControl: false,
+                    mapTypeControl: false,
+                    fullscreenControl: false,
                   }}
-                  callback={async (res) => {
-                    console.log("RESPONSE", res);
-                    setControl(false);
+                >
+                  {activeWindow !== null ? (
+                    <HeatmapLayer
+                      data={heatmapData}
+                      options={{ radius: crowdMapWeight, opacity: 0.4 }}
+                      onUnmount={onUnmount}
+                    />
+                  ) : null}
 
-                    if (res !== null) {
-                      const nearbyDistanceObjects = res.rows[0].elements.map(
-                        (place, index) => {
-                          const distanceObject = {
-                            position: index,
-                            distance: place.distance.value,
-                          };
+                  {activeWindow !== null &&
+                    filterRegion !== 0 &&
+                    control &&
+                    originAddress &&
+                    destinationAddresses && (
+                      <DistanceMatrixService
+                        options={{
+                          destinations: destinationAddresses,
+                          origins: originAddress,
+                          travelMode: google.maps.TravelMode.DRIVING,
+                        }}
+                        callback={async (res) => {
+                          console.log("RESPONSE", res);
+                          setControl(false);
 
-                          // For each response object, finds the corresponding pin info in state.
-                          const distancePin = pinMarkers.find(
-                            (pin) =>
-                              pin.position === destinationAddresses[index]
-                          );
-
-                          // Finds the current pin info in state.
-                          const originPin = pinMarkers.find(
-                            (pin) => pin.position === originAddress[0]
-                          );
-
-                          // Checks if the response object has common category as the current pin info. Checks if category filter is in place. If category filter in place, filters by set category instead.
-                          if (originPin && distancePin) {
-                            if (filterCategory !== 0) {
-                              if (
-                                distancePin.categoryId.includes(filterCategory)
-                              ) {
-                                return distanceObject;
-                              } else
-                                return {
-                                  position: -1,
-                                  distance: Number.MAX_SAFE_INTEGER,
+                          if (res !== null) {
+                            const nearbyDistanceObjects =
+                              res.rows[0].elements.map((place, index) => {
+                                const distanceObject = {
+                                  position: index,
+                                  distance: place.distance.value,
                                 };
-                            } else {
-                              const response = originPin.categoryId.map(
-                                (category) => {
-                                  if (
-                                    distancePin.categoryId.includes(category)
-                                  ) {
-                                    return distanceObject;
-                                  } else
-                                    return {
-                                      position: -1,
-                                      distance: Number.MAX_SAFE_INTEGER,
-                                    };
+
+                                // For each response object, finds the corresponding pin info in state.
+                                const distancePin = pinMarkers.find(
+                                  (pin) =>
+                                    pin.position === destinationAddresses[index]
+                                );
+
+                                // Finds the current pin info in state.
+                                const originPin = pinMarkers.find(
+                                  (pin) => pin.position === originAddress[0]
+                                );
+
+                                // Checks if the response object has common category as the current pin info. Checks if category filter is in place. If category filter in place, filters by set category instead.
+                                if (originPin && distancePin) {
+                                  if (filterCategory !== 0) {
+                                    if (
+                                      distancePin.categoryId.includes(
+                                        filterCategory
+                                      )
+                                    ) {
+                                      return distanceObject;
+                                    } else
+                                      return {
+                                        position: -1,
+                                        distance: Number.MAX_SAFE_INTEGER,
+                                      };
+                                  } else {
+                                    const response = originPin.categoryId.map(
+                                      (category) => {
+                                        if (
+                                          distancePin.categoryId.includes(
+                                            category
+                                          )
+                                        ) {
+                                          return distanceObject;
+                                        } else
+                                          return {
+                                            position: -1,
+                                            distance: Number.MAX_SAFE_INTEGER,
+                                          };
+                                      }
+                                    );
+                                    return response.flat();
+                                  }
                                 }
+                                return [distanceObject];
+                              });
+
+                            // Sets the response object into state, for those that passed the filter. Sorts the objects by distance, from nearest to furthest. Saves only the closest 3 reponse objects.
+                            if (
+                              nearbyDistanceObjects.flat().length > 0 &&
+                              !nearbyDistanceObjects
+                                .flat()
+                                .some((element) => element === null)
+                            ) {
+                              setNearbyPlaceDist(
+                                nearbyDistanceObjects
+                                  .flat(2)
+                                  .sort((a, b) => a.distance - b.distance)
+                                  .slice(0, 3)
                               );
-                              return response.flat();
                             }
                           }
-                          return [distanceObject];
-                        }
-                      );
+                        }}
+                      />
+                    )}
 
-                      // Sets the response object into state, for those that passed the filter. Sorts the objects by distance, from nearest to furthest. Saves only the closest 3 reponse objects.
-                      if (
-                        nearbyDistanceObjects.flat().length > 0 &&
-                        !nearbyDistanceObjects
-                          .flat()
-                          .some((element) => element === null)
-                      ) {
-                        setNearbyPlaceDist(
-                          nearbyDistanceObjects
-                            .flat(2)
-                            .sort((a, b) => a.distance - b.distance)
-                            .slice(0, 3)
-                        );
-                      }
-                    }
-                  }}
-                />
-              )}
+                  {/* MARKER FOR USER LIVE LOCATION */}
+                  {currentPosition && isLoaded ? (
+                    <MarkerF
+                      key={`current location`}
+                      icon={blueDot}
+                      position={currentPosition}
+                    />
+                  ) : null}
 
-            {/* MARKER FOR USER LIVE LOCATION */}
-            {currentPosition && isLoaded ? (
-              <MarkerF
-                key={`current location`}
-                icon={blueDot}
-                position={currentPosition}
-              />
-            ) : null}
+                  {/* MARKERS FOR ALL PINS WITHIN STATE. CHECKS IF CATEGORY FILTER IS SET. */}
+                  {pinMarkers.map((element, index) => {
+                    const { id, name, position, categoryId } = element;
 
-            {/* MARKERS FOR ALL PINS WITHIN STATE. CHECKS IF CATEGORY FILTER IS SET. */}
-            {pinMarkers.map((element, index) => {
-              const { id, name, position, categoryId } = element;
+                    if (categoryId.length > 1) {
+                      if (filterCategory !== 0) {
+                        const arrayOfMarkers = categoryId.map(
+                          (category, index) => {
+                            let markerIcon = "";
 
-              if (categoryId.length > 1) {
-                if (filterCategory !== 0) {
-                  const arrayOfMarkers = categoryId.map((category, index) => {
-                    let markerIcon = "";
+                            if (category === filterCategory) {
+                              if (category === 1) {
+                                markerIcon =
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
+                              } else if (category === 2) {
+                                markerIcon =
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
+                              } else if (category === 3) {
+                                markerIcon =
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
+                              } else {
+                                markerIcon =
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
+                              }
 
-                    if (category === filterCategory) {
-                      if (category === 1) {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
-                      } else if (category === 2) {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
-                      } else if (category === 3) {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
-                      } else {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
-                      }
-
-                      return (
-                        <MarkerF
-                          key={`${id} ${category}`}
-                          icon={{
-                            url: `${markerIcon}`,
-                            scaledSize: new google.maps.Size(50, 50),
-                            // scale: 0.0005,
-                          }}
-                          // icon={markerIcon}
-                          position={{
-                            lat: position.lat + index * 0.0001,
-                            lng: position.lng + index * 0.0001,
-                          }}
-                          // position={position}
-                          onClick={() => handleActiveMarker(id, index)}
-                        >
-                          {/* {activeMarker === id ? (
+                              return (
+                                <MarkerF
+                                  key={`${id} ${category}`}
+                                  icon={{
+                                    url: `${markerIcon}`,
+                                    scaledSize: new google.maps.Size(50, 50),
+                                    // scale: 0.0005,
+                                  }}
+                                  // icon={markerIcon}
+                                  position={{
+                                    lat: position.lat + index * 0.0001,
+                                    lng: position.lng + index * 0.0001,
+                                  }}
+                                  // position={position}
+                                  onClick={() => handleActiveMarker(id, index)}
+                                >
+                                  {/* {activeMarker === id ? (
                             <InfoWindowF
                               onCloseClick={() => setActiveMarker(null)}
                             >
@@ -1293,46 +1344,48 @@ export default function Map() {
                               </>
                             </InfoWindowF>
                           ) : null} */}
-                        </MarkerF>
-                      );
-                    }
-                  });
+                                </MarkerF>
+                              );
+                            }
+                          }
+                        );
 
-                  return arrayOfMarkers.map((marker) => marker);
-                } else {
-                  const arrayOfMarkers = categoryId.map((category, index) => {
-                    let markerIcon = "";
-                    if (category === 1) {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
-                    } else if (category === 2) {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
-                    } else if (category === 3) {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
-                    } else {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
-                    }
+                        return arrayOfMarkers.map((marker) => marker);
+                      } else {
+                        const arrayOfMarkers = categoryId.map(
+                          (category, index) => {
+                            let markerIcon = "";
+                            if (category === 1) {
+                              markerIcon =
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
+                            } else if (category === 2) {
+                              markerIcon =
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
+                            } else if (category === 3) {
+                              markerIcon =
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
+                            } else {
+                              markerIcon =
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
+                            }
 
-                    return (
-                      <MarkerF
-                        key={`${id} ${category}`}
-                        icon={{
-                          url: `${markerIcon}`,
-                          scaledSize: new google.maps.Size(50, 50),
-                          // scale: 0.0005,
-                        }}
-                        // icon={markerIcon}
-                        position={{
-                          lat: position.lat + index * 0.0001,
-                          lng: position.lng + index * 0.0001,
-                        }}
-                        // position={position}
-                        onClick={() => handleActiveMarker(id, index)}
-                      >
-                        {/* {activeMarker === id ? (
+                            return (
+                              <MarkerF
+                                key={`${id} ${category}`}
+                                icon={{
+                                  url: `${markerIcon}`,
+                                  scaledSize: new google.maps.Size(50, 50),
+                                  // scale: 0.0005,
+                                }}
+                                // icon={markerIcon}
+                                position={{
+                                  lat: position.lat + index * 0.0001,
+                                  lng: position.lng + index * 0.0001,
+                                }}
+                                // position={position}
+                                onClick={() => handleActiveMarker(id, index)}
+                              >
+                                {/* {activeMarker === id ? (
                           <InfoWindowF
                             onCloseClick={() => setActiveMarker(null)}
                           >
@@ -1352,41 +1405,42 @@ export default function Map() {
                             </>
                           </InfoWindowF>
                         ) : null} */}
-                      </MarkerF>
-                    );
-                  });
+                              </MarkerF>
+                            );
+                          }
+                        );
 
-                  return arrayOfMarkers.map((marker) => marker);
-                }
-              } else {
-                let markerIcon = "";
-                if (categoryId[0] === 1) {
-                  markerIcon =
-                    "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
-                } else if (categoryId[0] === 2) {
-                  markerIcon =
-                    "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
-                } else if (categoryId[0] === 3) {
-                  markerIcon =
-                    "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
-                } else {
-                  markerIcon =
-                    "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
-                }
+                        return arrayOfMarkers.map((marker) => marker);
+                      }
+                    } else {
+                      let markerIcon = "";
+                      if (categoryId[0] === 1) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
+                      } else if (categoryId[0] === 2) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
+                      } else if (categoryId[0] === 3) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
+                      } else {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
+                      }
 
-                return (
-                  <MarkerF
-                    key={id}
-                    icon={{
-                      url: `${markerIcon}`,
-                      // scale: 0.0005,
-                      scaledSize: new google.maps.Size(50, 50),
-                    }}
-                    // icon={markerIcon}
-                    position={position}
-                    onClick={() => handleActiveMarker(id, index)}
-                  >
-                    {/* {activeMarker === id ? (
+                      return (
+                        <MarkerF
+                          key={id}
+                          icon={{
+                            url: `${markerIcon}`,
+                            // scale: 0.0005,
+                            scaledSize: new google.maps.Size(50, 50),
+                          }}
+                          // icon={markerIcon}
+                          position={position}
+                          onClick={() => handleActiveMarker(id, index)}
+                        >
+                          {/* {activeMarker === id ? (
                       <InfoWindowF onCloseClick={() => setActiveMarker(null)}>
                         <>
                           <Text>{name}</Text>
@@ -1404,100 +1458,108 @@ export default function Map() {
                         </>
                       </InfoWindowF>
                     ) : null} */}
-                  </MarkerF>
-                );
-              }
-            })}
-          </GoogleMap>
-          {checkIn && activeWindow ? (
-            <>
-              {errorCheckIn ? (
-                <Alert
-                  icon={<IconAlertCircle size={16} />}
-                  title="Bummer!"
-                  color="aqua"
-                >
-                  You are not within the vicinity of the place you are trying to
-                  check in at! Please move closer and try again
-                </Alert>
-              ) : null}
-              <div className={classes.wrapper}>
-                <div className={classes.body}>
-                  <Text weight={500} size="lg" mb={5}>
-                    At {pins[activeWindow].placeName} and want to check in?
-                  </Text>
-                  <Text size="sm" color="dimmed">
-                    Earn XX points if you provide your feedback and help the
-                    community!
-                  </Text>
+                        </MarkerF>
+                      );
+                    }
+                  })}
+                </GoogleMap>
+              </Grid.Col>
 
-                  <Select
-                    style={{ marginTop: 20, zIndex: 2 }}
-                    data={[
-                      {
-                        value: "very crowded",
-                        label: "Very Crowded (> 100 people)",
-                        name: ">100 pax",
-                      },
-                      {
-                        value: "somewhat crowded",
-                        label: "Somewhat Crowded (30 to 100 people)",
-                        name: "30 to 100 pax",
-                      },
-                      {
-                        value: "little crowd",
-                        label: "Little Crowd (< 30 people)",
-                        name: "<30 pax",
-                      },
-                    ]}
-                    placeholder="Pick one"
-                    label="Current Crowd Estimate"
-                    classNames={classes}
-                    value={crowdValue}
-                    onChange={setCrowdValue}
-                  />
-                  <div className={classes.controls}>
-                    <Button
-                      className={classes.control}
-                      onClick={handleSubmitCrowd}
-                      name="with location"
-                    >
-                      Check In With Location for XX more Points
-                    </Button>
-                    <br />
-                    <Button
-                      className={classes.control}
-                      onClick={handleSubmitCrowd}
-                      name="without location"
-                    >
-                      Check In Without Location
-                    </Button>
-                  </div>
-                </div>
-                {/* <Image src={image.src} className={classes.image} /> */}
-              </div>
-            </>
-          ) : null}
-          {activeWindow !== null && successCheckIn ? (
-            <Alert
-              icon={<IconAlertCircle size={16} />}
-              title="Congratulations!"
-              color="aqua"
-            >
-              You have successfully checked in. Thank you for helping the
-              community! You have earned 10 points for your contribution and
-              have {newUserScore} points now.
-            </Alert>
-          ) : null}
-          {activeWindow !== null ? (
-            <>
-              <Card>{findPinInfo()}</Card>
-            </>
-          ) : null}
-          {nearbyPlaceDist.length > 0 ? (
-            <Text>NEARBY SIMILAR PLACES OF INTEREST</Text>
-          ) : null}
-          {nearbyPlaceDist.length > 0 ? displayNearbyPlaces() : null}
+              <Grid.Col span={4}>
+                {checkIn && activeWindow ? (
+                  <Container fluid>
+                    {errorCheckIn ? (
+                      <Alert
+                        icon={<IconAlertCircle size={16} />}
+                        title="Bummer!"
+                        color="aqua"
+                      >
+                        You are not within the vicinity of the place you are
+                        trying to check in at! Please move closer and try again
+                      </Alert>
+                    ) : null}
+                    <div className={classes.wrapper}>
+                      <div className={classes.body}>
+                        <Text weight={500} size="lg" mb={5}>
+                          At {pins[activeWindow].placeName} and want to check
+                          in?
+                        </Text>
+                        <Text size="sm" color="dimmed">
+                          Earn XX points if you provide your feedback and help
+                          the community!
+                        </Text>
+
+                        <Select
+                          style={{ marginTop: 20, zIndex: 2 }}
+                          data={[
+                            {
+                              value: "very crowded",
+                              label: "Very Crowded (> 100 people)",
+                              name: ">100 pax",
+                            },
+                            {
+                              value: "somewhat crowded",
+                              label: "Somewhat Crowded (30 to 100 people)",
+                              name: "30 to 100 pax",
+                            },
+                            {
+                              value: "little crowd",
+                              label: "Little Crowd (< 30 people)",
+                              name: "<30 pax",
+                            },
+                          ]}
+                          placeholder="Pick one"
+                          label="Current Crowd Estimate"
+                          classNames={classes}
+                          value={crowdValue}
+                          onChange={setCrowdValue}
+                        />
+                        <div className={classes.controls}>
+                          <Button
+                            className={classes.control}
+                            onClick={handleSubmitCrowd}
+                            name="with location"
+                          >
+                            Check In With Location for XX more Points
+                          </Button>
+                          <br />
+                          <Button
+                            className={classes.control}
+                            onClick={handleSubmitCrowd}
+                            name="without location"
+                          >
+                            Check In Without Location
+                          </Button>
+                        </div>
+                      </div>
+                      {/* <Image src={image.src} className={classes.image} /> */}
+                    </div>
+                  </Container>
+                ) : null}
+                {activeWindow !== null && successCheckIn ? (
+                  <Alert
+                    icon={<IconAlertCircle size={16} />}
+                    title="Congratulations!"
+                    color="aqua"
+                  >
+                    You have successfully checked in. Thank you for helping the
+                    community! You have earned 10 points for your contribution
+                    and have {newUserScore} points now.
+                  </Alert>
+                ) : null}
+                {activeWindow !== null ? (
+                  <>
+                    <Card>{findPinInfo()}</Card>
+                  </>
+                ) : null}
+                {nearbyPlaceDist.length > 0 ? (
+                  <Text>NEARBY SIMILAR PLACES OF INTEREST</Text>
+                ) : null}
+                {nearbyPlaceDist.length > 0 ? displayNearbyPlaces() : null}
+              </Grid.Col>
+            </Box>
+          </Grid>
+          {/* </Container> */}
         </>
       ) : (
         <Loader />
