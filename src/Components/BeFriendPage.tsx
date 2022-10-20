@@ -68,7 +68,7 @@ export default function BeFriendPage() {
   return (
     <div>
       BeFriendPage Page
-      <Grid justify="space-between" align="center">
+      <Grid justify="space-between" align="start">
         <Grid.Col span={4}>
           {friendList && (
             <FriendList
@@ -80,7 +80,6 @@ export default function BeFriendPage() {
         <Grid.Col span={4}>
           {openChatroom ? (
             <>
-              current chatroom
               {friendList && (
                 <ChatRoom
                   friendListData={friendList}
@@ -108,16 +107,9 @@ export default function BeFriendPage() {
               setChatroomTitle={setChatroomTitle}
             />
           )}
-        </Grid.Col>
-        <Grid.Col span={4}>
-          {friendList && (
-            <FriendRequestList
-              friendListData={friendList}
-              setFriendList={setFriendList}
-            />
-          )}
-        </Grid.Col>
-        <Grid.Col span={4}>
+          <br />
+          <br />
+          <br />
           {friendList && (
             <ChatRoomList
               friendListData={friendList}
@@ -131,6 +123,15 @@ export default function BeFriendPage() {
             />
           )}
         </Grid.Col>
+        <Grid.Col span={4}>
+          {friendList && (
+            <FriendRequestList
+              friendListData={friendList}
+              setFriendList={setFriendList}
+            />
+          )}
+        </Grid.Col>
+        <Grid.Col span={4}></Grid.Col>
       </Grid>
       <Outlet />
     </div>
