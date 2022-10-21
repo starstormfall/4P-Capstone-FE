@@ -1,3 +1,5 @@
+import "../../App.css";
+
 import { useEffect, useState, MouseEvent } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import axios from "axios";
@@ -21,6 +23,7 @@ import {
   Modal,
   Title,
   Badge,
+  Box,
 } from "@mantine/core";
 
 // import interface
@@ -352,7 +355,14 @@ function HomePage() {
       const favourite = userFavouritePosts.includes(post.id);
 
       return (
-        <Grid.Col sm={5} md={4} lg={3} xl={2} key={post.id}>
+        // <Grid.Col sm={5} md={4} lg={3} key={post.id}>
+        <Box
+          sx={(theme) => ({
+            paddingBottom: theme.spacing.sm,
+            borderRadius: theme.radius.md,
+            cursor: "pointer",
+          })}
+        >
           <ExplorePost
             postId={post.id}
             photoLink={post.photoLink}
@@ -370,7 +380,7 @@ function HomePage() {
             userLike={like}
             userFavourite={favourite}
           />
-        </Grid.Col>
+        </Box>
       );
     }
   );
@@ -434,7 +444,7 @@ function HomePage() {
         overlayOpacity={0.55}
         overlayBlur={3}
         position="bottom"
-        padding="md"
+        padding="xl"
         size="75%"
         title={
           <Group>
@@ -453,6 +463,10 @@ function HomePage() {
         <ThreadDisplay
           assocThreads={assocThreads}
           selectedPost={selectedPost}
+          userLike={userLikePosts.includes(selectedPost.id)}
+          userFavourite={userFavouritePosts.includes(selectedPost.id)}
+          likePost={handleLikePost}
+          favouritePost={handleFavouritePost}
         />
       </Drawer>
 
@@ -464,7 +478,7 @@ function HomePage() {
         overlayOpacity={0.55}
         overlayBlur={3}
         position="bottom"
-        padding="md"
+        padding="xl"
         size="75%"
         title={
           <Group>
@@ -480,14 +494,23 @@ function HomePage() {
           </Group>
         }
       >
-        <PinDisplay selectedPost={selectedPost} assocThreads={assocThreads} />
+        <PinDisplay
+          selectedPost={selectedPost}
+          assocThreads={assocThreads}
+          userLike={userLikePosts.includes(selectedPost.id)}
+          userFavourite={userFavouritePosts.includes(selectedPost.id)}
+          likePost={handleLikePost}
+          favouritePost={handleFavouritePost}
+        />
       </Drawer>
 
       {/* FOR RENDERING ALL/FILTERED POSTS  */}
       <Space h="xs" />
-      <Grid columns={15} grow>
+      {/* <Grid columns={15} grow> */}
+      <section>
         {allPosts && Object.keys(allPosts).length ? listPosts : <Loader />}
-      </Grid>
+      </section>
+      {/* </Grid> */}
     </Container>
   );
 }

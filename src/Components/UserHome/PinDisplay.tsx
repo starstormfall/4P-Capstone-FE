@@ -23,8 +23,8 @@ import {
 } from "@mantine/core";
 
 // import child components
-import ExplorePost from "./ExplorePost";
 import PinMap from "../UserHome/PinMap";
+import DisplayPost from "./DisplayPost";
 
 const useStyles = createStyles((theme) => ({
   card: {
@@ -56,40 +56,60 @@ const useStyles = createStyles((theme) => ({
 interface Props {
   selectedPost: Post;
   assocThreads: AssocThread[];
+  userLike: boolean;
+  userFavourite: boolean;
+  likePost: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    postId: number
+  ) => void;
+  favouritePost: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    postId: number
+  ) => void;
 }
 
-export default function PinDisplay({ selectedPost, assocThreads }: Props) {
+export default function PinDisplay({
+  selectedPost,
+  assocThreads,
+  userLike,
+  userFavourite,
+  likePost,
+  favouritePost,
+}: Props) {
   const { classes } = useStyles();
 
   return (
-    <Container fluid size="md">
-      <Grid>
-        <Grid.Col span={6}>
-          <Container>
-            <Paper
-              shadow="md"
-              p="xl"
-              radius="md"
-              sx={{ backgroundImage: `url(${selectedPost.photoLink})` }}
-              className={classes.card}
-            ></Paper>
-          </Container>
-        </Grid.Col>
+    <Grid>
+      <Grid.Col span={6}>
+        <Container>
+          <DisplayPost
+            id={selectedPost.id}
+            photoLink={selectedPost.photoLink}
+            title={selectedPost.title}
+            content={selectedPost.content}
+            explorePost={selectedPost.explorePost}
+            likeCount={selectedPost.likeCount}
+            userFavourite={userFavourite}
+            userLike={userLike}
+            likePost={likePost}
+            favouritePost={favouritePost}
+          />
+        </Container>
+      </Grid.Col>
 
-        {/* RIGHT SIDE PIN MAP */}
+      {/* RIGHT SIDE PIN MAP */}
 
-        <Grid.Col span={6}>
-          <ScrollArea style={{ height: "65vh" }}>
-            {selectedPost && (
-              <PinMap
-                postId={Number(selectedPost.id)}
-                pinId={Number(selectedPost.pinId)}
-                areaId={Number(selectedPost.areaId)}
-              />
-            )}
-          </ScrollArea>
-        </Grid.Col>
-      </Grid>
-    </Container>
+      <Grid.Col span={6}>
+        <ScrollArea style={{ height: "65vh" }}>
+          {selectedPost && (
+            <PinMap
+              postId={Number(selectedPost.id)}
+              pinId={Number(selectedPost.pinId)}
+              areaId={Number(selectedPost.areaId)}
+            />
+          )}
+        </ScrollArea>
+      </Grid.Col>
+    </Grid>
   );
 }

@@ -31,6 +31,27 @@ export interface Post {
   likeCount: number;
   userId: number;
   locationName: string;
+  userFavourite?: boolean;
+  userLike?: boolean;
+}
+
+export interface DisplayPostCard {
+  id: number;
+  title: string;
+  photoLink: string;
+  content: string;
+  explorePost: string;
+  likeCount: number;
+  userFavourite: boolean;
+  userLike: boolean;
+  likePost: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    postId: number
+  ) => void;
+  favouritePost: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    postId: number
+  ) => void;
 }
 
 export interface PostCard {
