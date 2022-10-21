@@ -117,7 +117,7 @@ export default function NearbyPlaces(props: Props) {
 
         return (
           <div key={originalPin.placeName}>
-            <Text>
+            <Text key={originalPin.lat}>
               {originalPin.placeName}:
               {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}KM away{" "}
             </Text>

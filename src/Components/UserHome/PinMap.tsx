@@ -26,7 +26,12 @@ import {
   Alert,
   Anchor,
 } from "@mantine/core";
-import { IconAlertCircle } from "@tabler/icons";
+import {
+  IconAlertCircle,
+  IconMapSearch,
+  IconFriends,
+  IconMapPins,
+} from "@tabler/icons";
 import { backendUrl } from "../../utils";
 import { UseApp } from "../Context";
 import axios from "axios";
@@ -180,6 +185,9 @@ export default function PinMap(props: Props) {
     []
   );
   const [nearbyPlaceDist, setNearbyPlaceDist] = useState<Distance[]>([]);
+
+  const [nearbyVisible, setNearbyVisible] = useState(false);
+  const [crowdVisible, setCrowdVisible] = useState(false);
 
   // useEffect for checking auth0 authentication upon load.
   useEffect(() => {
@@ -459,6 +467,74 @@ export default function PinMap(props: Props) {
     }
   };
 
+  // To render marker for current pin.
+  let arrayOfMarkers;
+  let singleMarker;
+
+  if (currentPinInfo) {
+    if (currentPinInfo.categoryId.length > 1) {
+      const { categoryId, position } = currentPinInfo;
+      arrayOfMarkers = categoryId.map((category, index) => {
+        let markerIcon = "";
+        if (category === 1) {
+          markerIcon =
+            "https://tabler-icons.io/static/tabler-icons/icons-png/soup.png";
+        } else if (category === 2) {
+          markerIcon =
+            "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
+        } else if (category === 3) {
+          markerIcon =
+            "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
+        } else {
+          markerIcon =
+            "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
+        }
+        return (
+          <MarkerF
+            key={`${category}`}
+            icon={{
+              url: `${markerIcon}`,
+              scaledSize: new google.maps.Size(30, 30),
+            }}
+            position={{
+              lat: position.lat + index * 0.0001,
+              lng: position.lng + index * 0.0001,
+            }}
+          ></MarkerF>
+        );
+      });
+    } else {
+      const { position } = currentPinInfo;
+      let category = currentPinInfo.categoryId[0];
+      let markerIcon = "";
+      if (category === 1) {
+        markerIcon =
+          "https://tabler-icons.io/static/tabler-icons/icons-png/soup.png";
+      } else if (category === 2) {
+        markerIcon =
+          "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
+      } else if (category === 3) {
+        markerIcon =
+          "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
+      } else {
+        markerIcon =
+          "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
+      }
+
+      singleMarker = (
+        <MarkerF
+          key={currentPinInfo.id}
+          icon={{
+            url: `${markerIcon}`,
+
+            scaledSize: new google.maps.Size(30, 30),
+          }}
+          position={position}
+        ></MarkerF>
+      );
+    }
+  }
+
   return (
     <>
       <br />
@@ -467,6 +543,7 @@ export default function PinMap(props: Props) {
           <Grid>
             <Grid.Col span={6}>
               <GoogleMap
+                key={currentPinInfo?.name}
                 onLoad={(map) => setOriginalMap(map)}
                 zoom={zoomLevel}
                 mapContainerStyle={{
@@ -482,6 +559,7 @@ export default function PinMap(props: Props) {
               >
                 {heatmapVisible && (
                   <HeatmapLayer
+                    key={currentPinInfo?.position.lng}
                     data={heatmapData}
                     options={{ radius: crowdMapWeight, opacity: 0.4 }}
                     // onUnmount={onUnmount}
@@ -489,6 +567,7 @@ export default function PinMap(props: Props) {
                 )}
                 {control && currentPin && destinationAddresses && (
                   <DistanceMatrixService
+                    key={currentPin.lat}
                     options={{
                       destinations: destinationAddresses,
                       origins: [{ lat: currentPin.lat, lng: currentPin.lng }],
@@ -564,78 +643,51 @@ export default function PinMap(props: Props) {
                     position={currentPosition}
                   />
                 ) : null}
-                {/* MARKERS FOR ALL PINS WITHIN STATE */}
-                {pinMarkers.map((element, index) => {
-                  const { id, name, position, categoryId } = element;
 
-                  if (categoryId.length > 1) {
-                    const arrayOfMarkers = categoryId.map((category, index) => {
-                      let markerIcon = "";
-                      if (category === 1) {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
-                      } else if (category === 2) {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
-                      } else if (category === 3) {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
-                      } else {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
-                      }
+                {/* MARKER FOR SELECTED PIN  */}
+                {currentPinInfo &&
+                isLoaded &&
+                arrayOfMarkers &&
+                arrayOfMarkers.length > 0
+                  ? arrayOfMarkers.map((marker) => marker)
+                  : null}
 
-                      return (
-                        <MarkerF
-                          key={`${id} ${category}`}
-                          icon={{
-                            url: `${markerIcon}`,
-                            scaledSize: new google.maps.Size(50, 50),
-                          }}
-                          position={{
-                            lat: position.lat + index * 0.0001,
-                            lng: position.lng + index * 0.0001,
-                          }}
-                        />
-                      );
-                    });
-
-                    return arrayOfMarkers.map((marker) => marker);
-                  } else {
-                    let markerIcon = "";
-                    if (categoryId[0] === 1) {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
-                    } else if (categoryId[0] === 2) {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
-                    } else if (categoryId[0] === 3) {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
-                    } else {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
-                    }
-
-                    return (
-                      <MarkerF
-                        key={id}
-                        icon={{
-                          url: `${markerIcon}`,
-                          scaledSize: new google.maps.Size(50, 50),
-                        }}
-                        position={position}
-                      />
-                    );
-                  }
-                })}
+                {currentPinInfo && isLoaded && singleMarker
+                  ? singleMarker
+                  : null}
               </GoogleMap>
-              <Button color="greyBlue" onClick={() => navigate("../map")}>
-                SEARCH AROUND THE AREA
+
+              <Button
+                onClick={() =>
+                  navigate("../map", {
+                    state: {
+                      pinId: props.pinId,
+                      position: currentPinInfo?.position,
+                    },
+                  })
+                }
+              >
+                <IconMapSearch />
+              </Button>
+              <Button
+                onClick={() => {
+                  setNearbyVisible(false);
+                  setCrowdVisible(!crowdVisible);
+                }}
+              >
+                <IconFriends />
+              </Button>
+              <Button
+                onClick={() => {
+                  setNearbyVisible(!nearbyVisible);
+                  setCrowdVisible(false);
+                }}
+              >
+                <IconMapPins />
               </Button>
             </Grid.Col>
             <Grid.Col span={6}>
-              {currentPinInfo && (
+              {crowdVisible && currentPinInfo && (
                 <>
                   <Text>{currentPinInfo.name}</Text>
                   <Text>
@@ -643,12 +695,12 @@ export default function PinMap(props: Props) {
                     {currentPinInfo.latestCrowdIntensity} at{" "}
                     {new Date(currentPinInfo.latestCrowdTime).toLocaleString()}
                   </Text>
+                  <Button color="greyBlue" onClick={handleCheckIn}>
+                    CHECK IN FOR XX POINTS
+                  </Button>
                 </>
               )}
 
-              <Button color="greyBlue" onClick={handleCheckIn}>
-                CHECK IN FOR XX POINTS
-              </Button>
               {checkIn && currentPin ? (
                 <>
                   {errorCheckIn ? (
@@ -720,9 +772,12 @@ export default function PinMap(props: Props) {
                   have {newUserScore} points now.
                 </Alert>
               ) : null}
-              <Text>NEARBY SIMILAR PLACES OF INTEREST</Text>
-              {nearbyPlaceDist.length > 0 && pins.length !== 0 ? (
+
+              {nearbyVisible &&
+              nearbyPlaceDist.length > 0 &&
+              pins.length !== 0 ? (
                 <NearbyPlaces
+                  key={`nearby-${props.pinId}`}
                   nearbyPlaceDist={nearbyPlaceDist}
                   pins={pins}
                   destinationAddresses={destinationAddresses}
