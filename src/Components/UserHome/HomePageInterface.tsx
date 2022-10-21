@@ -30,6 +30,7 @@ export interface Post {
   externalLink: string;
   likeCount: number;
   userId: number;
+  locationName: string;
 }
 
 export interface PostCard {

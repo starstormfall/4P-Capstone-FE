@@ -42,9 +42,9 @@ function BeFriendPage() {
   const [userLoggedIn, setUserLoggedIn] =
     useOutletContext<ContextType["key"]>();
 
- const [friendList, setFriendList] = useState<FriendDataInformation[]>();
+  const [friendList, setFriendList] = useState<FriendDataInformation[]>();
   const { userInfo } = UseApp();
-const { getAccessTokenSilently } = useAuth0();
+  const { getAccessTokenSilently } = useAuth0();
 
   const getFriendList = async () => {
     const response = await axios.get(
@@ -56,7 +56,12 @@ const { getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
     getFriendList();
-  }, []);
+    setUserLoggedIn(!userLoggedIn);
+  }, [userInfo]);
+
+  // useEffect(() => {
+
+  // }, [userInfo]);
 
   // const useFriendList = useQuery(["friendlist"], () =>
   //   axios

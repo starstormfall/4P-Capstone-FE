@@ -4,14 +4,14 @@ import axios from "axios";
 import { backendUrl } from "../utils";
 import tdflLogo from "../Images/tdflLogo.png";
 import { useAuth0 } from "@auth0/auth0-react";
-import { UseApp } from "./Context";
 
-import { Button, Container, Image, Grid, Box, Title } from "@mantine/core";
+import { Button, Image, Grid, Box, Title } from "@mantine/core";
 import { useViewportSize } from "@mantine/hooks";
 
 export default function ExplorePage() {
   const navigate = useNavigate();
   const { height, width } = useViewportSize();
+  const { loginWithRedirect, isAuthenticated } = useAuth0();
 
   const [allPhotos, setAllPhotos] = useState([]);
 
@@ -26,11 +26,6 @@ export default function ExplorePage() {
     }
   };
 
-  const { loginWithRedirect, isAuthenticated, user } = useAuth0();
-
-  // const { setUserEmail, setUserInfo, setUserName, setUserPhoto, setUserId } =
-  //   UseApp();
-
   const handleLogin = () => {
     if (isAuthenticated) {
       navigate("/home");
@@ -39,47 +34,12 @@ export default function ExplorePage() {
     }
   };
 
-  // const updateUser = async (user: any) => {
-  //   const accessToken = await getAccessTokenSilently({
-  //     audience: process.env.REACT_APP_AUDIENCE,
-  //     scope: process.env.REACT_APP_SCOPE,
-  //   });
-
-  //   const response = await axios.post(
-  //     `${backendUrl}/users/`,
-  //     {
-  //       //refer BE controller
-  //       email: user.email,
-  //     },
-  //     {
-  //       headers: { Authorization: `Bearer ${accessToken}` },
-  //     }
-  //   );
-  //   console.log(response.data);
-  //   if (response) {
-  //     setUserEmail(response.data[0].email);
-  //   }
-  // };
-
-  // const getUserInfo = async () => {
-  //   await updateUser(user);
-
-  //   const response = await axios.get(`${backendUrl}/users/${user?.email}`);
-  //   console.log(response.data);
-  //   if (response) {
-  //     setUserId(response.data.id);
-  //     setUserName(response.data.name);
-  //     setUserPhoto(response.data.photoLink);
-  //     setUserInfo(response.data);
-  //   }
-  // };
-
   useEffect(() => {
     getPhotos();
-    // if (isAuthenticated) {
-    //   navigate("/home");
-    // }
-  }, [user]);
+    if (isAuthenticated) {
+      navigate("/home");
+    }
+  }, [isAuthenticated]);
 
   return (
     <Box
@@ -139,7 +99,6 @@ export default function ExplorePage() {
           <Button onClick={handleLogin}>
             <Title order={5}>LOGIN | SIGNUP</Title>
           </Button>
- <Button onClick={() => navigate("/rewards")}>nav to rewards</Button>
         </Grid.Col>
         <Grid.Col xs={4}>
           <Image

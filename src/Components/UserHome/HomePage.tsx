@@ -1,9 +1,11 @@
 import { useEffect, useState, MouseEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import axios from "axios";
 import { backendUrl } from "../../utils";
 import { UseApp } from "../../Components/Context";
 import { withAuthenticationRequired } from "@auth0/auth0-react";
+
+import { ContextType } from "../../Styles/AppShell/AppShell";
 
 // import style components from mantine
 import {
@@ -17,6 +19,8 @@ import {
   Divider,
   Drawer,
   Modal,
+  Title,
+  Badge,
 } from "@mantine/core";
 
 // import interface
@@ -37,8 +41,11 @@ import ThreadDisplay from "./ThreadDisplay";
 import SharePost from "./SharePost";
 
 function HomePage() {
+  const [userLoggedIn, setUserLoggedIn] =
+    useOutletContext<ContextType["key"]>();
   const navigate = useNavigate();
   const { userInfo } = UseApp();
+  console.log("USER INFO", userInfo);
 
   const mockPost = {
     id: 0,
@@ -52,6 +59,7 @@ function HomePage() {
     externalLink: "external",
     likeCount: 0,
     userId: 0,
+    locationName: "location",
   };
 
   const [allPosts, setAllPosts] = useState<AllPost>({});
@@ -68,6 +76,11 @@ function HomePage() {
   const [assocThreads, setAssocThreads] = useState<AssocThread[]>([]);
   const [userLikePosts, setUserLikePosts] = useState<number[]>([]);
   const [userFavouritePosts, setUserFavouritePosts] = useState<number[]>([]);
+  const [tags, setTags] = useState({
+    categories: [],
+    hashtags: [],
+    prefecture: [],
+  });
 
   // show child components
   const [pinDrawerOn, setPinDrawerOn] = useState<boolean>(false);
@@ -130,7 +143,14 @@ function HomePage() {
     getAreas();
     getUserLikes();
     getUserFavourites();
-  }, []);
+  }, [userInfo]);
+
+  const getTags = async (postId: number) => {
+    try {
+      const response = await axios.get(`${backendUrl}/posts/${postId}/tags`);
+      setTags(response.data);
+    } catch (err) {}
+  };
 
   // api call to get filtered posts based on selected area, categories, hashtags
   const handleFilter = async (event: MouseEvent<HTMLButtonElement>) => {
@@ -275,6 +295,7 @@ function HomePage() {
     setPinDrawerOn(true);
     setSelectedPostId(postId);
     setSelectedPost(allPosts[postId]);
+    getTags(postId);
   };
 
   // // handleLike
@@ -314,6 +335,7 @@ function HomePage() {
     setAssocThreads(assocThreads.data);
     setThreadDisplayDrawerOn(true);
     setSelectedPost(allPosts[postId]);
+    getTags(postId);
   };
 
   // // handleShareLink
@@ -412,8 +434,21 @@ function HomePage() {
         overlayOpacity={0.55}
         overlayBlur={3}
         position="bottom"
-        padding="xl"
-        size="70%"
+        padding="md"
+        size="75%"
+        title={
+          <Group>
+            <Title order={3}>{selectedPost.locationName}</Title>
+            <Badge>{tags.prefecture}</Badge> |
+            {tags.categories.map((category) => (
+              <Badge>{category}</Badge>
+            ))}
+            |
+            {tags.hashtags.map((hashtag) => (
+              <Badge>{hashtag}</Badge>
+            ))}
+          </Group>
+        }
       >
         <ThreadDisplay
           assocThreads={assocThreads}
@@ -429,10 +464,23 @@ function HomePage() {
         overlayOpacity={0.55}
         overlayBlur={3}
         position="bottom"
-        padding="xl"
-        size="70%"
+        padding="md"
+        size="75%"
+        title={
+          <Group>
+            <Title order={3}>{selectedPost.locationName}</Title>
+            <Badge>{tags.prefecture}</Badge> |
+            {tags.categories.map((category) => (
+              <Badge>{category}</Badge>
+            ))}
+            |
+            {tags.hashtags.map((hashtag) => (
+              <Badge>{hashtag}</Badge>
+            ))}
+          </Group>
+        }
       >
-        <PinDisplay selectedPost={selectedPost} />
+        <PinDisplay selectedPost={selectedPost} assocThreads={assocThreads} />
       </Drawer>
 
       {/* FOR RENDERING ALL/FILTERED POSTS  */}
@@ -446,5 +494,5 @@ function HomePage() {
 
 export default withAuthenticationRequired(HomePage, {
   // Show a message while the user waits to be redirected to the login page.
-  onRedirecting: () => <div>Redirecting you to the login page...</div>,
+  onRedirecting: () => <Loader />,
 });

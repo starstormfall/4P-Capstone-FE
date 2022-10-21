@@ -8,33 +8,33 @@ import {
   Container,
 } from "@mantine/core";
 
-export function StreakDialog() {
-  const days = [1, 2, 3, 4, 5];
+interface Props {
+  loginStreak: number;
+  loginScore: number;
+}
+
+export function StreakDialog({ loginStreak, loginScore }: Props) {
   const streakMessage = {
     "1": "",
   };
 
-  const rings = days.map((day) => (
-    <RingProgress
-      size={60}
-      sections={[{ value: 100, color: "teal" }]}
-      label={
-        <Center>
-          <ThemeIcon color="teal" variant="light" radius="xl" size="lg">
-            <Title order={4}>{day}</Title>
-          </ThemeIcon>
-        </Center>
-      }
-    />
-  ));
-
   return (
     <Container>
-      Streak Message
+      Login Streak: {loginStreak}
       <Group spacing={0} noWrap>
-        {rings}
+        <RingProgress
+          size={60}
+          sections={[{ value: 100, color: "teal" }]}
+          label={
+            <Center>
+              <ThemeIcon color="teal" variant="light" radius="xl" size="lg">
+                <Title order={4}>{loginStreak}</Title>
+              </ThemeIcon>
+            </Center>
+          }
+        />
       </Group>
-      Points Added: XX
+      Points Added: {loginScore}
     </Container>
   );
 }

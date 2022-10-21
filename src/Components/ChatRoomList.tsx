@@ -252,7 +252,7 @@ export default function ChatRoomList(props: Props) {
 
   useEffect(() => {
     getAllChatrooms();
-  }, [chatroomName, props.openChatroom]);
+  }, [chatroomName, props.openChatroom, props.friendListData]);
 
   // let links: Links[] = [];
   if (allChatrooms.length > 0) {
