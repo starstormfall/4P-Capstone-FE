@@ -26,6 +26,13 @@ import {
   Area,
 } from "./HomePageInterface";
 
+const useStyles = createStyles((theme) => ({
+  titleCaro: {
+    lineHeight: 1.2,
+    marginTop: theme.spacing.sm,
+  },
+}));
+
 // Defining interfaces
 interface Props {
   nearbyPlaceDist: Distance[];
@@ -46,6 +53,8 @@ export default function NearbyPlaces(props: Props) {
   } = props;
   // States for loading all prefectures, categories and hashtags.
 
+  const { classes } = useStyles();
+
   // Function to call within googlemaps distance matrix service, to process the response provided back from matrix service.
   // Obtains closest place with same category to the current pin. Allows displaying of the data of that place. Renders pin data, post and crowd data of pin as JSX.
   const displayNearbyPlaces = () => {
@@ -55,79 +64,76 @@ export default function NearbyPlaces(props: Props) {
       );
 
       if (originalPin) {
-        const allCrowds = originalPin.crowds.slice(0, 1).map((crowd, i) => {
+        const allCrowds = originalPin.crowds.slice(0, 2).map((crowd, i) => {
           const { crowdIntensity, crowdSize, recordedAt } = crowd;
           return (
             <>
-              <Card key={new Date(recordedAt).toLocaleString()}>
-                <Text>{new Date(recordedAt).toLocaleString()} </Text>
-                <Text>{crowdIntensity}</Text>
-                <Text>{crowdSize}</Text>
-              </Card>
+              <Text size="sm" transform="uppercase">
+                {crowdSize}
+              </Text>
+              <Text size="xs" color="dimmed">
+                {new Date(recordedAt).toLocaleString()}{" "}
+              </Text>
             </>
           );
         });
 
-        const allPosts = originalPin.posts.map((post, i) => {
-          if (i < 3) {
-            const { postCategories, postHashtags } = post;
-            const allCategories = postCategories.map((category) => {
-              const { categoryId } = category;
-              return (
-                <Badge
-                  variant="gradient"
-                  gradient={{ from: "aqua", to: "purple" }}
-                  key={categoryId}
-                >
-                  {allAvailableCategories[categoryId - 1].name.toUpperCase()}
-                </Badge>
-              );
-            });
-            const allHashtags = postHashtags.map((hashtag) => {
-              const { hashtagId } = hashtag;
-              return (
-                <Badge
-                  variant="gradient"
-                  gradient={{ from: "purple", to: "beige" }}
-                  key={hashtagId}
-                >
-                  {allAvailableHashtags[hashtagId - 1].name}
-                </Badge>
-              );
-            });
+        // const allPosts = originalPin.posts.map((post, i) => {
+        //   if (i < 3) {
+        //     const { postCategories, postHashtags } = post;
+        //     const allCategories = postCategories.map((category) => {
+        //       const { categoryId } = category;
+        //       return (
+        //         <Badge
+        //           variant="gradient"
+        //           gradient={{ from: "aqua", to: "purple" }}
+        //           key={categoryId}
+        //         >
+        //           {allAvailableCategories[categoryId - 1].name.toUpperCase()}
+        //         </Badge>
+        //       );
+        //     });
+        //     const allHashtags = postHashtags.map((hashtag) => {
+        //       const { hashtagId } = hashtag;
+        //       return (
+        //         <Badge
+        //           variant="gradient"
+        //           gradient={{ from: "purple", to: "beige" }}
+        //           key={hashtagId}
+        //         >
+        //           {allAvailableHashtags[hashtagId - 1].name}
+        //         </Badge>
+        //       );
+        //     });
 
-            return (
-              <Card key={post.title}>
-                {allCategories}
-                <br />
-                {allHashtags}
-                <Text>Title: {post.title}</Text>
-                <Anchor
-                  href={post.externalLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <img src={post.photoLink} alt={post.title} height={400} />
-                </Anchor>
-                <Text>Likes: {post.likeCount}</Text>
-              </Card>
-            );
-          } else return null;
-        });
+        //     return (
+        //       <Card key={post.title}>
+        //         {allCategories}
+        //         <br />
+        //         {allHashtags}
+        //         <Text>Title: {post.title}</Text>
+        //         <Anchor
+        //           href={post.externalLink}
+        //           target="_blank"
+        //           rel="noopener noreferrer"
+        //         >
+        //           <img src={post.photoLink} alt={post.title} height={400} />
+        //         </Anchor>
+        //         <Text>Likes: {post.likeCount}</Text>
+        //       </Card>
+        //     );
+        //   } else return null;
+        // });
 
         return (
-          <div key={originalPin.placeName}>
-            <Text key={originalPin.lat}>
-              {originalPin.placeName}:
-              {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}KM away{" "}
+          <Card key={originalPin.placeName}>
+            <Text size="lg">{originalPin.placeName}</Text>
+            <Text key={originalPin.lat} size="sm" color="dimmed">
+              ({(nearbyPlaceDist[j].distance / 1000).toFixed(2)}km away)
             </Text>
-            {/* <Text>
-                {allAvailableAreas[originalPin.areaId - 1].prefecture}
-              </Text> */}
-            <Text>LATEST CROWD ESTIMATE</Text>
+
             {allCrowds}
-            {/* {allPosts} */}
-          </div>
+          </Card>
         );
       }
     });

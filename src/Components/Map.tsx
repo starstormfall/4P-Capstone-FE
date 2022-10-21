@@ -179,7 +179,7 @@ const useStyles = createStyles((theme) => ({
   },
 
   category: {
-    color: theme.white,
+    color: "white",
     // opacity: 0.9,
     fontWeight: 700,
     textShadow: "-0.1px 0 grey, 0 0.1px grey, 0.1px 0 grey, 0 -0.1px grey",
@@ -609,17 +609,19 @@ export default function Map() {
                   </Badge>
                 );
               });
-              const allHashtags = postHashtags.map((hashtag) => {
+              const allHashtags = postHashtags.map((hashtag, i) => {
                 const { hashtagId } = hashtag;
-                return (
-                  <Badge
-                    variant="gradient"
-                    gradient={{ from: "purple", to: "beige" }}
-                    key={hashtagId}
-                  >
-                    {allAvailableHashtags[hashtagId - 1].name}
-                  </Badge>
-                );
+                if (i < 2) {
+                  return (
+                    <Badge
+                      variant="gradient"
+                      gradient={{ from: "purple", to: "beige" }}
+                      key={hashtagId}
+                    >
+                      {allAvailableHashtags[hashtagId - 1].name}
+                    </Badge>
+                  );
+                }
               });
 
               return (
@@ -688,7 +690,7 @@ export default function Map() {
                       {originalPin.placeName}
                     </Title>
                     <Text className={classes.category} size="sm">
-                      {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}km away
+                      {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}Km away
                     </Text>
                   </div>
                   {/* <Button variant="white" color="dark">
@@ -1034,7 +1036,7 @@ export default function Map() {
               >
                 <div
                   style={{
-                    width: "25vw",
+                    width: "26.5vw",
                     marginLeft: "auto",
                     marginRight: "auto",
                   }}
@@ -1099,8 +1101,12 @@ export default function Map() {
         return (
           <>
             <Card key={new Date(recordedAt).toLocaleString()}>
-              <Text transform="uppercase">{crowdIntensity}</Text>
-              <Text size="sm">{crowdSize}</Text>
+              <Text size="md" transform="uppercase">
+                {crowdIntensity}
+              </Text>
+              <Text size="sm" transform="capitalize">
+                {crowdSize}
+              </Text>
               <Text color="dimmed" size="xs">
                 {new Date(recordedAt).toLocaleString()}{" "}
               </Text>
@@ -1816,7 +1822,7 @@ export default function Map() {
                           <IconMapPin size={25} />
                         </ThemeIcon>
                         <Box ml="md">
-                          <Title order={6}>INFORMATION</Title>
+                          <Title order={5}>INFORMATION</Title>
                         </Box>
                       </Box>
                       <ChevronIcon
@@ -1871,7 +1877,7 @@ export default function Map() {
                           <IconFriends size={25} />
                         </ThemeIcon>
                         <Box ml="md">
-                          <Title order={6}>LATEST CROWDS</Title>
+                          <Title order={5}>LATEST CROWDS</Title>
                         </Box>
                       </Box>
                       <ChevronIcon
@@ -1926,7 +1932,7 @@ export default function Map() {
                           <IconMapPins size={25} />
                         </ThemeIcon>
                         <Box ml="md">
-                          <Title order={6}>SIMILAR NEARBY</Title>
+                          <Title order={5}>SIMILAR NEARBY</Title>
                         </Box>
                       </Box>
                       <ChevronIcon

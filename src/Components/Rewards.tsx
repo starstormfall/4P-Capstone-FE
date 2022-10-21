@@ -17,6 +17,8 @@ import {
   createStyles,
   Alert,
   Anchor,
+  Paper,
+  Modal,
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons";
 import { UseApp } from "./Context";
@@ -90,17 +92,63 @@ export default function Rewards() {
 
   return (
     <>
-      <Text>Rewards Page</Text>
       {userInfo && rewardClaimed ? (
         <Alert
           icon={<IconAlertCircle size={16} />}
           title="Congratulations!"
           color="aqua"
+          withCloseButton
+          closeButtonLabel="Close alert"
+          onClose={() => setRewardClaimed(false)}
         >
           You have successfully claimed your reward! You have {newUserScore}{" "}
           points now!
         </Alert>
       ) : null}
+      {userInfo && rewardError ? (
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          title="Bummer!"
+          color="aqua"
+          withCloseButton
+          closeButtonLabel="#C1BBD5"
+          onClose={() => setRewardError(false)}
+        >
+          Sorry, it looks like you have not accumulated enough points yet! You
+          need a minimum of 200 points to be eligible for our rewards. Please
+          come back after earning more points!
+        </Alert>
+      ) : null}
+      <Modal
+      // opened={checkIn}
+      // onClose={() => setCheckIn(false)}
+      // radius="md"
+      // size="auto"
+      // withCloseButton={false}
+      >
+        <Paper
+          radius="md"
+          withBorder
+          p="lg"
+          sx={(theme) => ({
+            backgroundColor:
+              theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.white,
+          })}
+        >
+          <Avatar src={userInfo.photoLink} size={120} radius={120} mx="auto" />
+          <Text align="center" size="lg" weight={500} mt="md">
+            {userInfo.name}
+          </Text>
+          <Text align="center" color="dimmed" size="sm">
+            {userInfo.score} Points
+          </Text>
+
+          {/* <Button variant="default" fullWidth mt="md">
+          Send message
+        </Button> */}
+        </Paper>
+      </Modal>
+      {/* 
       <Avatar
         src={userInfo.photoLink}
         alt={userInfo.name}
@@ -112,7 +160,7 @@ export default function Rewards() {
       </Text>
       <br />
       <Text>
-        Exchange your points for rewards here with our official partner Japan
+        Exchange points for rewards here with our official partner Japan
         National Tourism Organization!{" "}
       </Text>
       <br />
@@ -128,26 +176,15 @@ export default function Rewards() {
         />
       </Anchor>
       <br />
-      <Text>10% discount coupon on an attraction!</Text>
+      <Text>10% discount coupon on an attraction of your choice!</Text>
       <Text>*Terms and Conditions apply</Text>
       <Button onClick={handleExchange}>EXCHANGE FOR 200 POINTS</Button>
 
-      {userInfo && rewardError ? (
-        <Alert
-          icon={<IconAlertCircle size={16} />}
-          title="Bummer!"
-          color="aqua"
-        >
-          Sorry, it looks like you have not accumulated enough points yet! You
-          need a minimum of 200 points to be eligible for our rewards. Please
-          come back after earning more points!
-        </Alert>
-      ) : null}
       <br />
       <br />
       <Text>
         Other rewards coming your way soon. Stay tuned and keep stacking!
-      </Text>
+      </Text> */}
     </>
   );
 }
