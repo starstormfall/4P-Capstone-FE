@@ -283,7 +283,6 @@ interface Distance {
 }
 
 export default function Map() {
-  // TO DO ADDITION OF POINTS WHEN CHECK IN
   const { classes, theme } = useStyles();
   const navigate = useNavigate();
   const { state } = useLocation();

@@ -52,19 +52,19 @@ function App() {
                     path="/befriend/chatroom/:chatroomId"
                     element={<ChatRoom active={true} />}
                   /> */}
-                </Route>
-
-                <Route path="/rewards" element={<Rewards />} />
-
-                {/* Map homepage */}
-                <Route path="/map" element={<Map />} />
-                {/* Put Pinmap as a child component of explore page post? and no route here*/}
-                {/* <Route path="/map/:pinId" element={<PinMap />} /> */}
               </Route>
-              <Route path="*" element={<NothingFound />} />
-            </Routes>
-          </MantineProvider>
-   {/* </BrowserRouter> */}
+
+              {/* <Route path="/rewards" element={<Rewards />} /> */}
+
+              {/* Map homepage */}
+              <Route path="/map" element={<Map />} />
+              {/* Put Pinmap as a child component of explore page post? and no route here*/}
+              {/* <Route path="/map/:pinId" element={<PinMap />} /> */}
+            </Route>
+            <Route path="*" element={<NothingFound />} />
+          </Routes>
+        </MantineProvider>
+        {/* </BrowserRouter> */}
       </AppContextProvider>
     </QueryClientProvider>
   );
