@@ -90,7 +90,18 @@ export interface AssocThread {
   postsCount: number;
   usersCount: number;
   lastPost: string;
-  lasPostCreated: string;
+  lastPostCreatedAt: string;
+  lastPostUserId: number;
+  lastPostUserName: string;
+}
+
+export interface UserLikePosts {
+  likePostIds: number[];
+  likePosts: AllPost;
+}
+export interface UserFavouritePosts {
+  favouritePostIds: number[];
+  favouritePosts: AllPost;
 }
 
 //Interfaces for PinMap Component

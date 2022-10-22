@@ -70,9 +70,11 @@ const useStyles = createStyles((theme, _params, getRef) => {
       right: 0,
       bottom: 0,
       backgroundImage:
-        "linear-gradient(180deg,   rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, .8) 75%)",
+        "linear-gradient(180deg, rgba(255, 255, 255, .5) 0%  , rgba(0, 0, 0, 0.7) 50%)",
     },
-
+    // "linear-gradient(180deg,   rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, .8) 75%)",
+    // "linear-gradient(180deg,   rgba(0, 0, 0, 0.4) 0%, rgba(255, 255, 255, .8) 75%)",
+    // "linear-gradient(180deg, rgba(255, 255, 255, .5) 0%  , rgba(0, 0, 0, 0.7) 50%)",
     content: {
       height: "100%",
       position: "relative",
@@ -195,7 +197,7 @@ export default function ExplorePost({
                 }
                 color="yellow"
               >
-                {userFavourite ? <StarOutline /> : <Star />}
+                {userFavourite ? <Star /> : <StarOutline />}
               </ActionIcon>
               <ActionIcon
                 variant="outline"

@@ -25,29 +25,29 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    // <QueryClientProvider client={queryClient}>
-    <AppContextProvider>
-      <MantineProvider theme={tdflTheme} withGlobalStyles withNormalizeCSS>
-        <Routes>
-          {/* Main page that does NOT require sign in*/}
-          <Route index element={<ExplorePage />} />
-          <Route path="/" element={<TdflAppShell />}>
-            {/* Logged in user homepage (explorepage) */}
-            <Route path="/home" element={<HomePage />} />
-            {/* Forum page */}
-            <Route path="/exchange" element={<ForumMain />} />
-            {/* Individual Forum Thread (need forum creation page? or modal) */}
-            <Route path="/exchange/:threadId" element={<ThreadSingle />} />
-            {/* Befriend page that house <friendList/> and <Chatrooms/> */}
-            <Route path="/befriend" element={<BeFriendPage />} />
-            {/* Map homepage */}
-            <Route path="/map" element={<Map />} />
-          </Route>
-          <Route path="*" element={<NothingFound />} />
-        </Routes>
-      </MantineProvider>
-    </AppContextProvider>
-    // </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <AppContextProvider>
+        <MantineProvider theme={tdflTheme} withGlobalStyles withNormalizeCSS>
+          <Routes>
+            {/* Main page that does NOT require sign in*/}
+            <Route index element={<ExplorePage />} />
+            <Route path="/" element={<TdflAppShell />}>
+              {/* Logged in user homepage (explorepage) */}
+              <Route path="/home" element={<HomePage />} />
+              {/* Forum page */}
+              <Route path="/exchange" element={<ForumMain />} />
+              {/* Individual Forum Thread (need forum creation page? or modal) */}
+              <Route path="/exchange/:threadId" element={<ThreadSingle />} />
+              {/* Befriend page that house <friendList/> and <Chatrooms/> */}
+              <Route path="/befriend" element={<BeFriendPage />} />
+              {/* Map homepage */}
+              <Route path="/map" element={<Map />} />
+            </Route>
+            <Route path="*" element={<NothingFound />} />
+          </Routes>
+        </MantineProvider>
+      </AppContextProvider>
+    </QueryClientProvider>
   );
 }
 

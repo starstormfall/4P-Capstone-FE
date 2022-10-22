@@ -1,5 +1,3 @@
-import "../../App.css";
-
 import { useEffect, useState, MouseEvent } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import axios from "axios";
@@ -9,7 +7,8 @@ import { withAuthenticationRequired } from "@auth0/auth0-react";
 
 import { ContextType } from "../../Styles/AppShell/AppShell";
 
-// import style components from mantine
+// import style components
+import "../../App.css";
 import {
   Button,
   Group,
@@ -24,7 +23,9 @@ import {
   Title,
   Badge,
   Box,
+  Tabs,
 } from "@mantine/core";
+import { Heart, Star, Camera } from "@easy-eva-icons/react";
 
 // import interface
 import {
@@ -35,6 +36,8 @@ import {
   Post,
   PostCard,
   AssocThread,
+  UserFavouritePosts,
+  UserLikePosts,
 } from "./HomePageInterface";
 
 // import child components
@@ -46,9 +49,7 @@ import SharePost from "./SharePost";
 function HomePage() {
   const [userLoggedIn, setUserLoggedIn] =
     useOutletContext<ContextType["key"]>();
-  const navigate = useNavigate();
   const { userInfo } = UseApp();
-  console.log("USER INFO", userInfo);
 
   const mockPost = {
     id: 0,
@@ -65,7 +66,10 @@ function HomePage() {
     locationName: "location",
   };
 
+  // posts that will be displayed based on different filters
   const [allPosts, setAllPosts] = useState<AllPost>({});
+  // all unfiltered explore posts
+  const [allExplorePosts, setAllExplorePosts] = useState<AllPost>({});
   const [allAreas, setAllAreas] = useState<Area[]>([]);
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [allHashtags, setAllHashtags] = useState<Hashtag[]>([]);
@@ -77,13 +81,18 @@ function HomePage() {
   const [selectedPostId, setSelectedPostId] = useState<number>(0);
   const [selectedPost, setSelectedPost] = useState<Post>(mockPost);
   const [assocThreads, setAssocThreads] = useState<AssocThread[]>([]);
-  const [userLikePosts, setUserLikePosts] = useState<number[]>([]);
-  const [userFavouritePosts, setUserFavouritePosts] = useState<number[]>([]);
+  const [userLikePostIds, setUserLikePostIds] = useState<number[]>([]);
+  const [userFavouritePostIds, setUserFavouritePostIds] = useState<number[]>(
+    []
+  );
+  const [userLikePosts, setUserLikePosts] = useState<AllPost>({});
+  const [userFavouritePosts, setUserFavouritePosts] = useState<AllPost>({});
   const [tags, setTags] = useState({
     categories: [],
     hashtags: [],
     prefecture: [],
   });
+  const [activeTab, setActiveTab] = useState<string | null>("allExplore");
 
   // show child components
   const [pinDrawerOn, setPinDrawerOn] = useState<boolean>(false);
@@ -91,11 +100,14 @@ function HomePage() {
   const [threadDisplayDrawerOn, setThreadDisplayDrawerOn] =
     useState<boolean>(false);
 
+  ///////// START OF USEEFFECT API CALLS /////////
+
   // useEffect api call to get subset of explore posts (need to set up pagination on backend)
   const getExplorePosts = async () => {
     try {
       const response = await axios.get(`${backendUrl}/posts/explore`);
       setAllPosts(response.data);
+      setAllExplorePosts(response.data);
     } catch (err) {}
   };
 
@@ -128,7 +140,8 @@ function HomePage() {
       const response = await axios.get(
         `${backendUrl}/users/${userInfo.id}/like`
       );
-      setUserLikePosts(response.data);
+      setUserLikePosts(response.data.likePosts);
+      setUserLikePostIds(response.data.likePostIds);
     } catch (err) {}
   };
 
@@ -137,7 +150,8 @@ function HomePage() {
       const response = await axios.get(
         `${backendUrl}/users/${userInfo.id}/favourite`
       );
-      setUserFavouritePosts(response.data);
+      setUserFavouritePosts(response.data.favouritePosts);
+      setUserFavouritePostIds(response.data.favouritePostIds);
     } catch (err) {}
   };
 
@@ -147,6 +161,24 @@ function HomePage() {
     getUserLikes();
     getUserFavourites();
   }, [userInfo]);
+
+  useEffect(() => {
+    switch (activeTab) {
+      case "allExplore":
+        setAllPosts(allExplorePosts);
+        break;
+      case "favourites":
+        setAllPosts(userFavouritePosts);
+        break;
+      case "likes":
+        setAllPosts(userLikePosts);
+        break;
+      default:
+        setAllPosts(allExplorePosts);
+    }
+  }, [activeTab]);
+
+  ///////// END OF USEEFFECT API CALLS /////////
 
   const getTags = async (postId: number) => {
     try {
@@ -287,8 +319,7 @@ function HomePage() {
     </Button>
   ));
 
-  // create post component
-  // post component will have 5 buttons with 5 handlers
+  //######### START OF EVENT HANDLERS FOR EXPLORE POST ////////////
 
   // // handleGoToPin
   const handleShowPin = async (
@@ -349,14 +380,17 @@ function HomePage() {
     setSharePostModalOn(true);
   };
 
+  //////////// END OF EVENT HANDLERS FOR EXPLORE POST ////////////
+
   const listPosts = (Object.values(allPosts) as Post[]).map(
     (post: Post, index) => {
-      const like = userLikePosts.includes(post.id);
-      const favourite = userFavouritePosts.includes(post.id);
+      const like = userLikePostIds.includes(post.id);
+      const favourite = userFavouritePostIds.includes(post.id);
 
       return (
         // <Grid.Col sm={5} md={4} lg={3} key={post.id}>
         <Box
+          key={index}
           sx={(theme) => ({
             paddingBottom: theme.spacing.sm,
             borderRadius: theme.radius.md,
@@ -384,6 +418,7 @@ function HomePage() {
       );
     }
   );
+
   return (
     <Container fluid>
       {/* FOR SEARCH FILTERS */}
@@ -450,12 +485,12 @@ function HomePage() {
           <Group>
             <Title order={3}>{selectedPost.locationName}</Title>
             <Badge>{tags.prefecture}</Badge> |
-            {tags.categories.map((category) => (
-              <Badge>{category}</Badge>
+            {tags.categories.map((category, index) => (
+              <Badge key={`thread-category-${index}`}>{category}</Badge>
             ))}
             |
-            {tags.hashtags.map((hashtag) => (
-              <Badge>{hashtag}</Badge>
+            {tags.hashtags.map((hashtag, index) => (
+              <Badge key={`thread-hashtag-${index}`}>{hashtag}</Badge>
             ))}
           </Group>
         }
@@ -463,8 +498,8 @@ function HomePage() {
         <ThreadDisplay
           assocThreads={assocThreads}
           selectedPost={selectedPost}
-          userLike={userLikePosts.includes(selectedPost.id)}
-          userFavourite={userFavouritePosts.includes(selectedPost.id)}
+          userLike={userLikePostIds.includes(selectedPost.id)}
+          userFavourite={userFavouritePostIds.includes(selectedPost.id)}
           likePost={handleLikePost}
           favouritePost={handleFavouritePost}
         />
@@ -484,12 +519,12 @@ function HomePage() {
           <Group>
             <Title order={3}>{selectedPost.locationName}</Title>
             <Badge>{tags.prefecture}</Badge> |
-            {tags.categories.map((category) => (
-              <Badge>{category}</Badge>
+            {tags.categories.map((category, index) => (
+              <Badge key={`pin-category-${index}`}>{category}</Badge>
             ))}
             |
-            {tags.hashtags.map((hashtag) => (
-              <Badge>{hashtag}</Badge>
+            {tags.hashtags.map((hashtag, index) => (
+              <Badge key={`pin-hashtag-${index}`}>{hashtag}</Badge>
             ))}
           </Group>
         }
@@ -497,8 +532,8 @@ function HomePage() {
         <PinDisplay
           selectedPost={selectedPost}
           assocThreads={assocThreads}
-          userLike={userLikePosts.includes(selectedPost.id)}
-          userFavourite={userFavouritePosts.includes(selectedPost.id)}
+          userLike={userLikePostIds.includes(selectedPost.id)}
+          userFavourite={userFavouritePostIds.includes(selectedPost.id)}
           likePost={handleLikePost}
           favouritePost={handleFavouritePost}
         />
@@ -507,9 +542,60 @@ function HomePage() {
       {/* FOR RENDERING ALL/FILTERED POSTS  */}
       <Space h="xs" />
       {/* <Grid columns={15} grow> */}
-      <section>
-        {allPosts && Object.keys(allPosts).length ? listPosts : <Loader />}
-      </section>
+
+      <Tabs value={activeTab} onTabChange={setActiveTab}>
+        <Tabs.List grow>
+          <Tabs.Tab value="allExplore" icon={<Camera />}>
+            All
+          </Tabs.Tab>
+          <Tabs.Tab value="favourites" icon={<Star />}>
+            Favourite Posts
+          </Tabs.Tab>
+          <Tabs.Tab value="likes" icon={<Heart />}>
+            Post You've Liked
+          </Tabs.Tab>
+        </Tabs.List>
+
+        <Tabs.Panel value="allExplore" pt="xs">
+          <section>
+            {allPosts &&
+            Object.keys(allPosts).length &&
+            userFavouritePostIds.length &&
+            userLikePostIds.length ? (
+              listPosts
+            ) : (
+              <Loader />
+            )}
+          </section>
+        </Tabs.Panel>
+
+        <Tabs.Panel value="favourites" pt="xs">
+          <section>
+            {allPosts &&
+            Object.keys(allPosts).length &&
+            userFavouritePostIds.length &&
+            userLikePostIds.length ? (
+              listPosts
+            ) : (
+              <Loader />
+            )}
+          </section>
+        </Tabs.Panel>
+
+        <Tabs.Panel value="likes" pt="xs">
+          <section>
+            {allPosts &&
+            Object.keys(allPosts).length &&
+            userFavouritePostIds.length &&
+            userLikePostIds.length ? (
+              listPosts
+            ) : (
+              <Loader />
+            )}
+          </section>
+        </Tabs.Panel>
+      </Tabs>
+
       {/* </Grid> */}
     </Container>
   );

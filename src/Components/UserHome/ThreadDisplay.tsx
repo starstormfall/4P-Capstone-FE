@@ -6,7 +6,22 @@ import { backendUrl } from "../../utils";
 import { AssocThread, Post } from "./HomePageInterface";
 
 // import style components
-import { Container, Grid } from "@mantine/core";
+import {
+  Container,
+  Grid,
+  ThemeIcon,
+  Text,
+  Avatar,
+  Timeline,
+  Title,
+  Space,
+  ScrollArea,
+  Group,
+  Button,
+  Divider,
+  Stack,
+} from "@mantine/core";
+import { Edit } from "@easy-eva-icons/react";
 
 // import child components
 import DisplayPost from "./DisplayPost";
@@ -49,20 +64,40 @@ export default function ThreadDisplay({
     } catch (err) {}
   };
 
+  const handleGoToThread = async () => {};
+
   useEffect(() => {
     getTags();
   }, []);
 
-  const showThreads = assocThreads.map((thread) => (
-    <div key={thread.id}>
-      {thread.topic} | {thread.postsCount} | {thread.usersCount} |{" "}
-      {thread.lastPost}
-    </div>
+  const showThreads = assocThreads.map((thread, index) => (
+    <Timeline.Item
+      key={index}
+      title={
+        <Group noWrap>
+          <Button>
+            <Title order={5}>{thread.topic}</Title>
+          </Button>
+          <Stack spacing={0}>
+            <Text size="xs">Total Posts: {thread.postsCount}</Text>
+            <Text size="xs">Users: {thread.usersCount}</Text>
+          </Stack>
+        </Group>
+      }
+      bulletSize={24}
+    >
+      <Text size="xs" mt={4}>
+        Latest post by {thread.lastPostUserName} on {thread.lastPostCreatedAt}:
+      </Text>
+      <Text size="sm" mt={4}>
+        {thread.lastPost}
+      </Text>
+    </Timeline.Item>
   ));
 
   return (
     <Grid justify="center" grow>
-      <Grid.Col span={6}>
+      <Grid.Col span={5}>
         <DisplayPost
           id={selectedPost.id}
           photoLink={selectedPost.photoLink}
@@ -77,11 +112,32 @@ export default function ThreadDisplay({
         />
       </Grid.Col>
 
-      <Grid.Col span={6}>
-        Threads :
-        {showThreads && showThreads.length
-          ? showThreads
-          : "No threads found! You may start one here!"}
+      <Grid.Col span={7}>
+        <Divider
+          my="xs"
+          label={
+            <Text align="center" size="lg" weight="700">
+              Check Out the Conversations Here!
+            </Text>
+          }
+          labelPosition="center"
+        />
+
+        <Space h="lg" />
+        <ScrollArea style={{ height: "55vh" }}>
+          <Container>
+            {showThreads && showThreads.length ? (
+              <Timeline> showThreads </Timeline>
+            ) : (
+              <Stack>
+                <Title align="center" order={3}>
+                  No discussions started yet...
+                </Title>
+                <Button rightIcon={<Edit />}>Start a Discussion!</Button>
+              </Stack>
+            )}
+          </Container>
+        </ScrollArea>
       </Grid.Col>
     </Grid>
   );
