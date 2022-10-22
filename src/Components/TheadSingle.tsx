@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link, useParams, useAsyncError } from "react-router-dom";
+import { useNavigate, Link, useParams } from "react-router-dom";
 import { useOutletContext } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
@@ -15,15 +14,15 @@ import {
   Text,
   Modal,
   Group,
-  NativeSelect,
   FileInput,
   Textarea,
-  NumberInput,
   Checkbox,
   Select,
   Avatar,
   Indicator,
-  ActionIcon,
+  createStyles,
+  Box,
+  Title,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -73,9 +72,40 @@ type AllPrefectureData = {
   prefecture: string;
 };
 
+type prefectureDataType = {
+  value: string;
+  label: string;
+};
+
 type friendListData = {
   [key: number]: string;
 };
+
+const useStyles = createStyles((theme) => ({
+  title: {
+    // fontSize: 20,
+    fontWeight: 500,
+    [theme.fn.smallerThan("sm")]: {
+      fontSize: 24,
+    },
+  },
+
+  borderContain: {
+    backgroundColor: "aliceblue",
+  },
+  content: {
+    backgroundColor: "white",
+  },
+
+  commentBorder: {
+    borderRadius: "25px",
+    // change color
+    backgroundColor: "floralwhite",
+    padding: "40px",
+    border: "dotted",
+    borderColor: "lightcyan",
+  },
+}));
 
 export default function ThreadSingle() {
   const [threadId, setThreadId] = useState<string>();
@@ -86,11 +116,10 @@ export default function ThreadSingle() {
   const [friendAdded, setFriendAdded] = useState<number>();
   const [postId, setPostId] = useState<number>();
   const [friendList, setFriendList] = useState<friendListData>();
-  const [disablefriendButton, setDisableFriendButton] =
-    useState<boolean>(false);
   const [updateComment, setUpdateComment] = useState<boolean>(false);
   const [updateFriendRequest, setUpdateFriendRequest] =
     useState<boolean>(false);
+  const { classes, theme } = useStyles();
 
   const { userInfo } = UseApp();
   const { getAccessTokenSilently } = useAuth0();
@@ -234,7 +263,7 @@ export default function ThreadSingle() {
       allComments.push(
         <div>
           <Container key={singleThreadData[i].id}>
-            <Card>
+            <Card className={classes.commentBorder} withBorder={true}>
               {/* <Avatar
                 src={singleThreadData[i].post.user.photoLink}
                 alt={singleThreadData[i].post.user.name}
@@ -260,7 +289,7 @@ export default function ThreadSingle() {
                         onChange={(e) => setReason(e.target.value)}
                       />
 
-                      <button>Add as Friend!</button>
+                      <Button type="submit">Add as Friend!</Button>
                     </form>
                   </Container>
                 </Modal>
@@ -274,36 +303,21 @@ export default function ThreadSingle() {
                       singleThreadData[i].post.user.photoLink,
                       singleThreadData[i].post.user.name
                     )}
-                  {/* validate for existing friends */}
-                  {/* 
-                 1. get the current logged in user
-                  2. get the post/comment user
-                  3. check friend array if logged in user and post user for status?
-
-                  SWITCH CASE
-                  */}
-
-                  {/* {allFriendsId?.includes(singleThreadData[i].post.user.id) &&
-                  singleThreadData[i].post.userId !== userInfo.id ? (
-                    <Button disabled={true}>Added as Friend</Button>
-                  ) : (
-                    <Button
-                      onClick={() => {
-                        setFriendModalOpen(true);
-                        setFriendAdded(singleThreadData[i].post.userId);
-                        setPostId(singleThreadData[i].post.id);
-                      }}
-                    >
-                      Add Friend
-                    </Button>
-                  )} */}
                 </Group>
               </div>
-              <Text>
-                {singleThreadData[i].post.user.name} commented on{" "}
-                {singleThreadData[i].post.createdAt}:
-              </Text>
-              <Text>{singleThreadData[i].post.content}</Text>
+              <Box>
+                <Text>
+                  {singleThreadData[i].post.user.name} commented on{" "}
+                  {singleThreadData[i].post.createdAt}:
+                </Text>
+                <Text
+                  style={{
+                    backgroundColor: "white",
+                  }}
+                >
+                  {singleThreadData[i].post.content}
+                </Text>
+              </Box>
             </Card>
           </Container>
         </div>
@@ -322,16 +336,21 @@ export default function ThreadSingle() {
   const [content, setContent] = useState<string>("");
   const [areaId, setAreaId] = useState<string>();
   const [locationName, setLocationName] = useState<string>("");
+  const [allAreaData, setAllAreaData] = useState<AllPrefectureData[]>();
 
-  const areaIdInfo = useQuery(["areaList"], () =>
-    axios.get(`${backendUrl}/info/areas`).then((res) => res.data)
-  );
+  const getAllAreaData = async () => {
+    const response = await axios.get(`${backendUrl}/info/areas`);
+    setAllAreaData(response.data);
+  };
 
-  // console.log(areaIdInfo.data);
+  useEffect(() => {
+    getAllAreaData();
+  }, []);
+  console.log(allAreaData);
 
-  let prefectureData = [];
-  if (areaIdInfo.data) {
-    prefectureData = areaIdInfo.data.map(
+  let prefectureData: prefectureDataType[] = [];
+  if (allAreaData) {
+    prefectureData = allAreaData.map(
       ({ id, prefecture }: AllPrefectureData) => {
         return {
           value: id,
@@ -391,21 +410,48 @@ export default function ThreadSingle() {
     );
     setOpened(false);
     setUpdateComment(!updateComment);
+    setContent("");
+    setAreaId("");
+    setExplorePost("");
+    setTitle("");
+    setLocationName("");
+    setChecked(false);
   };
 
   return (
     <div>
-      <Container>
+      <Container className={classes.borderContain}>
         {singleThreadData ? (
-          <Card>
-            <Text>Thread Title:{singleThreadData[0].thread.topic}</Text>
-            <Text>Content:</Text>
-            <Text>{singleThreadData[0].post.content}</Text>
-            <Text>By user:</Text>
-            <Text>{singleThreadData[0].post.user.name}</Text>
-            <Text>Created At:</Text>
-            <Text>{singleThreadData[0].createdAt}</Text>
-          </Card>
+          <Box
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              flexDirection: "column",
+            }}
+          >
+            <Title className={classes.title} align="left">
+              {singleThreadData[0].thread.topic}
+            </Title>
+            <Image
+              src={singleThreadData[0].post.photoLink}
+              alt={singleThreadData[0].post.locationName}
+              style={{
+                maxHeight: "auto",
+                maxWidth: "500px",
+                alignItems: "center",
+                marginLeft: "210px",
+              }}
+            />
+            <Container className={classes.content}>
+              <Text style={{ textAlign: "justify" }}>
+                {singleThreadData[0].post.content}
+              </Text>
+            </Container>
+            <Group position="right">
+              <Text>Started By: {singleThreadData[0].post.user.name}</Text>
+              <Text>Created At: {singleThreadData[0].createdAt}</Text>
+            </Group>
+          </Box>
         ) : null}
       </Container>
       <Container>
@@ -487,7 +533,8 @@ export default function ThreadSingle() {
                   setForumPost(true);
                 }}
               />
-              <button>Comment or Create!</button>
+              <br />
+              <Button type="submit">Comment or Create!</Button>
             </form>
           </Container>
         </Modal>

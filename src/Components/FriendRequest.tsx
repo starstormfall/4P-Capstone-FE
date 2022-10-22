@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
+import { isError, useQuery } from "@tanstack/react-query";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -15,6 +15,8 @@ import {
   Avatar,
   Group,
   ActionIcon,
+  Box,
+  ScrollArea,
 } from "@mantine/core";
 import { IconCheck, IconLetterX } from "@tabler/icons";
 import { useMutation } from "@tanstack/react-query";
@@ -74,76 +76,110 @@ export default function FriendRequestList({
 
   return (
     <div>
-      <Text>Friend Request</Text>
-      {friendListData &&
-        friendListData.map((user: FriendDataInformation) => (
-          <div key={user.id}>
-            {user.status === "pending" ? (
-              <Container>
-                <Card>
-                  <Avatar
-                    src={user.initiatedUser.photoLink}
-                    alt={user.initiatedUser.name}
-                    radius="xl"
-                    size="lg"
-                  />
-                  <Text>{user.initiatedUser.name}</Text>
-                  <Text>Reason:</Text>
-                  <Text>{user.reason}</Text>
-                  <Group position="right">
-                    <ActionIcon>
-                      <IconCheck
-                        onClick={async () => {
-                          const accessToken = await getAccessTokenSilently({
-                            audience: process.env.REACT_APP_AUDIENCE,
-                            scope: process.env.REACT_APP_SCOPE,
-                          });
-                          console.log(`Approved Friend Request`, user.id);
-                          await axios.put(
-                            `${backendUrl}/friends/${userInfo.id}`,
-                            {
-                              friendshipId: user.id,
-                            },
-                            {
-                              headers: {
-                                Authorization: `Bearer ${accessToken}`,
-                              },
-                            }
-                          );
-                          setUpdateRequest(!updateRequest);
-                        }}
-                      />
-                    </ActionIcon>
-                    <ActionIcon>
-                      <IconLetterX
-                        onClick={async () => {
-                          const accessToken = await getAccessTokenSilently({
-                            audience: process.env.REACT_APP_AUDIENCE,
-                            scope: process.env.REACT_APP_SCOPE,
-                          });
-                          console.log(`Deleted Friend Request`, user.id);
-                          await axios.delete(
-                            `${backendUrl}/friends/${userInfo.id}/removefriend`,
-                            {
-                              data: {
-                                friendshipId: user.id,
-                              },
-                              headers: {
-                                Authorization: `Bearer ${accessToken}`,
-                              },
-                            }
-                          );
-                          setUpdateRequest(!updateRequest);
-                        }}
-                      />
-                    </ActionIcon>
-                  </Group>
-                </Card>
-                {/* accept or decline req here! */}
-              </Container>
-            ) : null}
-          </div>
-        ))}
+      <Container
+        sx={(theme) => ({
+          minHeight: 250,
+          padding: theme.spacing.md,
+          backgroundColor: theme.white,
+          borderRadius: theme.radius.lg,
+          boxShadow: theme.shadows.lg,
+          display: "flex",
+          flexDirection: "column",
+        })}
+      >
+        <Text align="center">Friend Request</Text>
+        <Container>
+          <ScrollArea
+            style={{ height: 600 }}
+            offsetScrollbars
+            scrollbarSize={6}
+            scrollHideDelay={0}
+          >
+            {friendListData &&
+              friendListData.map((user: FriendDataInformation) => (
+                <div key={user.id}>
+                  {user.status === "pending" &&
+                  user.initiatedUserId !== userInfo.id ? (
+                    <Box
+                      sx={() => ({
+                        minHeight: 90,
+                        display: "flex",
+                        flexDirection: "column",
+                      })}
+                    >
+                      <Group>
+                        <Avatar
+                          src={user.initiatedUser.photoLink}
+                          alt={user.initiatedUser.name}
+                          radius="xl"
+                          size="lg"
+                        />
+                        <div style={{ flex: 1 }}>
+                          <Text size="sm" weight={500}>
+                            {user.initiatedUser.name}
+                          </Text>
+                          <Text color="dimmed" size="xs">
+                            Reason: {user.reason}
+                          </Text>
+                        </div>
+                        <Group position="right">
+                          <ActionIcon>
+                            <IconCheck
+                              onClick={async () => {
+                                const accessToken =
+                                  await getAccessTokenSilently({
+                                    audience: process.env.REACT_APP_AUDIENCE,
+                                    scope: process.env.REACT_APP_SCOPE,
+                                  });
+                                console.log(`Approved Friend Request`, user.id);
+                                await axios.put(
+                                  `${backendUrl}/friends/${userInfo.id}`,
+                                  {
+                                    friendshipId: user.id,
+                                  },
+                                  {
+                                    headers: {
+                                      Authorization: `Bearer ${accessToken}`,
+                                    },
+                                  }
+                                );
+                                setUpdateRequest(!updateRequest);
+                              }}
+                            />
+                          </ActionIcon>
+                          <ActionIcon>
+                            <IconLetterX
+                              onClick={async () => {
+                                const accessToken =
+                                  await getAccessTokenSilently({
+                                    audience: process.env.REACT_APP_AUDIENCE,
+                                    scope: process.env.REACT_APP_SCOPE,
+                                  });
+                                console.log(`Deleted Friend Request`, user.id);
+                                await axios.delete(
+                                  `${backendUrl}/friends/${userInfo.id}/removefriend`,
+                                  {
+                                    data: {
+                                      friendshipId: user.id,
+                                    },
+                                    headers: {
+                                      Authorization: `Bearer ${accessToken}`,
+                                    },
+                                  }
+                                );
+                                setUpdateRequest(!updateRequest);
+                              }}
+                            />
+                          </ActionIcon>
+                        </Group>
+                      </Group>
+                    </Box>
+                  ) : null}
+                </div>
+              ))}
+          </ScrollArea>
+        </Container>
+      </Container>
     </div>
   );
 }

@@ -21,6 +21,7 @@ import {
   NumberInput,
   Checkbox,
   Select,
+  Title,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -76,23 +77,18 @@ export default function ForumMain() {
   if (forumList) {
     forumListFinal = forumList.map((list: ThreadListData) => {
       return (
-        <div>
+        <div key={list.id}>
           <Link to={`/exchange/${list.id}`}>
-            <Grid justify="center" key={list.id}>
-              <Grid.Col span={5}>
+            <Grid>
+              <Grid.Col span={4}>
                 <Container key={list.id}>
                   <Card>
-                    <Text>Thread Title:</Text>
-                    {/* cant index */}
-                    <Text>{list.topic}</Text>
-                    <Text>Content:</Text>
+                    <Title order={3}>{list.topic}</Title>
+                    <br />
                     <Text>{list.lastPost}</Text>
-                    <Text>Post Count:</Text>
-                    <Text>{list.postsCount}</Text>
-                    <Text>User Count:</Text>
-                    <Text>{list.usersCount}</Text>
-                    <Text>Last Updated At:</Text>
-                    <Text>{list.lastPostCreatedAt}</Text>
+                    <Text>Post Count: {list.postsCount}</Text>
+                    <Text>User Count: {list.usersCount}</Text>
+                    <Text>Last Updated At: {list.lastPostCreatedAt}</Text>
                   </Card>
                 </Container>
               </Grid.Col>
@@ -186,6 +182,12 @@ export default function ForumMain() {
     });
     setOpened(false);
     setUpdateForum(!updateForum);
+    setContent("");
+    setAreaId("");
+    setExplorePost("");
+    setTitle("");
+    setLocationName("");
+    setTopic("");
   };
 
   return (
@@ -264,7 +266,7 @@ export default function ForumMain() {
                   // setForumPost(true);
                 }}
               />
-              <button>Create Post!</button>
+              <Button type="submit">Create Post!</Button>
             </form>
           </Container>
         </Modal>
