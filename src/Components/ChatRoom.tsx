@@ -1,29 +1,33 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { backendUrl } from "../utils";
 import { io, Socket } from "socket.io-client";
 import {
   Button,
-  Card,
   Text,
   Container,
   Textarea,
   MultiSelect,
-  Stack,
   Group,
   ScrollArea,
   Avatar,
+  Tooltip,
   Grid,
   createStyles,
   Box,
   Indicator,
   UnstyledButton,
+  Title,
+  Menu,
+  Modal,
 } from "@mantine/core";
 import {
   IconArrowsDiagonalMinimize2,
   IconSend,
   IconSettings,
+  IconUserPlus,
+  IconMessagesOff,
+  IconDoorExit,
 } from "@tabler/icons";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -148,13 +152,13 @@ const useStyles = createStyles((theme) => ({
     textAlign: "right",
     paddingRight: 74,
     paddingLeft: 74,
-    paddingBottom: theme.spacing.sm,
+    paddingBottom: theme.spacing.md,
   },
 
   bodyLeft: {
     paddingLeft: 74,
     paddingRight: 74,
-    paddingBottom: theme.spacing.sm,
+    paddingBottom: theme.spacing.md,
   },
 
   selfFlexEnd: {
@@ -164,6 +168,17 @@ const useStyles = createStyles((theme) => ({
   justifyFlexEnd: {
     justifyContent: "flex-end",
     flexWrap: "nowrap",
+    // placeSelf: "center",
+  },
+
+  chatroomTitle: {
+    placeSelf: "center",
+  },
+
+  chatNew: {
+    // alignSelf: "self-end",
+    justifyContent: "flex-end",
+    padding: "15px 0px 0px",
   },
 }));
 
@@ -192,6 +207,7 @@ export default function ChatRoom(props: Props) {
     props.chatroomActive
   );
   const [allUsers, setAllUsers] = useState<AllUsers[]>();
+  const [multiOpen, setMultiOpen] = useState(false);
 
   // useEffect for checking auth0 authentication upon load.
   useEffect(() => {
@@ -378,14 +394,45 @@ export default function ChatRoom(props: Props) {
     });
   }
 
-  let allChatUsers;
+  let firstThreeChatUsers;
+  let allOtherChatUsers;
+  let eachOtherChatUser;
 
   if (allUsers && allUsers !== null) {
-    allChatUsers = allUsers.map((user, i) => {
-      if (i === allUsers.length - 1) {
-        return <>{user.user.name}. </>;
-      } else return <>{user.user.name}, </>;
-    });
+    if (allUsers.length > 3) {
+      eachOtherChatUser = allUsers.map((user, i) => {
+        if (i > 2) {
+          return <div>{user.user.name}</div>;
+        }
+      });
+      firstThreeChatUsers = allUsers.map((user, i) => {
+        if (i < 3) {
+          return (
+            <Tooltip label={user.user.name} withArrow>
+              <Avatar src={user.user.photoLink} radius="xl" />
+            </Tooltip>
+          );
+        }
+      });
+
+      allOtherChatUsers = (
+        <>
+          <Tooltip withArrow label={<>{eachOtherChatUser}</>}>
+            <Avatar radius="xl">+{allUsers.length - 3}</Avatar>
+          </Tooltip>
+        </>
+      );
+    } else {
+      firstThreeChatUsers = allUsers.map((user, i) => {
+        if (i < 3) {
+          return (
+            <Tooltip label={user.user.name} withArrow>
+              <Avatar src={user.user.photoLink} radius="xl" />
+            </Tooltip>
+          );
+        }
+      });
+    }
   }
 
   //Change state while typing new message
@@ -461,6 +508,7 @@ export default function ChatRoom(props: Props) {
     getAllUsers();
 
     setNewUser([]);
+    setMultiOpen(false);
   };
 
   const handleActive = (
@@ -483,6 +531,10 @@ export default function ChatRoom(props: Props) {
 
   console.log(newUser);
 
+  const handleMultiOpen = () => {
+    setMultiOpen(!multiOpen);
+  };
+
   return (
     <Container size="xl">
       <Box
@@ -499,12 +551,17 @@ export default function ChatRoom(props: Props) {
         })}
       >
         <Grid>
-          <Grid.Col span={6}>
-            <Text>ABC</Text>
+          <Grid.Col span={4}>
+            <Tooltip.Group openDelay={300} closeDelay={100}>
+              <Avatar.Group spacing="sm">
+                {firstThreeChatUsers}
+                {allOtherChatUsers !== null ? allOtherChatUsers : null}
+              </Avatar.Group>
+            </Tooltip.Group>
           </Grid.Col>
-          <Grid.Col span={6}>
+          <Grid.Col span={8} className={classes.chatroomTitle}>
             <Group className={classes.justifyFlexEnd}>
-              <Text>ABC</Text>
+              <Title order={6}>{props.chatroomTitle}</Title>
               {active ? (
                 <Indicator
                   color="#4EB5BA"
@@ -526,9 +583,64 @@ export default function ChatRoom(props: Props) {
                   <div></div>
                 </Indicator>
               )}
-              <UnstyledButton>
-                <IconSettings size={20} color="#7491A8" />
-              </UnstyledButton>
+              <Menu shadow="md" width={200} position="bottom-end">
+                <Menu.Target>
+                  <UnstyledButton>
+                    <IconSettings size={20} color="#7491A8" />
+                  </UnstyledButton>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>CHATROOM</Menu.Label>
+                  <Menu.Item
+                    onClick={handleLeave}
+                    icon={<IconDoorExit size={14} />}
+                  >
+                    Leave
+                  </Menu.Item>
+                  {props.chatroomhostId === userId &&
+                  allFriends &&
+                  allFriends.length !== 0 ? (
+                    <>
+                      <Menu.Item
+                        onClick={handleMultiOpen}
+                        icon={<IconUserPlus size={14} />}
+                        disabled={!active}
+                      >
+                        Invite Friend
+                      </Menu.Item>
+                      <Menu.Label>DANGER ZONE</Menu.Label>
+                      <Menu.Item
+                        disabled={!active}
+                        icon={<IconMessagesOff size={14} />}
+                        onClick={handleActive}
+                        color="red"
+                      >
+                        Deactivate
+                      </Menu.Item>
+                    </>
+                  ) : (
+                    <>
+                      <Menu.Item disabled icon={<IconUserPlus size={14} />}>
+                        Invite Friend
+                      </Menu.Item>
+                      <Menu.Label>DANGER ZONE</Menu.Label>
+                      <Menu.Item
+                        disabled
+                        icon={<IconMessagesOff size={14} />}
+                        onClick={handleActive}
+                        color="red"
+                      >
+                        Deactivate
+                      </Menu.Item>
+                    </>
+                  )}
+
+                  {/* <Button onClick={handleActive} disabled={!active}>
+                    Deactivate Room
+                  </Button> */}
+                </Menu.Dropdown>
+              </Menu>
+
               <UnstyledButton>
                 <IconArrowsDiagonalMinimize2
                   size={20}
@@ -541,43 +653,66 @@ export default function ChatRoom(props: Props) {
         </Grid>
 
         <br />
-        <Button onClick={handleLeave}>Leave Chatroom</Button>
+        {/* <Button onClick={handleLeave}>Leave Chatroom</Button> */}
         {props.chatroomhostId === userId &&
         allFriends &&
-        allFriends.length !== 0 ? (
+        allFriends.length !== 0 &&
+        multiOpen ? (
           <>
-            <MultiSelect
-              value={newUser}
-              onChange={setNewUser}
-              data={allFriends}
-              disabled={!active}
-            />
-            <Button onClick={handleAdd} disabled={!active}>
-              Invite Friend to Chat
-            </Button>
-            <Button onClick={handleActive} disabled={!active}>
-              Deactivate Room
-            </Button>
+            <Modal
+              opened={multiOpen}
+              onClose={() => setMultiOpen(false)}
+              title="Invite Friends"
+              radius="md"
+            >
+              <MultiSelect
+                label="Friends"
+                value={newUser}
+                onChange={setNewUser}
+                data={allFriends}
+                disabled={!active}
+              />
+              <br />
+              {/* <UnstyledButton disabled={!active}>
+                <Group>
+                  <IconUserPlus onClick={handleAdd} size={26} color="#7491A8" />
+                </Group>
+              </UnstyledButton> */}
+              <Group className={classes.chatNew}>
+                <Button disabled={!active} onClick={handleAdd}>
+                  <IconUserPlus size={20} />
+                </Button>
+              </Group>
+            </Modal>
           </>
         ) : null}
-        <br />
-        <Text>{props.chatroomTitle}</Text>
-        <Text>Chat with {allChatUsers}</Text>
-        <br />
-        {allChatMessages}
-        <br />
-        {adminMessage.length !== 0 ? adminMessage : null}
+        {/* <br /> */}
+        <ScrollArea style={{ height: 200 }} offsetScrollbars>
+          {allChatMessages}
+
+          {adminMessage.length !== 0 ? (
+            <>
+              <br />
+              {adminMessage}
+            </>
+          ) : null}
+        </ScrollArea>
         <form onSubmit={handleSubmit}>
           <br />
           <Textarea
             disabled={!active}
-            placeholder="Send a new message."
+            placeholder="Send a new message"
             value={newMessage}
             onChange={handleChange}
+            radius="md"
+            required
           />
-          <Button type="submit" disabled={!active}>
-            <IconSend />
-          </Button>
+          {/* <br /> */}
+          <Group className={classes.chatNew}>
+            <Button type="submit" disabled={!active}>
+              <IconSend size={20} />
+            </Button>
+          </Group>
         </form>
       </Box>
     </Container>

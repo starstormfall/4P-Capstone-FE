@@ -544,7 +544,9 @@ export default function ChatRoomList(props: Props) {
                         <ThemeIcon variant="light" size={30}>
                           <IconUser size={18} />
                         </ThemeIcon>
-                        <Box ml="md">HOSTED CHATROOMS</Box>
+                        <Box ml="md">
+                          <Title order={6}>HOSTED CHATROOMS</Title>
+                        </Box>
                       </Box>
 
                       {hasLinks && (
@@ -646,7 +648,9 @@ export default function ChatRoomList(props: Props) {
                         <ThemeIcon variant="light" size={30}>
                           <IconUsers size={18} />
                         </ThemeIcon>
-                        <Box ml="md">INVITED CHATROOMS</Box>
+                        <Box ml="md">
+                          <Title order={6}>INVITED CHATROOMS</Title>
+                        </Box>
                       </Box>
                       {hasLinks && (
                         <ChevronIcon
