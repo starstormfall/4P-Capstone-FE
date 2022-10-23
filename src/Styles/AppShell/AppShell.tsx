@@ -30,7 +30,7 @@ import { LogOut, Search } from "@easy-eva-icons/react";
 import { useStyles } from "./useStyles";
 import tdflLogo from "../../Images/tdflLogo.png";
 
-import { StreakDialog } from "../../Components/StreakDialog";
+import { StreakDialog } from "./StreakDialog";
 import Rewards from "../../Components/Rewards";
 import UserForm from "../../Components/UserForm";
 
@@ -271,8 +271,9 @@ function TdflAppShell() {
         opened={streakDialogOn}
         withCloseButton
         onClose={() => setStreakDialogOn(false)}
-        size="md"
+        size="sm"
         radius="md"
+        transition="pop"
       >
         <StreakDialog
           loginStreak={userInfo.loginStreak}

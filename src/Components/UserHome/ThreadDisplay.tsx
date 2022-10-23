@@ -127,7 +127,7 @@ export default function ThreadDisplay({
         <ScrollArea style={{ height: "55vh" }}>
           <Container>
             {showThreads && showThreads.length ? (
-              <Timeline> showThreads </Timeline>
+              <Timeline>{showThreads}</Timeline>
             ) : (
               <Stack>
                 <Title align="center" order={3}>

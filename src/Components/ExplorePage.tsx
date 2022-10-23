@@ -18,7 +18,7 @@ export default function ExplorePage() {
   // get a certain number of photos based on number query
   const getPhotos = async () => {
     try {
-      const response = await axios.get(`${backendUrl}/info/photos?number=9`);
+      const response = await axios.get(`${backendUrl}/info/photos?number=13`);
 
       setAllPhotos(response.data);
     } catch (err) {
@@ -32,7 +32,7 @@ export default function ExplorePage() {
     } else {
       loginWithRedirect();
     }
-  }; 
+  };
 
   useEffect(() => {
     getPhotos();
@@ -44,68 +44,90 @@ export default function ExplorePage() {
   return (
     <Box
       sx={(theme) => ({
-        backgroundColor:
-          theme.colorScheme === "dark"
-            ? theme.colors.dark[6]
-            : theme.colors.gray[0],
-        textAlign: "center",
-        padding: theme.spacing.lg,
+        padding: theme.spacing.xs,
         borderRadius: theme.radius.md,
-        height: height,
+        textAlign: "center",
       })}
     >
-      <Grid grow>
+      <Grid columns={15} grow>
         {/* row 1 */}
-        <Grid.Col xs={3}>
+        <Grid.Col xs={2}>
           <Image
-            height={270}
+            height="31vh"
             fit="cover"
             radius="md"
             src={allPhotos[0]}
             alt="japan"
           />
         </Grid.Col>
-        <Grid.Col xs={7}>
+        <Grid.Col xs={4}>
           <Image
             fit="cover"
-            height={270}
+            height="31vh"
             radius="md"
             src={allPhotos[1]}
+            alt="japan"
+          />
+        </Grid.Col>
+        <Grid.Col xs={3}>
+          <Image
+            fit="cover"
+            height="31vh"
+            radius="md"
+            src={allPhotos[2]}
+            alt="japan"
+          />
+        </Grid.Col>
+        <Grid.Col xs={4}>
+          <Image
+            fit="cover"
+            height="31vh"
+            radius="md"
+            src={allPhotos[3]}
+            alt="japan"
+          />
+        </Grid.Col>
+
+        {/* row 2 */}
+        <Grid.Col xs={3}>
+          <Image
+            fit="cover"
+            height="33vh"
+            radius="md"
+            src={allPhotos[4]}
             alt="japan"
           />
         </Grid.Col>
         <Grid.Col xs={2}>
           <Image
             fit="cover"
-            height={270}
+            height="33vh"
             radius="md"
-            src={allPhotos[2]}
-            alt="japan"
-          />
-        </Grid.Col>
-
-        {/* row 2 */}
-        <Grid.Col xs={4}>
-          <Image
-            fit="cover"
-            height={270}
-            radius="md"
-            src={allPhotos[3]}
+            src={allPhotos[5]}
             alt="japan"
           />
         </Grid.Col>
         <Grid.Col span={4}>
-          <Image src={tdflLogo} fit="contain" height={220} alt="logo" />
+          <Image src={tdflLogo} fit="contain" height="29vh" alt="logo" />
           <Button onClick={handleLogin}>
             <Title order={5}>LOGIN | SIGNUP</Title>
           </Button>
         </Grid.Col>
-        <Grid.Col xs={4}>
+        <Grid.Col xs={2}>
           <Image
             fit="cover"
-            height={270}
+            height="33vh"
             radius="md"
-            src={allPhotos[4]}
+            src={allPhotos[6]}
+            alt="japan"
+          />
+        </Grid.Col>
+        <Grid.Col xs={3}>
+          <Image
+            fit="cover"
+            height="33vh"
+            radius="md"
+            src={allPhotos[7]}
             alt="japan"
           />
         </Grid.Col>
@@ -114,36 +136,45 @@ export default function ExplorePage() {
         <Grid.Col xs={2}>
           <Image
             fit="cover"
-            height={270}
+            height="31vh"
             radius="md"
-            src={allPhotos[5]}
-            alt="japan"
-          />
-        </Grid.Col>
-        <Grid.Col xs={3}>
-          <Image
-            fit="cover"
-            height={270}
-            radius="md"
-            src={allPhotos[6]}
+            src={allPhotos[8]}
             alt="japan"
           />
         </Grid.Col>
         <Grid.Col xs={2}>
           <Image
             fit="cover"
-            height={270}
+            height="31vh"
             radius="md"
-            src={allPhotos[7]}
+            src={allPhotos[9]}
             alt="japan"
           />
         </Grid.Col>
-        <Grid.Col xs={5}>
+        <Grid.Col xs={4}>
           <Image
             fit="cover"
-            height={270}
+            height="31vh"
             radius="md"
-            src={allPhotos[8]}
+            src={allPhotos[10]}
+            alt="japan"
+          />
+        </Grid.Col>
+        <Grid.Col xs={3}>
+          <Image
+            fit="cover"
+            height="31vh"
+            radius="md"
+            src={allPhotos[11]}
+            alt="japan"
+          />
+        </Grid.Col>
+        <Grid.Col xs={2}>
+          <Image
+            fit="cover"
+            height="31vh"
+            radius="md"
+            src={allPhotos[12]}
             alt="japan"
           />
         </Grid.Col>
