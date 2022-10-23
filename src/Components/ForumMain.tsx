@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useOutletContext } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
@@ -9,16 +7,13 @@ import { useAuth0 } from "@auth0/auth0-react";
 import {
   Button,
   Container,
-  Image,
   Grid,
   Card,
   Text,
   Modal,
   Group,
-  NativeSelect,
   FileInput,
   Textarea,
-  NumberInput,
   Checkbox,
   Select,
   Title,
@@ -44,17 +39,17 @@ type AllPrefectureData = {
   prefecture: string;
 };
 
-// type PrefData = {
-//   id: string;
-//   label: string;
-//   value: string;
-// };
+type prefectureDataType = {
+  value: string;
+  label: string;
+};
 
 export default function ForumMain() {
   // have a create post that can extend to explore page
   const [forumList, setForumList] = useState<ThreadListData[]>();
   const [updateForum, setUpdateForum] = useState<boolean>(false);
   const { getAccessTokenSilently } = useAuth0();
+  const [allAreaData, setAllAreaData] = useState<AllPrefectureData[]>();
 
   const getForumData = async () => {
     const response = await axios.get(`${backendUrl}/posts/thread`);
@@ -99,15 +94,19 @@ export default function ForumMain() {
     });
   }
 
-  const areaIdInfo = useQuery(["areaList"], () =>
-    axios.get(`${backendUrl}/info/areas`).then((res) => res.data)
-  );
+  const getAllAreaData = async () => {
+    const response = await axios.get(`${backendUrl}/info/areas`);
+    setAllAreaData(response.data);
+  };
 
-  // console.log(areaIdInfo.data);
+  useEffect(() => {
+    getAllAreaData();
+  }, []);
+  console.log(allAreaData);
 
-  let prefectureData = [];
-  if (areaIdInfo.data) {
-    prefectureData = areaIdInfo.data.map(
+  let prefectureData: prefectureDataType[] = [];
+  if (allAreaData) {
+    prefectureData = allAreaData.map(
       ({ id, prefecture }: AllPrefectureData) => {
         return {
           value: id,
@@ -129,6 +128,7 @@ export default function ForumMain() {
   const [areaId, setAreaId] = useState<string>();
   const [locationName, setLocationName] = useState<string>("");
   const [topic, setTopic] = useState<string>("");
+  const [externalLink, setExternalLink] = useState<string>("");
   const { userInfo } = UseApp();
 
   console.log(userInfo.id);
@@ -170,7 +170,7 @@ export default function ForumMain() {
       areaId: areaId,
       forumPost: forumPost,
       explorePost: explorePost,
-      externalLink: null,
+      externalLink: externalLink,
       title: title,
       photoLink: imageUrl,
       locationName: locationName,
@@ -188,6 +188,7 @@ export default function ForumMain() {
     setTitle("");
     setLocationName("");
     setTopic("");
+    setExternalLink("");
   };
 
   return (
@@ -242,6 +243,14 @@ export default function ForumMain() {
                 value={locationName}
                 onChange={(e) => setLocationName(e.target.value)}
               />
+              <Textarea
+                variant="filled"
+                label="External Link"
+                placeholder="..."
+                withAsterisk
+                value={externalLink}
+                onChange={(e) => setExternalLink(e.target.value)}
+              />
               <FileInput
                 variant="filled"
                 placeholder="pick file"
@@ -266,7 +275,9 @@ export default function ForumMain() {
                   // setForumPost(true);
                 }}
               />
-              <Button type="submit">Create Post!</Button>
+              <Group position="right">
+                <Button type="submit">Create Post!</Button>
+              </Group>
             </form>
           </Container>
         </Modal>
