@@ -7,7 +7,7 @@ import FriendList from "./FriendList";
 import FriendRequestList from "./FriendRequest";
 import ChatRoomList from "./ChatRoomList";
 import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
+
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
