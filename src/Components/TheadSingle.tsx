@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link, useParams, useAsyncError } from "react-router-dom";
-import { useOutletContext } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useNavigate, Link, useParams } from "react-router-dom";
+
 import axios from "axios";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
@@ -10,20 +9,23 @@ import {
   Button,
   Container,
   Image,
-  Grid,
   Card,
   Text,
   Modal,
   Group,
-  NativeSelect,
   FileInput,
   Textarea,
-  NumberInput,
   Checkbox,
   Select,
   Avatar,
   Indicator,
-  ActionIcon,
+  createStyles,
+  Box,
+  Title,
+  Paper,
+  Center,
+  Divider,
+  Collapse,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -32,6 +34,7 @@ import {
   uploadBytes,
 } from "firebase/storage";
 import { AwardOutline } from "@easy-eva-icons/react";
+import { create } from "domain";
 
 type ThreadSingleData = {
   id: number;
@@ -73,9 +76,69 @@ type AllPrefectureData = {
   prefecture: string;
 };
 
+type prefectureDataType = {
+  value: string;
+  label: string;
+};
+
 type friendListData = {
   [key: number]: string;
 };
+
+const useStyles = createStyles((theme) => ({
+  comment: {
+    padding: `${theme.spacing.lg}px ${theme.spacing.xl}px`,
+  },
+
+  body: {
+    paddingLeft: 25,
+    paddingTop: theme.spacing.sm,
+    fontSize: theme.fontSizes.sm,
+  },
+
+  contentComment: {
+    "& > p:last-child": {
+      marginBottom: 0,
+    },
+  },
+
+  title: {
+    // fontSize: 20,
+    fontWeight: 500,
+    [theme.fn.smallerThan("sm")]: {
+      fontSize: 24,
+    },
+  },
+
+  borderContain: {
+    backgroundColor: "aliceblue",
+  },
+  content: {
+    backgroundColor: "white",
+  },
+
+  card: {
+    position: "relative",
+    backgroundColor:
+      theme.colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
+  },
+
+  rating: {
+    position: "absolute",
+    top: theme.spacing.xs,
+    right: theme.spacing.xs + 2,
+    pointerEvents: "none",
+  },
+
+  cardTitle: {
+    display: "block",
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xs / 2,
+  },
+  footer: {
+    marginTop: theme.spacing.md,
+  },
+}));
 
 export default function ThreadSingle() {
   const [threadId, setThreadId] = useState<string>();
@@ -86,11 +149,10 @@ export default function ThreadSingle() {
   const [friendAdded, setFriendAdded] = useState<number>();
   const [postId, setPostId] = useState<number>();
   const [friendList, setFriendList] = useState<friendListData>();
-  const [disablefriendButton, setDisableFriendButton] =
-    useState<boolean>(false);
   const [updateComment, setUpdateComment] = useState<boolean>(false);
   const [updateFriendRequest, setUpdateFriendRequest] =
     useState<boolean>(false);
+  const { classes } = useStyles();
 
   const { userInfo } = UseApp();
   const { getAccessTokenSilently } = useAuth0();
@@ -139,14 +201,11 @@ export default function ThreadSingle() {
     setThreadId(params.threadId);
   }
   // handle post req for comments (to post to table)
-
-  // Div > Container > Card > Text;
-
   const onFriendRequest = async (e: React.FormEvent<HTMLFormElement>) => {
-    // const accessToken = await getAccessTokenSilently({
-    //   audience: process.env.REACT_APP_AUDIENCE,
-    //   scope: process.env.REACT_APP_SCOPE,
-    // });
+    const accessToken = await getAccessTokenSilently({
+      audience: process.env.REACT_APP_AUDIENCE,
+      scope: process.env.REACT_APP_SCOPE,
+    });
     e.preventDefault();
     console.log(`Added as Friend!`);
     console.log(`added friend id`, friendAdded);
@@ -157,33 +216,17 @@ export default function ThreadSingle() {
         friendId: friendAdded,
         postId: postId,
         reason: reason,
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
       }
-      // {
-      //   headers: { Authorization: `Bearer ${accessToken}` },
-      // }
     );
     setFriendModalOpen(false);
     setReason("");
     setUpdateFriendRequest(!updateFriendRequest);
   };
 
-  // check for existing friend
-
-  // allfriends contains the array of existing friends
-  // const validateExistingFriend = async () => {
-  //   if (allFriends) {
-  //     for (let i = 0; i < allFriends.length; i++) {
-  //       // check for added friend req
-  //       if (
-  //         allFriends[i].addedUserId === userInfo.id ||
-  //         allFriends[i].initiatedUserId === userInfo.id
-  //       ) {
-  //         setDisableFriendButton(true);
-  //       }
-  //     }
-  //   }
-  // };
-
+  // check for existing friend/yourself/pending request
   const checkFriendShip = (
     friendshipStatus: string,
     userId: number,
@@ -233,15 +276,13 @@ export default function ThreadSingle() {
     for (let i = 1; i < singleThreadData.length; i++) {
       allComments.push(
         <div>
-          <Container key={singleThreadData[i].id}>
-            <Card>
-              {/* <Avatar
-                src={singleThreadData[i].post.user.photoLink}
-                alt={singleThreadData[i].post.user.name}
-                radius="xl"
-                size="lg"
-              />
-              add friend button */}
+          <Paper
+            withBorder
+            radius="md"
+            className={classes.comment}
+            key={singleThreadData[i].id}
+          >
+            <Group>
               <div>
                 <Modal
                   opened={friendModalOpen}
@@ -260,7 +301,7 @@ export default function ThreadSingle() {
                         onChange={(e) => setReason(e.target.value)}
                       />
 
-                      <button>Add as Friend!</button>
+                      <Button type="submit">Add as Friend!</Button>
                     </form>
                   </Container>
                 </Modal>
@@ -274,38 +315,19 @@ export default function ThreadSingle() {
                       singleThreadData[i].post.user.photoLink,
                       singleThreadData[i].post.user.name
                     )}
-                  {/* validate for existing friends */}
-                  {/* 
-                 1. get the current logged in user
-                  2. get the post/comment user
-                  3. check friend array if logged in user and post user for status?
-
-                  SWITCH CASE
-                  */}
-
-                  {/* {allFriendsId?.includes(singleThreadData[i].post.user.id) &&
-                  singleThreadData[i].post.userId !== userInfo.id ? (
-                    <Button disabled={true}>Added as Friend</Button>
-                  ) : (
-                    <Button
-                      onClick={() => {
-                        setFriendModalOpen(true);
-                        setFriendAdded(singleThreadData[i].post.userId);
-                        setPostId(singleThreadData[i].post.id);
-                      }}
-                    >
-                      Add Friend
-                    </Button>
-                  )} */}
                 </Group>
               </div>
-              <Text>
-                {singleThreadData[i].post.user.name} commented on{" "}
-                {singleThreadData[i].post.createdAt}:
-              </Text>
-              <Text>{singleThreadData[i].post.content}</Text>
-            </Card>
-          </Container>
+              <div>
+                <Text size="sm">{singleThreadData[i].post.user.name}</Text>
+                <Text size="xs" color="dimmed">
+                  commented on: {singleThreadData[i].post.createdAt}
+                </Text>
+              </div>
+            </Group>
+            <Text className={classes.body} size="sm">
+              {singleThreadData[i].post.content}
+            </Text>
+          </Paper>
         </div>
       );
     }
@@ -322,16 +344,22 @@ export default function ThreadSingle() {
   const [content, setContent] = useState<string>("");
   const [areaId, setAreaId] = useState<string>();
   const [locationName, setLocationName] = useState<string>("");
+  const [allAreaData, setAllAreaData] = useState<AllPrefectureData[]>();
+  const [externalLink, setExternalLink] = useState<string>("");
+  const [exploreOpen, setExploreOpen] = useState<boolean>(false);
 
-  const areaIdInfo = useQuery(["areaList"], () =>
-    axios.get(`${backendUrl}/info/areas`).then((res) => res.data)
-  );
+  const getAllAreaData = async () => {
+    const response = await axios.get(`${backendUrl}/info/areas`);
+    setAllAreaData(response.data);
+  };
 
-  // console.log(areaIdInfo.data);
+  useEffect(() => {
+    getAllAreaData();
+  }, []);
 
-  let prefectureData = [];
-  if (areaIdInfo.data) {
-    prefectureData = areaIdInfo.data.map(
+  let prefectureData: prefectureDataType[] = [];
+  if (allAreaData) {
+    prefectureData = allAreaData.map(
       ({ id, prefecture }: AllPrefectureData) => {
         return {
           value: id,
@@ -380,7 +408,7 @@ export default function ThreadSingle() {
         areaId: areaId,
         forumPost: forumPost,
         explorePost: explorePost,
-        externalLink: null,
+        externalLink: externalLink,
         title: title,
         photoLink: imageUrl,
         locationName: locationName,
@@ -391,21 +419,54 @@ export default function ThreadSingle() {
     );
     setOpened(false);
     setUpdateComment(!updateComment);
+    setContent("");
+    setAreaId("");
+    setExplorePost("");
+    setTitle("");
+    setLocationName("");
+    setChecked(false);
+    setExternalLink("");
+    setExploreOpen(false);
   };
 
   return (
     <div>
-      <Container>
+      <Container className={classes.borderContain}>
         {singleThreadData ? (
-          <Card>
-            <Text>Thread Title:{singleThreadData[0].thread.topic}</Text>
-            <Text>Content:</Text>
-            <Text>{singleThreadData[0].post.content}</Text>
-            <Text>By user:</Text>
-            <Text>{singleThreadData[0].post.user.name}</Text>
-            <Text>Created At:</Text>
-            <Text>{singleThreadData[0].createdAt}</Text>
-          </Card>
+          <Box>
+            <Card withBorder radius="md" className={classes.card}>
+              <Title className={classes.cardTitle} align="left">
+                {singleThreadData[0].thread.topic}
+              </Title>
+              <Card.Section>
+                <Image
+                  src={singleThreadData[0].post.photoLink}
+                  alt={singleThreadData[0].post.locationName}
+                  height={300}
+                />
+              </Card.Section>
+              <br />
+              <Text size="sm" color="dimmed" lineClamp={4}>
+                {singleThreadData[0].post.content}
+              </Text>
+              <Group position="apart" className={classes.footer}>
+                <Center>
+                  <Avatar
+                    src={singleThreadData[0].post.user.photoLink}
+                    size={24}
+                    radius="xl"
+                    mr="xs"
+                  />
+                  <Text size="sm" inline>
+                    {singleThreadData[0].post.user.name}
+                  </Text>
+                </Center>
+                <Text size="sm" inline>
+                  Created At: {singleThreadData[0].createdAt}
+                </Text>
+              </Group>
+            </Card>
+          </Box>
         ) : null}
       </Container>
       <Container>
@@ -414,9 +475,7 @@ export default function ThreadSingle() {
         ) : (
           <div>
             <Card>
-              <Text>Be the first to comment!</Text>
-              {/* add comment function here*/}
-              {/* creat post (forum && explore etc)*/}
+              <Title order={4}>Be the first to comment!</Title>
             </Card>
           </div>
         )}
@@ -425,78 +484,121 @@ export default function ThreadSingle() {
         <Modal
           opened={opened}
           onClose={() => setOpened(false)}
-          title="Tell us more in details!"
+          title="Share your thoughts"
         >
-          <Container>
+          <Paper radius="md" p="xl" withBorder>
             <form onSubmit={handleSubmit}>
-              <Textarea
-                variant="filled"
-                label="Title"
-                placeholder="Give a title!"
-                withAsterisk
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+              <Divider
+                label="Add your comment!"
+                labelPosition="center"
+                my="xs"
               />
               <Textarea
                 variant="filled"
-                label="Content"
+                label="Content/Comment"
                 placeholder="..."
                 withAsterisk
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
               />
-              <Select
-                label="Select your prefecture"
-                placeholder="Pick one"
-                data={prefectureData}
-                value={areaId}
-                onChange={(event: string) => {
-                  console.log(event);
-                  setAreaId(event);
-                }}
-              />
-              <Textarea
-                variant="filled"
-                label="Location Name"
-                placeholder="..."
-                withAsterisk
-                value={locationName}
-                onChange={(e) => setLocationName(e.target.value)}
-              />
-              <FileInput
-                variant="filled"
-                placeholder="pick file"
-                label="Upload Photo if any!"
-                withAsterisk
-                value={fileInputFile}
-                onChange={(e: File) => {
-                  console.log(e);
-                  setFileInputFile(e);
-                }}
-              />
-              {/* Con render explore/forum post */}
-              <Checkbox
-                label="Display in Explore?"
-                description="it will be seen in the explore feed."
-                color="indigo"
-                radius="xl"
-                checked={checked}
-                onChange={(e) => {
-                  setChecked(e.currentTarget.checked);
-                  setExplorePost("forum");
-                  setForumPost(true);
-                }}
-              />
-              <button>Comment or Create!</button>
+              <br />
+              {/* <Divider
+                label="Share it on the explore page!"
+                labelPosition="center"
+                my="xs"
+              /> */}
+              <>
+                <Group position="left">
+                  <Button
+                    onClick={() => {
+                      setExploreOpen((o) => !o);
+                      setExplorePost("forum");
+                      setForumPost(true);
+                      if (!exploreOpen) {
+                        setExplorePost("");
+                      }
+                      console.log(`explore status`, explorePost);
+                      console.log(`forum state`, forumPost);
+                    }}
+                  >
+                    Add to Explore?
+                  </Button>
+                </Group>
+
+                <Collapse in={exploreOpen}>
+                  <Textarea
+                    variant="filled"
+                    label="Title"
+                    placeholder="Give a title!"
+                    withAsterisk
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+
+                  <Select
+                    label="Select your prefecture"
+                    placeholder="Pick one"
+                    data={prefectureData}
+                    value={areaId}
+                    onChange={(event: string) => {
+                      console.log(event);
+                      setAreaId(event);
+                    }}
+                  />
+                  <Textarea
+                    variant="filled"
+                    label="Location Name"
+                    placeholder="..."
+                    withAsterisk
+                    value={locationName}
+                    onChange={(e) => setLocationName(e.target.value)}
+                  />
+                  <Textarea
+                    variant="filled"
+                    label="External Link"
+                    placeholder="..."
+                    withAsterisk
+                    value={externalLink}
+                    onChange={(e) => setExternalLink(e.target.value)}
+                  />
+                  <FileInput
+                    variant="filled"
+                    placeholder="pick file"
+                    label="Add Photo"
+                    withAsterisk
+                    value={fileInputFile}
+                    onChange={(e: File) => {
+                      console.log(e);
+                      setFileInputFile(e);
+                    }}
+                  />
+                  {/* Con render explore/forum post */}
+                  {/* <Checkbox
+                    label="Display in Explore?"
+                    description="it will be seen in the explore feed."
+                    color="indigo"
+                    radius="xl"
+                    checked={checked}
+                    onChange={(e) => {
+                      setChecked(e.currentTarget.checked);
+                      setExplorePost("forum");
+                      setForumPost(true);
+                    }}
+                  /> */}
+                </Collapse>
+              </>
+
+              <Group position="right">
+                <Button type="submit">Submit</Button>
+              </Group>
             </form>
-          </Container>
+          </Paper>
         </Modal>
 
         <Group position="center">
-          <Button onClick={() => setOpened(true)}>Comment or Create!</Button>
+          <Button onClick={() => setOpened(true)}>Add Comment</Button>
         </Group>
       </div>
-
       <Button onClick={() => navigate(-1)}>Back</Button>
     </div>
   );

@@ -1,0 +1,211 @@
+import React, { MouseEvent, useState } from "react";
+
+import { PostCard } from "./HomePageInterface";
+
+import {
+  Pin,
+  MessageCircle,
+  Heart,
+  HeartOutline,
+  Star,
+  StarOutline,
+} from "@easy-eva-icons/react";
+
+import { IconBookmark, IconHeart, IconShare } from "@tabler/icons";
+import {
+  Card,
+  Image,
+  Text,
+  ActionIcon,
+  Badge,
+  Group,
+  Center,
+  createStyles,
+  UnstyledButton,
+  Spoiler,
+  Overlay,
+  Container,
+} from "@mantine/core";
+
+const useStyles = createStyles((theme) => ({
+  card: {
+    position: "relative",
+    backgroundColor:
+      theme.colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
+
+    [`&:hover`]: {
+      transform: "scale(1.03)",
+    },
+  },
+
+  rating: {
+    position: "absolute",
+    top: theme.spacing.xs,
+    right: theme.spacing.xs + 2,
+    pointerEvents: "none",
+  },
+
+  title: {
+    display: "block",
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xs / 2,
+  },
+
+  action: {
+    backgroundColor:
+      theme.colorScheme === "dark"
+        ? theme.colors.dark[6]
+        : theme.colors.gray[0],
+    ...theme.fn.hover({
+      backgroundColor:
+        theme.colorScheme === "dark"
+          ? theme.colors.dark[5]
+          : theme.colors.gray[1],
+    }),
+  },
+
+  footer: {
+    marginTop: theme.spacing.md,
+  },
+}));
+
+// create post component
+// post component will have 5 buttons with 5 handlers
+// // handleGoToPin
+// // handleLike
+// // handleFavourite
+// // handleAssocThread
+// // handleShareLink
+
+export default function ExplorePost({
+  postId,
+  className,
+  photoLink,
+  externalLink,
+  title,
+  content,
+  userId,
+  explorePost,
+  likeCount,
+  showPin,
+  likePost,
+  favouritePost,
+  showAssocThread,
+  shareLink,
+  userLike,
+  userFavourite,
+  ...others
+}: PostCard & Omit<React.ComponentPropsWithoutRef<"div">, keyof PostCard>) {
+  const { classes, cx, theme } = useStyles();
+  const linkProps = {
+    href: externalLink,
+    target: "_blank",
+    rel: "noopener noreferrer",
+  };
+  const [visible, setVisible] = useState<boolean>(false);
+
+  return (
+    <Card
+      withBorder
+      radius="md"
+      className={cx(classes.card, className)}
+      {...others}
+    >
+      {/* CARD IMAGE */}
+      <Card.Section>
+        <UnstyledButton
+          className={classes.image}
+          onClick={() => setShowContent(!showContent)}
+        >
+          {!showContent ? (
+            <Image src={photoLink} />
+          ) : (
+            <Container>
+              <Text size="sm" color="dimmed">
+                {content}
+              </Text>
+            </Container>
+          )}
+        </UnstyledButton>
+      </Card.Section>
+
+      <Badge
+        className={classes.rating}
+        variant="gradient"
+        gradient={{ from: "yellow", to: "red" }}
+      >
+        {explorePost}
+      </Badge>
+
+      <Group align="flex-start" position="apart" noWrap>
+        <Text
+          className={classes.title}
+          weight={500}
+          component="a"
+          {...linkProps}
+        >
+          {title}
+        </Text>
+      </Group>
+
+      {/* POST CONTENT */}
+      {/* <Text size="sm" color="dimmed" lineClamp={5}>
+        {content}
+      </Text> */}
+
+      {/* BOTTOM BUTTONS */}
+      <Group position="apart" className={classes.footer}>
+        <Group spacing={8} mr={0}>
+          <ActionIcon
+            id={`${postId}`}
+            className={classes.action}
+            color="red"
+            onClick={(event: MouseEvent<HTMLButtonElement>) =>
+              likePost(event, postId)
+            }
+          >
+            {userLike ? <Heart /> : <HeartOutline />}
+          </ActionIcon>
+          <Text size="sm" inline>
+            {likeCount}
+          </Text>
+
+          <ActionIcon
+            className={classes.action}
+            color="aqua"
+            onClick={(event: MouseEvent<HTMLButtonElement>) =>
+              showPin(event, postId)
+            }
+          >
+            <Pin />
+          </ActionIcon>
+          <ActionIcon
+            className={classes.action}
+            onClick={(event: MouseEvent<HTMLButtonElement>) =>
+              showAssocThread(event, postId)
+            }
+          >
+            <MessageCircle />
+          </ActionIcon>
+          <ActionIcon
+            className={classes.action}
+            onClick={(event: MouseEvent<HTMLButtonElement>) =>
+              favouritePost(event, postId)
+            }
+            color="yellow"
+          >
+            {userFavourite ? <Star /> : <StarOutline />}
+          </ActionIcon>
+          <ActionIcon
+            className={classes.action}
+            onClick={(event: MouseEvent<HTMLButtonElement>) =>
+              shareLink(event, postId)
+            }
+          >
+            <IconShare size={16} />
+          </ActionIcon>
+        </Group>
+      </Group>
+    </Card>
+  );
+}

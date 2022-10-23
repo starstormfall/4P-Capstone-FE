@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useOutletContext } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
@@ -9,19 +7,17 @@ import { useAuth0 } from "@auth0/auth0-react";
 import {
   Button,
   Container,
-  Image,
   Grid,
   Card,
   Text,
   Modal,
   Group,
-  NativeSelect,
   FileInput,
   Textarea,
-  NumberInput,
   Checkbox,
   Select,
   TextInput,
+  Title,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -59,17 +55,17 @@ type Location = {
   lng: number;
 };
 
-// type PrefData = {
-//   id: string;
-//   label: string;
-//   value: string;
-// };
+type prefectureDataType = {
+  value: string;
+  label: string;
+};
 
 export default function ForumMain() {
   // have a create post that can extend to explore page
   const [forumList, setForumList] = useState<ThreadListData[]>();
   const [updateForum, setUpdateForum] = useState<boolean>(false);
   const { getAccessTokenSilently } = useAuth0();
+  const [allAreaData, setAllAreaData] = useState<AllPrefectureData[]>();
 
   // Google map library and API definition
   const [libraries] = useState<
@@ -101,42 +97,41 @@ export default function ForumMain() {
   if (forumList) {
     forumListFinal = forumList.map((list: ThreadListData) => {
       return (
-        <div>
+        // <div key={list.id}>
+        // <Link to={`/exchange/${list.id}`}>
+        <Grid.Col key={list.id} span={4}>
+          {/* <Container key={list.id}> */}
           <Link to={`/exchange/${list.id}`}>
-            <Grid justify="center" key={list.id}>
-              <Grid.Col span={5}>
-                <Container key={list.id}>
-                  <Card>
-                    <Text>Thread Title:</Text>
-                    {/* cant index */}
-                    <Text>{list.topic}</Text>
-                    <Text>Content:</Text>
-                    <Text>{list.lastPost}</Text>
-                    <Text>Post Count:</Text>
-                    <Text>{list.postsCount}</Text>
-                    <Text>User Count:</Text>
-                    <Text>{list.usersCount}</Text>
-                    <Text>Last Updated At:</Text>
-                    <Text>{list.lastPostCreatedAt}</Text>
-                  </Card>
-                </Container>
-              </Grid.Col>
-            </Grid>
+            <Card>
+              <Title order={3}>{list.topic}</Title>
+              <br />
+              <Text>{list.lastPost}</Text>
+              <Text>Post Count: {list.postsCount}</Text>
+              <Text>User Count: {list.usersCount}</Text>
+              <Text>Last Updated At: {list.lastPostCreatedAt}</Text>
+            </Card>
           </Link>
-        </div>
+          {/* </Container> */}
+        </Grid.Col>
+
+        // </div>
       );
     });
   }
 
-  const areaIdInfo = useQuery(["areaList"], () =>
-    axios.get(`${backendUrl}/info/areas`).then((res) => res.data)
-  );
+  const getAllAreaData = async () => {
+    const response = await axios.get(`${backendUrl}/info/areas`);
+    setAllAreaData(response.data);
+  };
 
-  // console.log(areaIdInfo.data);
+  useEffect(() => {
+    getAllAreaData();
+  }, []);
+  console.log(allAreaData);
 
-  let prefectureData = [];
-  if (areaIdInfo.data) {
-    prefectureData = areaIdInfo.data.map(
+  let prefectureData: prefectureDataType[] = [];
+  if (allAreaData) {
+    prefectureData = allAreaData.map(
       ({ id, prefecture }: AllPrefectureData) => {
         return {
           value: id,
@@ -158,6 +153,7 @@ export default function ForumMain() {
   const [areaId, setAreaId] = useState<string>();
   const [locationName, setLocationName] = useState<string>("");
   const [topic, setTopic] = useState<string>("");
+  const [externalLink, setExternalLink] = useState<string>("");
   const { userInfo } = UseApp();
 
   // Googlemaps states for markers, and for autocomplete
@@ -173,6 +169,7 @@ export default function ForumMain() {
   console.log(currentPosition);
   console.log(autoCompletePlacePos);
   console.log(areaId);
+  console.log(exactLocation);
 
   // Handle autocomplete changes. Please dont change order of autocomplete within form.
   const handleInputChange = () => {
@@ -282,7 +279,7 @@ export default function ForumMain() {
         areaId: areaId,
         forumPost: forumPost,
         explorePost: explorePost,
-        externalLink: null,
+        externalLink: externalLink,
         title: title,
         photoLink: imageUrl,
         locationName: locationName,
@@ -310,7 +307,7 @@ export default function ForumMain() {
         areaId: areaId,
         forumPost: forumPost,
         explorePost: explorePost,
-        externalLink: null,
+        externalLink: externalLink,
         title: title,
         photoLink: imageUrl,
         locationName: locationName,
@@ -333,7 +330,15 @@ export default function ForumMain() {
     setAutoCompleteElem(undefined);
     setAutoCompletePlacePos(undefined);
     setExactLocation("");
+    setContent("");
+    setAreaId("");
+    setExplorePost("");
+    setTitle("");
+    setLocationName("");
+    setTopic("");
+    setExternalLink("");
   };
+  console.log(locationName);
 
   return (
     <div>
@@ -432,6 +437,14 @@ export default function ForumMain() {
                 </GoogleMap>
               )}
               <br />
+              <Textarea
+                variant="filled"
+                label="External Link"
+                placeholder="..."
+                withAsterisk
+                value={externalLink}
+                onChange={(e) => setExternalLink(e.target.value)}
+              />
               <FileInput
                 variant="filled"
                 placeholder="pick file"
@@ -456,7 +469,9 @@ export default function ForumMain() {
                   // setForumPost(true);
                 }}
               />
-              <button>Create Post!</button>
+              <Group position="right">
+                <Button type="submit">Create Post!</Button>
+              </Group>
             </form>
           </Container>
         </Modal>
@@ -466,7 +481,7 @@ export default function ForumMain() {
         </Group>
       </div>
       {updateForum}
-      {forumListFinal}
+      <Grid>{forumListFinal}</Grid>
     </div>
   );
 }

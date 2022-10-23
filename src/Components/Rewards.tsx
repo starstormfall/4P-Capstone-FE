@@ -29,8 +29,12 @@ import { useAuth0 } from "@auth0/auth0-react";
 import JNTO from "../Images/JNTO.png";
 
 interface Props {
-  rewardModalVisible: boolean;
   setRewardModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  rewardModalVisible: boolean;
+  rewardError: boolean;
+  setRewardError: React.Dispatch<React.SetStateAction<boolean>>;
+  rewardClaimed: boolean;
+  setRewardClaimed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const useStyles = createStyles((theme) => ({
@@ -103,7 +107,14 @@ export default function Rewards(props: Props) {
 
   const { classes } = useStyles();
 
-  const { rewardModalVisible, setRewardModalVisible } = props;
+  const {
+    setRewardModalVisible,
+    rewardModalVisible,
+    rewardError,
+    setRewardError,
+    rewardClaimed,
+    setRewardClaimed,
+  } = props;
 
   // Usage of Context to obtain userId and userInfo.
   const { userId, userInfo, setUserInfo } = UseApp();
@@ -117,8 +128,6 @@ export default function Rewards(props: Props) {
     getAccessTokenSilently,
   } = useAuth0();
 
-  const [rewardError, setRewardError] = useState(false);
-  const [rewardClaimed, setRewardClaimed] = useState(false);
   const [newUserScore, setNewUserScore] = useState(0);
   // const [modalVisible, setModalVisible] = useState(true);
 
@@ -171,51 +180,15 @@ export default function Rewards(props: Props) {
   return (
     <>
       <Modal
-        opened={rewardModalVisible}
+        opened={true}
         onClose={() => setRewardModalVisible(false)}
         radius="md"
         size="sm"
         withCloseButton
       >
-        {userInfo && rewardClaimed ? (
-          <Alert
-            icon={<IconAlertCircle size={16} />}
-            title="Congratulations!"
-            color="aqua"
-            withCloseButton
-            closeButtonLabel="Close alert"
-            onClose={() => setRewardClaimed(false)}
-          >
-            You have successfully claimed your reward! You have {newUserScore}{" "}
-            points now!
-          </Alert>
-        ) : null}
-        {userInfo && rewardError ? (
-          <Alert
-            icon={<IconAlertCircle size={16} />}
-            title="Bummer!"
-            color="aqua"
-            withCloseButton
-            closeButtonLabel="#C1BBD5"
-            onClose={() => setRewardError(false)}
-          >
-            Sorry, it looks like you have not accumulated enough points yet! You
-            need a minimum of 200 points to be eligible for our rewards. Please
-            come back after earning more points!
-          </Alert>
-        ) : null}
         <Card withBorder radius="md" className={classes.card}>
           <Card.Section className={classes.imageSection}>
-            <Paper
-              radius="md"
-              // p="lg"
-              // sx={(theme) => ({
-              //   backgroundColor:
-              //     theme.colorScheme === "dark"
-              //       ? theme.colors.dark[8]
-              //       : theme.white,
-              // })}
-            >
+            <Paper radius="md">
               <Avatar
                 src={userInfo.photoLink}
                 size={120}
@@ -257,8 +230,6 @@ export default function Rewards(props: Props) {
               <Badge variant="outline">10% OFF</Badge>
             </Group>
             <br />
-            {/* </Card.Section>
-          <Card.Section className={classes.sectionWithoutBorder}> */}
             <Group spacing={30}>
               <div>
                 <Text size="xl" weight={700} sx={{ lineHeight: 1 }}>

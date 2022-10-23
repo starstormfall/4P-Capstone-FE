@@ -1035,7 +1035,7 @@ export default function Map() {
               >
                 <div
                   style={{
-                    width: "26.5vw",
+                    width: "26vw",
                     marginLeft: "auto",
                     marginRight: "auto",
                   }}
@@ -1388,71 +1388,74 @@ export default function Map() {
           {newUserScore} points now.
         </Alert>
       ) : null}
-      {checkIn && activeWindow ? (
-        <Modal
-          opened={checkIn}
-          onClose={() => setCheckIn(false)}
-          radius="md"
-          size="auto"
-          withCloseButton={false}
-          // centered
-        >
-          <div className={classes.wrapper}>
-            <div className={classes.body}>
-              <Text weight={500} size="lg" mb={5}>
-                At {pinMarkers[activeWindow].name} and want to check in?
-              </Text>
-              <Text size="sm" color="dimmed">
-                Earn 10 points if you provide your feedback and help the
-                community!
-              </Text>
-              <div className={classes.select}>
-                <Select
-                  style={{ marginTop: 20, zIndex: 2, padding: 0 }}
-                  data={[
-                    {
-                      value: "very crowded",
-                      label: "Very Crowded (> 100 people)",
-                      name: ">100 pax",
-                    },
-                    {
-                      value: "somewhat crowded",
-                      label: "Somewhat Crowded (30 to 100 people)",
-                      name: "30 to 100 pax",
-                    },
-                    {
-                      value: "little crowd",
-                      label: "Little Crowd (< 30 people)",
-                      name: "<30 pax",
-                    },
-                  ]}
-                  placeholder="Pick one"
-                  label="Current Crowd Estimate"
-                  classNames={classes}
-                  value={crowdValue}
-                  onChange={setCrowdValue}
-                />
-              </div>
-              <div>
-                <br />
-                <Group className={classes.crowdNew}>
-                  <Button onClick={handleSubmitCrowd} name="with location">
-                    <IconUserCheck />
+      {checkIn && activeWindow !== null ? (
+        <>
+          {console.log("this is running")}
+          <Modal
+            opened={checkIn}
+            onClose={() => setCheckIn(false)}
+            radius="md"
+            size="auto"
+            withCloseButton={false}
+            // centered
+          >
+            <div className={classes.wrapper}>
+              <div className={classes.body}>
+                <Text weight={500} size="lg" mb={5}>
+                  At {pinMarkers[activeWindow].name} and want to check in?
+                </Text>
+                <Text size="sm" color="dimmed">
+                  Earn 10 points if you provide your feedback and help the
+                  community!
+                </Text>
+                <div className={classes.select}>
+                  <Select
+                    style={{ marginTop: 20, zIndex: 2, padding: 0 }}
+                    data={[
+                      {
+                        value: "very crowded",
+                        label: "Very Crowded (> 100 people)",
+                        name: ">100 pax",
+                      },
+                      {
+                        value: "somewhat crowded",
+                        label: "Somewhat Crowded (30 to 100 people)",
+                        name: "30 to 100 pax",
+                      },
+                      {
+                        value: "little crowd",
+                        label: "Little Crowd (< 30 people)",
+                        name: "<30 pax",
+                      },
+                    ]}
+                    placeholder="Pick one"
+                    label="Current Crowd Estimate"
+                    classNames={classes}
+                    value={crowdValue}
+                    onChange={setCrowdValue}
+                  />
+                </div>
+                <div>
+                  <br />
+                  <Group className={classes.crowdNew}>
+                    <Button onClick={handleSubmitCrowd} name="with location">
+                      <IconUserCheck />
+                    </Button>
+                  </Group>
+                  <br />
+                  <Button
+                    className={classes.control}
+                    onClick={handleSubmitCrowd}
+                    name="without location"
+                  >
+                    Check In Without Location
                   </Button>
-                </Group>
-                <br />
-                <Button
-                  className={classes.control}
-                  onClick={handleSubmitCrowd}
-                  name="without location"
-                >
-                  Check In Without Location
-                </Button>
+                </div>
               </div>
+              {/* <Image src={image.src} className={classes.image} /> */}
             </div>
-            {/* <Image src={image.src} className={classes.image} /> */}
-          </div>
-        </Modal>
+          </Modal>
+        </>
       ) : // <Container fluid>
       // </Container>
       null}

@@ -31,17 +31,17 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-  <BrowserRouter>
-    <Auth0ProviderWithRedirectCallback
-      domain={process.env.REACT_APP_DOMAIN as string}
-      clientId={process.env.REACT_APP_CLIENT_ID as string}
-      redirectUri={process.env.REACT_APP_REDIRECT as string}
-      audience={process.env.REACT_APP_AUDIENCE as string}
-      scope={process.env.REACT_APP_SCOPE as string}
-    >
-      <React.StrictMode>
+  <React.StrictMode>
+    <BrowserRouter>
+      <Auth0ProviderWithRedirectCallback
+        domain={process.env.REACT_APP_DOMAIN as string}
+        clientId={process.env.REACT_APP_CLIENT_ID as string}
+        redirectUri={process.env.REACT_APP_REDIRECT as string}
+        audience={process.env.REACT_APP_AUDIENCE as string}
+        scope={process.env.REACT_APP_SCOPE as string}
+      >
         <App />
-      </React.StrictMode>
-    </Auth0ProviderWithRedirectCallback>
-  </BrowserRouter>
+      </Auth0ProviderWithRedirectCallback>
+    </BrowserRouter>
+  </React.StrictMode>
 );

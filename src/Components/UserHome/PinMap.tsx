@@ -38,6 +38,8 @@ import {
 import { backendUrl } from "../../utils";
 import { UseApp } from "../Context";
 import axios from "axios";
+
+// import interface
 import {
   Area,
   Category,
@@ -138,13 +140,8 @@ export default function PinMap(props: Props) {
   const { userId, userInfo, setUserInfo } = UseApp();
 
   // Obtain methods for auth0 authentication.
-  const {
-    isAuthenticated,
-    user,
-    loginWithRedirect,
-    logout,
-    getAccessTokenSilently,
-  } = useAuth0();
+  const { isAuthenticated, user, loginWithRedirect, getAccessTokenSilently } =
+    useAuth0();
 
   // Google map library and API definition
   const [libraries] = useState<
@@ -229,7 +226,6 @@ export default function PinMap(props: Props) {
       setAllAvailableAreas(response.data);
     } catch (err) {}
   };
-
   // useEffect api call to get all categories
   const getCategories = async () => {
     try {
@@ -584,7 +580,6 @@ export default function PinMap(props: Props) {
 
   return (
     <>
-      <br />
       {errorCheckIn ? (
         <Alert
           icon={<IconAlertCircle size={16} />}
@@ -624,7 +619,7 @@ export default function PinMap(props: Props) {
                 zoom={zoomLevel}
                 mapContainerStyle={{
                   width: "26.5vw",
-                  height: "44vh",
+                  height: "55vh",
                   position: "fixed",
                 }}
                 options={{
@@ -804,7 +799,7 @@ export default function PinMap(props: Props) {
                   <>
                     <Box
                       sx={(theme) => ({
-                        minHeight: "52.5vh",
+                        minHeight: "60vh",
                         padding: theme.spacing.md,
                         backgroundColor:
                           theme.colorScheme === "dark"
@@ -816,9 +811,10 @@ export default function PinMap(props: Props) {
                         flexDirection: "column",
                         justifyContent: "space-between",
                         maxWidth: "31vw",
+                        paddingTop: "0px",
                       })}
                     >
-                      <ScrollArea style={{ height: "49vh" }} offsetScrollbars>
+                      <ScrollArea style={{ height: "60vh" }} offsetScrollbars>
                         <Title order={4}>CROWD ESTIMATE</Title>
                         {findPinCrowd()}
                       </ScrollArea>
@@ -902,7 +898,7 @@ export default function PinMap(props: Props) {
               {nearbyVisible &&
               nearbyPlaceDist.length > 0 &&
               pins.length !== 0 ? (
-                <ScrollArea style={{ height: "49vh" }} offsetScrollbars>
+                <ScrollArea style={{ height: "60vh" }} offsetScrollbars>
                   <Title order={4}>SIMILAR NEARBY</Title>
                   <NearbyPlaces
                     key={`nearby-${props.pinId}`}
