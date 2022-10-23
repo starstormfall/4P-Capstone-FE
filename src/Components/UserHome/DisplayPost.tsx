@@ -1,6 +1,6 @@
 import React, { MouseEvent, useState } from "react";
 
-import { PostCard } from "./HomePageInterface";
+import { DisplayPostCard } from "./HomePageInterface";
 
 import {
   Card,
@@ -34,6 +34,7 @@ const useStyles = createStyles((theme, _params, getRef) => {
   return {
     card: {
       position: "relative",
+      height: "60vh",
       backgroundColor:
         theme.colorScheme === "dark"
           ? theme.colors.dark[6]
@@ -70,11 +71,9 @@ const useStyles = createStyles((theme, _params, getRef) => {
       right: 0,
       bottom: 0,
       backgroundImage:
-        "linear-gradient(180deg, rgba(255, 255, 255, .5) 0%  , rgba(0, 0, 0, 0.7) 50%)",
+        "linear-gradient(180deg,   rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, .8) 75%)",
     },
-    // "linear-gradient(180deg,   rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, .8) 75%)",
-    // "linear-gradient(180deg,   rgba(0, 0, 0, 0.4) 0%, rgba(255, 255, 255, .8) 75%)",
-    // "linear-gradient(180deg, rgba(255, 255, 255, .5) 0%  , rgba(0, 0, 0, 0.7) 50%)",
+
     content: {
       height: "100%",
       position: "relative",
@@ -123,25 +122,18 @@ const useStyles = createStyles((theme, _params, getRef) => {
   };
 });
 
-export default function ExplorePost({
-  postId,
-  className,
+export default function DisplayPost({
+  id,
   photoLink,
-  externalLink,
   title,
   content,
-  userId,
   explorePost,
   likeCount,
-  showPin,
+  userFavourite,
+  userLike,
   likePost,
   favouritePost,
-  showAssocThread,
-  shareLink,
-  userLike,
-  userFavourite,
-  ...others
-}: PostCard & Omit<React.ComponentPropsWithoutRef<"div">, keyof PostCard>) {
+}: DisplayPostCard) {
   const { classes, theme } = useStyles();
   const [showContent, setShowContent] = useState<boolean>(false);
 
@@ -158,7 +150,7 @@ export default function ExplorePost({
         <div className={classes.centerImage}>
           <UnstyledButton onClick={() => setShowContent(!showContent)}>
             {!showContent ? (
-              <Image fit="cover" radius="md" src={photoLink} />
+              <Image height="50vh" fit="contain" radius="md" src={photoLink} />
             ) : (
               <Paper p="lg" radius="md">
                 <ScrollArea
@@ -166,7 +158,7 @@ export default function ExplorePost({
                   type="scroll"
                   scrollHideDelay={500}
                 >
-                  <Text align="center" size="sm">
+                  <Text align="center" size="md">
                     {content}
                   </Text>
                 </ScrollArea>
@@ -183,66 +175,31 @@ export default function ExplorePost({
             {explorePost}
           </Badge>
 
-          <Text size="md" className={classes.title} weight={500}>
+          <Text align="center" size="md" className={classes.title} weight={500}>
             {title}
           </Text>
 
           {/* BOTTOM ICONS GROUP */}
-          <Group position="apart" noWrap>
-            <Group spacing="xs">
-              <ActionIcon
-                variant="outline"
-                onClick={(event: MouseEvent<HTMLButtonElement>) =>
-                  favouritePost(event, postId)
-                }
-                color="yellow"
-              >
-                {userFavourite ? <Star /> : <StarOutline />}
-              </ActionIcon>
-              <ActionIcon
-                variant="outline"
-                color="red"
-                onClick={(event: MouseEvent<HTMLButtonElement>) =>
-                  likePost(event, postId)
-                }
-              >
-                {userLike ? <Heart /> : <HeartOutline />}
-              </ActionIcon>
-              <Text size="sm" className={classes.author}>
-                {likeCount}
-              </Text>
-            </Group>
 
-            <Group spacing="xs">
-              <ActionIcon
-                variant="outline"
-                color="aqua"
-                onClick={(event: MouseEvent<HTMLButtonElement>) =>
-                  showPin(event, postId)
-                }
-              >
-                <Pin />
-              </ActionIcon>
-              <ActionIcon
-                variant="outline"
-                color="aqua"
-                onClick={(event: MouseEvent<HTMLButtonElement>) =>
-                  showAssocThread(event, postId)
-                }
-              >
-                <MessageCircle />
-              </ActionIcon>
-
-              <ActionIcon
-                variant="outline"
-                color="aqua"
-                onClick={(event: MouseEvent<HTMLButtonElement>) =>
-                  shareLink(event, postId)
-                }
-              >
-                <Share />
-              </ActionIcon>
-            </Group>
+          <Group position="center" spacing="xs">
+            <ActionIcon
+              variant="outline"
+              onClick={(event: MouseEvent<HTMLButtonElement>) =>
+                favouritePost(event, id)
+              }
+              color="yellow"
+            >
+              {userFavourite ? <StarOutline /> : <Star />}
+            </ActionIcon>
+            <ActionIcon
+              variant="outline"
+              color="red"
+              onClick={(event: MouseEvent<HTMLButtonElement>) =>
+                likePost(event, id)
+              }
+            >
+              {userLike ? <Heart /> : <HeartOutline />}
+            </ActionIcon>
           </Group>
         </div>
       </div>

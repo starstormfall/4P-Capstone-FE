@@ -30,6 +30,8 @@ import { IconAlertCircle } from "@tabler/icons";
 import { backendUrl } from "../../utils";
 import { UseApp } from "../Context";
 import axios from "axios";
+
+// import interface
 import {
   Area,
   Category,
@@ -122,13 +124,8 @@ export default function PinMap(props: Props) {
   const { userId, userInfo, setUserInfo } = UseApp();
 
   // Obtain methods for auth0 authentication.
-  const {
-    isAuthenticated,
-    user,
-    loginWithRedirect,
-    logout,
-    getAccessTokenSilently,
-  } = useAuth0();
+  const { isAuthenticated, user, loginWithRedirect, getAccessTokenSilently } =
+    useAuth0();
 
   // Google map library and API definition
   const [libraries] = useState<
@@ -210,7 +207,6 @@ export default function PinMap(props: Props) {
       setAllAvailableAreas(response.data);
     } catch (err) {}
   };
-
   // useEffect api call to get all categories
   const getCategories = async () => {
     try {
