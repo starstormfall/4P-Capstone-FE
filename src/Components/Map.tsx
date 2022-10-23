@@ -8,7 +8,7 @@ import {
   HeatmapLayer,
   DistanceMatrixService,
 } from "@react-google-maps/api";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
   Button,
   Group,
@@ -26,8 +26,32 @@ import {
   Select,
   Alert,
   Anchor,
+  Divider,
+  Box,
+  Container,
+  Collapse,
+  UnstyledButton,
+  ThemeIcon,
+  ChevronIcon,
+  Modal,
+  Paper,
+  useMantineTheme,
 } from "@mantine/core";
-import { IconAlertCircle } from "@tabler/icons";
+import { useMediaQuery } from "@mantine/hooks";
+import { Carousel } from "@mantine/carousel";
+
+import {
+  IconAlertCircle,
+  IconToolsKitchen2,
+  IconBuildingSkyscraper,
+  IconFriends,
+  IconChevronLeft,
+  IconChevronRight,
+  IconMapPin,
+  IconMapPins,
+  IconUserCheck,
+} from "@tabler/icons";
+import { Heart, HeartOutline } from "@easy-eva-icons/react";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -61,13 +85,13 @@ const useStyles = createStyles((theme) => ({
   wrapper: {
     display: "flex",
     alignItems: "center",
-    padding: theme.spacing.xl * 2,
+    // padding: theme.spacing.xl * 2,
     borderRadius: theme.radius.md,
     backgroundColor:
       theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.white,
-    border: `1px solid ${
-      theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[3]
-    }`,
+    // border: `1px solid ${
+    //   theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[3]
+    // }`,
 
     [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
       flexDirection: "column-reverse",
@@ -84,7 +108,7 @@ const useStyles = createStyles((theme) => ({
   },
 
   body: {
-    paddingRight: theme.spacing.xl * 4,
+    // paddingRight: theme.spacing.xl * 4,
 
     [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
       paddingRight: 0,
@@ -109,6 +133,10 @@ const useStyles = createStyles((theme) => ({
     flex: "1",
   },
 
+  select: {
+    padding: 0,
+  },
+
   input: {
     borderTopRightRadius: 0,
     borderBottomRightRadius: 0,
@@ -118,6 +146,49 @@ const useStyles = createStyles((theme) => ({
   control: {
     borderTopLeftRadius: 0,
     borderBottomLeftRadius: 0,
+    height: "6.5vh",
+  },
+
+  chevron: {
+    transition: "transform 200ms ease",
+  },
+
+  crowdNew: {
+    // alignSelf: "self-end",
+    justifyContent: "flex-end",
+  },
+
+  card: {
+    height: "26vh",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  },
+
+  titleCaro: {
+    fontFamily: `Merriweather, serif`,
+    fontWeight: 900,
+    color: "white",
+    textShadow: "-0.1px 0 grey, 0 0.1px grey, 0.1px 0 grey, 0 -0.1px grey",
+    lineHeight: 1.2,
+    fontSize: 24,
+    marginTop: theme.spacing.xs,
+  },
+
+  category: {
+    color: "white",
+    // opacity: 0.9,
+    fontWeight: 700,
+    textShadow: "-0.1px 0 grey, 0 0.1px grey, 0.1px 0 grey, 0 -0.1px grey",
+    // lineHeight: 1,
+    // textTransform: "uppercase",
+  },
+
+  cardWrapper: {
+    height: "29vh",
   },
 }));
 
@@ -212,9 +283,11 @@ interface Distance {
 }
 
 export default function Map() {
-  // TO DO ADDITION OF POINTS WHEN CHECK IN
-  const { classes } = useStyles();
+  const { classes, theme } = useStyles();
   const navigate = useNavigate();
+  const { state } = useLocation();
+  const carouselTheme = useMantineTheme();
+  const mobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm}px)`);
 
   // Google map library and API definition
   const [libraries] = useState<
@@ -288,6 +361,11 @@ export default function Map() {
   );
   const [nearbyPlaceDist, setNearbyPlaceDist] = useState<Distance[]>([]);
 
+  const [infoOpened, setInfoOpened] = useState(false);
+  const [crowdOpened, setCrowdOpened] = useState(false);
+  const [nearbyOpened, setNearbyOpened] = useState(false);
+  const ChevronIcon = theme.dir === "ltr" ? IconChevronRight : IconChevronLeft;
+
   // useEffect for checking auth0 authentication upon load.
   useEffect(() => {
     if (isAuthenticated) {
@@ -301,11 +379,11 @@ export default function Map() {
   let blueDot;
   if (isLoaded) {
     blueDot = {
-      fillColor: "purple",
+      fillColor: "#3F9DA1",
       fillOpacity: 1,
       path: google.maps.SymbolPath.CIRCLE,
       scale: 10,
-      strokeColor: "beige",
+      strokeColor: "#FFFFFF",
       strokeWeight: 3,
     };
   }
@@ -313,7 +391,13 @@ export default function Map() {
   //  useEffect to set center of google map after google map is loaded. Get permissions from user to share current location.
   useEffect(() => {
     if (originalMap) {
-      originalMap.panTo(center);
+      if (state) {
+        originalMap.panTo(state.position);
+        handleActiveMarker(state.pinId);
+      } else {
+        originalMap.panTo(center);
+      }
+
       navigator.geolocation.getCurrentPosition((position) => {
         setCurrentPosition({
           lat: position.coords.latitude,
@@ -487,21 +571,30 @@ export default function Map() {
         console.log(originalPin);
 
         if (originalPin) {
-          const allCrowds = originalPin.crowds.slice(0, 3).map((crowd, i) => {
+          const allCrowds = originalPin.crowds.slice(0, 1).map((crowd, i) => {
             const { crowdIntensity, crowdSize, recordedAt } = crowd;
             return (
               <>
-                <Card key={new Date(recordedAt).toLocaleString()}>
-                  <Text>{new Date(recordedAt).toLocaleString()} </Text>
-                  <Text>{crowdIntensity}</Text>
-                  <Text>{crowdSize}</Text>
-                </Card>
+                {/* <Text className={classes.category} transform="uppercase">
+                  {crowdIntensity}
+                </Text> */}
+
+                <Text
+                  className={classes.category}
+                  size="xs"
+                  transform="uppercase"
+                >
+                  {crowdSize}
+                </Text>
+                <Text className={classes.category} size="xs" color="dimmed">
+                  {new Date(recordedAt).toLocaleString()}{" "}
+                </Text>
               </>
             );
           });
 
-          const allPosts = originalPin.posts.map((post, i) => {
-            if (i < 3) {
+          const allPostsHashCat = originalPin.posts.map((post, i) => {
+            if (i < 1) {
               const { postCategories, postHashtags } = post;
               const allCategories = postCategories.map((category) => {
                 const { categoryId } = category;
@@ -515,60 +608,153 @@ export default function Map() {
                   </Badge>
                 );
               });
-              const allHashtags = postHashtags.map((hashtag) => {
+              const allHashtags = postHashtags.map((hashtag, i) => {
                 const { hashtagId } = hashtag;
-                return (
-                  <Badge
-                    variant="gradient"
-                    gradient={{ from: "purple", to: "beige" }}
-                    key={hashtagId}
-                  >
-                    {allAvailableHashtags[hashtagId - 1].name}
-                  </Badge>
-                );
+                if (i < 2) {
+                  return (
+                    <Badge
+                      variant="gradient"
+                      gradient={{ from: "purple", to: "beige" }}
+                      key={hashtagId}
+                    >
+                      {allAvailableHashtags[hashtagId - 1].name}
+                    </Badge>
+                  );
+                }
               });
 
               return (
-                <Card key={post.title}>
-                  {allCategories}
-                  <br />
+                <>
+                  {allCategories} &nbsp;
+                  {/* <br /> */}
                   {allHashtags}
-                  <Text>Title: {post.title}</Text>
-                  <Text>
-                    Posted: {new Date(post.createdAt).toLocaleDateString()}
-                  </Text>
-                  <Text>{post.content}</Text>
-                  <Anchor
-                    href={post.externalLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <img src={post.photoLink} alt={post.title} height={400} />
-                  </Anchor>
-                  <Text>Likes: {post.likeCount}</Text>
-                </Card>
+                </>
               );
             } else return null;
           });
 
+          // const allPosts = originalPin.posts.map((post, i) => {
+          //   if (i < 3) {
+          //     return (
+          //       <Card key={post.title}>
+          //         {/* {allCategories}
+          //         <br />
+          //         {allHashtags} */}
+          //         <Text>Title: {post.title}</Text>
+          //         <Text>
+          //           Posted: {new Date(post.createdAt).toLocaleDateString()}
+          //         </Text>
+          //         <Text>{post.content}</Text>
+          //         <Anchor
+          //           href={post.externalLink}
+          //           target="_blank"
+          //           rel="noopener noreferrer"
+          //         >
+          //           <img src={post.photoLink} alt={post.title} height={400} />
+          //         </Anchor>
+          //         <Text>Likes: {post.likeCount}</Text>
+          //       </Card>
+          //     );
+          //   } else return null;
+          // });
+
           return (
-            <div key={originalPin.placeName}>
-              <Text>
-                {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}km away
-              </Text>
-              <Text>{originalPin.placeName}</Text>
-              <Text>
-                {allAvailableAreas[originalPin.areaId - 1].prefecture}
-              </Text>
-              <Text>LATEST CROWD ESTIMATES</Text>
-              {allCrowds}
-              {allPosts}
-            </div>
+            <Carousel.Slide
+              key={originalPin.placeName}
+              className={classes.cardWrapper}
+            >
+              <Card
+                className={classes.cardWrapper}
+                component="a"
+                href={originalPin.posts[0].externalLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Paper
+                  // shadow="md"
+                  p="xl"
+                  radius="md"
+                  sx={{
+                    backgroundImage: `url(${originalPin.posts[0].photoLink})`,
+                    // height: "26vh",
+                  }}
+                  className={classes.card}
+                >
+                  <div>
+                    {/* <Text className={classes.category} size="xs">
+                      {category}
+                    </Text> */}
+                    {allPostsHashCat}
+                    <Title order={3} className={classes.titleCaro}>
+                      {originalPin.placeName}
+                    </Title>
+                    <Text className={classes.category} size="sm">
+                      {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}Km away
+                    </Text>
+                  </div>
+                  {/* <Button variant="white" color="dark">
+                    Read more
+                  </Button> */}
+                  {/* <br /> */}
+                  {allCrowds}
+                </Paper>
+                {/* <Text>
+                  {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}km away //{" "}
+                </Text>
+                <Text>{originalPin.placeName}</Text>{" "}
+                <Text>
+                  {allAvailableAreas[originalPin.areaId - 1].prefecture}{" "}
+                </Text>
+                <Text>LATEST CROWD ESTIMATES</Text>
+                {allCrowds}
+                {allPosts} */}
+              </Card>
+            </Carousel.Slide>
+
+            // <div key={originalPin.placeName}>
+            //   <Text>
+            //     {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}km away
+            //   </Text>
+            //   <Text>{originalPin.placeName}</Text>
+            //   <Text>
+            //     {allAvailableAreas[originalPin.areaId - 1].prefecture}
+            //   </Text>
+            //   <Text>LATEST CROWD ESTIMATES</Text>
+            //   {allCrowds}
+            //   {allPosts}
+            // </div>
           );
         }
       });
 
-      return infoToReturn;
+      return (
+        <Carousel
+          slideSize="100%"
+          breakpoints={[{ maxWidth: "sm", slideSize: "26vw", slideGap: "md" }]}
+          slideGap="xl"
+          align="start"
+          slidesToScroll={1}
+          height="30vh"
+          sx={{ maxWidth: "26vw" }}
+          loop
+          orientation="vertical"
+          controlsOffset="xs"
+          // withIndicators
+          // styles={{
+          //   indicator: {
+          //     width: 4,
+          //     height: 12,
+          //     transition: "height 250ms ease",
+
+          //     "&[data-active]": {
+          //       height: 40,
+          //     },
+          //   },
+          // }}
+        >
+          {infoToReturn.length === nearbyPlaceDist.length && infoToReturn}
+        </Carousel>
+      );
     }
   };
 
@@ -739,7 +925,7 @@ export default function Map() {
   });
 
   // Function for obtaining info of pin that is selected on map. Centers the map, obtains crowd data of pin, renders on map. Sets state with all other pin infos for google maps matrix service to calculate nearest pins.
-  const handleActiveMarker = async (marker: number, index: number) => {
+  const handleActiveMarker = async (marker: number) => {
     setControl(true);
     setOriginAddress([]);
     setDestinationAddresses([]);
@@ -804,20 +990,7 @@ export default function Map() {
       //activemarker is the id.
       const realIndex = pins.findIndex((item) => item.id === activeMarker);
 
-      const { crowds, posts } = pins[realIndex];
-
-      const allCrowds = crowds.slice(0, 3).map((crowd, i) => {
-        const { crowdIntensity, crowdSize, recordedAt } = crowd;
-        return (
-          <>
-            <Card key={new Date(recordedAt).toLocaleString()}>
-              <Text>{new Date(recordedAt).toLocaleString()} </Text>
-              <Text>{crowdIntensity}</Text>
-              <Text>{crowdSize}</Text>
-            </Card>
-          </>
-        );
-      });
+      const { posts } = pins[realIndex];
 
       const allPosts = posts.map((post, i) => {
         if (i < 3) {
@@ -848,49 +1021,100 @@ export default function Map() {
           });
 
           return (
-            <Card key={post.title}>
+            <div key={post.title}>
+              {/* <Card key={post.title}> */}
               {allCategories}
               <br />
               {allHashtags}
-              <Text>Title: {post.title}</Text>
-              <Text>
-                Posted: {new Date(post.createdAt).toLocaleDateString()}
-              </Text>
-              <Text>{post.content}</Text>
+              <br />
+              <br />
               <Anchor
                 href={post.externalLink}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <img src={post.photoLink} alt={post.title} height={400} />
+                <div
+                  style={{
+                    width: "26vw",
+                    marginLeft: "auto",
+                    marginRight: "auto",
+                  }}
+                >
+                  <Image radius="md" src={post.photoLink} alt={post.title} />
+                </div>
+                {/* <img src={post.photoLink} alt={post.title} width="100%" /> */}
               </Anchor>
-              <Text>Likes: {post.likeCount}</Text>
-            </Card>
+              <Text align="right">
+                <Heart color="red" />
+                {post.likeCount}
+              </Text>
+              <Text transform="uppercase">{post.title}</Text>
+              <Text color="dimmed" size="xs">
+                {new Date(post.createdAt).toLocaleDateString()}
+              </Text>
+              <Text size="sm">{post.content}</Text>
+
+              {/* </Card> */}
+            </div>
           );
         } else return null;
       });
 
       return (
         <div key={pinMarkers[activeWindow].name}>
-          <Text>{pinMarkers[activeWindow].name}</Text>
-          <Text>
+          <br />
+          <Button
+            color="greyBlue"
+            onClick={handleCheckIn}
+            rightIcon={<IconUserCheck />}
+          >
+            EARN 10 POINTS
+          </Button>
+          <br />
+          <br />
+          <Text transform="uppercase">{pinMarkers[activeWindow].name}</Text>
+          <Text color="dimmed" size="xs">
             {
               pins[Number(pins.findIndex((item) => item.id === activeMarker))]
                 .area.prefecture
             }
           </Text>
-          <br />
 
-          <Text>LATEST CROWD ESTIMATES</Text>
-          {allCrowds}
-          <br />
-          <Button color="greyBlue" onClick={handleCheckIn}>
-            CHECK IN FOR XX POINTS
-          </Button>
-          <br />
           {allPosts}
         </div>
       );
+    }
+  };
+
+  const findPinCrowd = () => {
+    if (activeMarker !== null && activeWindow !== null) {
+      // const index = pins.findIndex((item) => item.id === activeMarker);
+
+      //activemarker is the id.
+      const realIndex = pins.findIndex((item) => item.id === activeMarker);
+
+      const { crowds } = pins[realIndex];
+
+      const allCrowds = crowds.slice(0, 3).map((crowd, i) => {
+        const { crowdIntensity, crowdSize, recordedAt } = crowd;
+        return (
+          <>
+            <Card key={new Date(recordedAt).toLocaleString()}>
+              <Text size="md" transform="uppercase">
+                {crowdIntensity}
+              </Text>
+              <Text size="sm" transform="capitalize">
+                {crowdSize}
+              </Text>
+              <Text color="dimmed" size="xs">
+                {new Date(recordedAt).toLocaleString()}{" "}
+              </Text>
+            </Card>
+          </>
+        );
+      });
+
+      return <div key={pinMarkers[activeWindow].name}>{allCrowds}</div>;
     }
   };
 
@@ -1029,6 +1253,7 @@ export default function Map() {
         } else {
           setErrorCheckIn(true);
           setSuccessCheckIn(false);
+          setCheckIn(false);
         }
       }
     } else {
@@ -1092,347 +1317,100 @@ export default function Map() {
 
   return (
     <>
-      <div>Map Page</div>
-      <ScrollArea style={{ height: 50 }}>
-        <div style={{ width: "100vw" }}>
-          <Group>
-            {allAvailableAreas && allAvailableAreas.length ? (
-              listAreas
-            ) : (
-              <Loader />
-            )}
-          </Group>
-        </div>
-      </ScrollArea>
-      <br />
-      {allAvailableCategories &&
-      allAvailableCategories.length &&
-      categoryVisible ? (
-        <Group>{listCategories}</Group>
-      ) : null}
-      <br />
-      {allAvailableHashtags && allAvailableHashtags.length && hashtagVisible ? (
-        <Group>{listHashtags} </Group>
-      ) : null}
-      <br />
-
-      {isLoaded && pinMarkers.length > 0 ? (
-        <>
-          <GoogleMap
-            onClick={() => handleResetMarker()}
-            center={mapCenter}
-            onLoad={(map) => setOriginalMap(map)}
-            zoom={zoomLevel}
-            mapContainerStyle={{ width: "70vw", height: "80vh" }}
-            options={{
-              streetViewControl: false,
-              mapTypeControl: false,
-              fullscreenControl: false,
-            }}
-          >
-            {activeWindow !== null ? (
-              <HeatmapLayer
-                data={heatmapData}
-                options={{ radius: crowdMapWeight, opacity: 0.4 }}
-                onUnmount={onUnmount}
-              />
-            ) : null}
-
-            {activeWindow !== null &&
-              filterRegion !== 0 &&
-              control &&
-              originAddress &&
-              destinationAddresses && (
-                <DistanceMatrixService
-                  options={{
-                    destinations: destinationAddresses,
-                    origins: originAddress,
-                    travelMode: google.maps.TravelMode.DRIVING,
-                  }}
-                  callback={async (res) => {
-                    console.log("RESPONSE", res);
-                    setControl(false);
-
-                    if (res !== null) {
-                      const nearbyDistanceObjects = res.rows[0].elements.map(
-                        (place, index) => {
-                          const distanceObject = {
-                            position: index,
-                            distance: place.distance.value,
-                          };
-
-                          // For each response object, finds the corresponding pin info in state.
-                          const distancePin = pinMarkers.find(
-                            (pin) =>
-                              pin.position === destinationAddresses[index]
-                          );
-
-                          // Finds the current pin info in state.
-                          const originPin = pinMarkers.find(
-                            (pin) => pin.position === originAddress[0]
-                          );
-
-                          // Checks if the response object has common category as the current pin info. Checks if category filter is in place. If category filter in place, filters by set category instead.
-                          if (originPin && distancePin) {
-                            if (filterCategory !== 0) {
-                              if (
-                                distancePin.categoryId.includes(filterCategory)
-                              ) {
-                                return distanceObject;
-                              } else
-                                return {
-                                  position: -1,
-                                  distance: Number.MAX_SAFE_INTEGER,
-                                };
-                            } else {
-                              const response = originPin.categoryId.map(
-                                (category) => {
-                                  if (
-                                    distancePin.categoryId.includes(category)
-                                  ) {
-                                    return distanceObject;
-                                  } else
-                                    return {
-                                      position: -1,
-                                      distance: Number.MAX_SAFE_INTEGER,
-                                    };
-                                }
-                              );
-                              return response.flat();
-                            }
-                          }
-                          return [distanceObject];
-                        }
-                      );
-
-                      // Sets the response object into state, for those that passed the filter. Sorts the objects by distance, from nearest to furthest. Saves only the closest 3 reponse objects.
-                      if (
-                        nearbyDistanceObjects.flat().length > 0 &&
-                        !nearbyDistanceObjects
-                          .flat()
-                          .some((element) => element === null)
-                      ) {
-                        setNearbyPlaceDist(
-                          nearbyDistanceObjects
-                            .flat(2)
-                            .sort((a, b) => a.distance - b.distance)
-                            .slice(0, 3)
-                        );
-                      }
-                    }
-                  }}
-                />
+      <Grid>
+        <Grid.Col span={4}>
+          <ScrollArea style={{ height: 50 }}>
+            <div style={{ width: "xl" }}>
+              <Group position="center">
+                {allAvailableAreas && allAvailableAreas.length ? (
+                  listAreas
+                ) : (
+                  <Loader />
+                )}
+              </Group>
+            </div>
+          </ScrollArea>
+        </Grid.Col>
+        <Divider size="sm" orientation="vertical" />
+        <Grid.Col span={4}>
+          <ScrollArea style={{ height: 50 }}>
+            <div style={{ width: "xl" }}>
+              {allAvailableCategories &&
+              allAvailableCategories.length &&
+              categoryVisible ? (
+                <Group position="center">{listCategories}</Group>
+              ) : (
+                <Loader />
               )}
-
-            {/* MARKER FOR USER LIVE LOCATION */}
-            {currentPosition && isLoaded ? (
-              <MarkerF
-                key={`current location`}
-                icon={blueDot}
-                position={currentPosition}
-              />
-            ) : null}
-
-            {/* MARKERS FOR ALL PINS WITHIN STATE. CHECKS IF CATEGORY FILTER IS SET. */}
-            {pinMarkers.map((element, index) => {
-              const { id, name, position, categoryId } = element;
-
-              if (categoryId.length > 1) {
-                if (filterCategory !== 0) {
-                  const arrayOfMarkers = categoryId.map((category, index) => {
-                    let markerIcon = "";
-
-                    if (category === filterCategory) {
-                      if (category === 1) {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
-                      } else if (category === 2) {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
-                      } else if (category === 3) {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
-                      } else {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
-                      }
-
-                      return (
-                        <MarkerF
-                          key={`${id} ${category}`}
-                          icon={{
-                            url: `${markerIcon}`,
-                            scaledSize: new google.maps.Size(50, 50),
-                            // scale: 0.0005,
-                          }}
-                          // icon={markerIcon}
-                          position={{
-                            lat: position.lat + index * 0.0001,
-                            lng: position.lng + index * 0.0001,
-                          }}
-                          // position={position}
-                          onClick={() => handleActiveMarker(id, index)}
-                        >
-                          {/* {activeMarker === id ? (
-                            <InfoWindowF
-                              onCloseClick={() => setActiveMarker(null)}
-                            >
-                              <>
-                                <Text>{name}</Text>
-                                <Text>
-                                  {
-                                    pins[
-                                      Number(
-                                        pins.findIndex(
-                                          (item) => item.id === activeMarker
-                                        )
-                                      )
-                                    ].area.prefecture
-                                  }
-                                </Text>
-                              </>
-                            </InfoWindowF>
-                          ) : null} */}
-                        </MarkerF>
-                      );
-                    }
-                  });
-
-                  return arrayOfMarkers.map((marker) => marker);
-                } else {
-                  const arrayOfMarkers = categoryId.map((category, index) => {
-                    let markerIcon = "";
-                    if (category === 1) {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
-                    } else if (category === 2) {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
-                    } else if (category === 3) {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
-                    } else {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
-                    }
-
-                    return (
-                      <MarkerF
-                        key={`${id} ${category}`}
-                        icon={{
-                          url: `${markerIcon}`,
-                          scaledSize: new google.maps.Size(50, 50),
-                          // scale: 0.0005,
-                        }}
-                        // icon={markerIcon}
-                        position={{
-                          lat: position.lat + index * 0.0001,
-                          lng: position.lng + index * 0.0001,
-                        }}
-                        // position={position}
-                        onClick={() => handleActiveMarker(id, index)}
-                      >
-                        {/* {activeMarker === id ? (
-                          <InfoWindowF
-                            onCloseClick={() => setActiveMarker(null)}
-                          >
-                            <>
-                              <Text>{name}</Text>
-                              <Text>
-                                {
-                                  pins[
-                                    Number(
-                                      pins.findIndex(
-                                        (item) => item.id === activeMarker
-                                      )
-                                    )
-                                  ].area.prefecture
-                                }
-                              </Text>
-                            </>
-                          </InfoWindowF>
-                        ) : null} */}
-                      </MarkerF>
-                    );
-                  });
-
-                  return arrayOfMarkers.map((marker) => marker);
-                }
-              } else {
-                let markerIcon = "";
-                if (categoryId[0] === 1) {
-                  markerIcon =
-                    "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
-                } else if (categoryId[0] === 2) {
-                  markerIcon =
-                    "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
-                } else if (categoryId[0] === 3) {
-                  markerIcon =
-                    "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
-                } else {
-                  markerIcon =
-                    "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
-                }
-
-                return (
-                  <MarkerF
-                    key={id}
-                    icon={{
-                      url: `${markerIcon}`,
-                      // scale: 0.0005,
-                      scaledSize: new google.maps.Size(50, 50),
-                    }}
-                    // icon={markerIcon}
-                    position={position}
-                    onClick={() => handleActiveMarker(id, index)}
-                  >
-                    {/* {activeMarker === id ? (
-                      <InfoWindowF onCloseClick={() => setActiveMarker(null)}>
-                        <>
-                          <Text>{name}</Text>
-                          <Text>
-                            {
-                              pins[
-                                Number(
-                                  pins.findIndex(
-                                    (item) => item.id === activeMarker
-                                  )
-                                )
-                              ].area.prefecture
-                            }
-                          </Text>
-                        </>
-                      </InfoWindowF>
-                    ) : null} */}
-                  </MarkerF>
-                );
-              }
-            })}
-          </GoogleMap>
-          {checkIn && activeWindow ? (
-            <>
-              {errorCheckIn ? (
-                <Alert
-                  icon={<IconAlertCircle size={16} />}
-                  title="Bummer!"
-                  color="aqua"
-                >
-                  You are not within the vicinity of the place you are trying to
-                  check in at! Please move closer and try again
-                </Alert>
-              ) : null}
-              <div className={classes.wrapper}>
-                <div className={classes.body}>
-                  <Text weight={500} size="lg" mb={5}>
-                    At {pins[activeWindow].placeName} and want to check in?
-                  </Text>
-                  <Text size="sm" color="dimmed">
-                    Earn XX points if you provide your feedback and help the
-                    community!
-                  </Text>
-
+            </div>
+          </ScrollArea>
+        </Grid.Col>
+        <Divider size="sm" orientation="vertical" />
+        <Grid.Col span={3}>
+          <ScrollArea style={{ height: 50 }}>
+            <div style={{ width: "xl" }}>
+              {allAvailableHashtags &&
+              allAvailableHashtags.length &&
+              hashtagVisible ? (
+                <Group>{listHashtags} </Group>
+              ) : (
+                <Loader />
+              )}
+            </div>
+          </ScrollArea>
+        </Grid.Col>
+      </Grid>
+      <br />
+      {errorCheckIn ? (
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          title="Bummer!"
+          color="#C1BBD5"
+          withCloseButton
+          closeButtonLabel="Close alert"
+          onClose={() => setErrorCheckIn(false)}
+        >
+          You are not within the vicinity of the place you are trying to check
+          in at! Please move closer and try again
+        </Alert>
+      ) : null}
+      {activeWindow !== null && successCheckIn ? (
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          title="Congratulations!"
+          color="aqua"
+          withCloseButton
+          closeButtonLabel="Close alert"
+          onClose={() => setSuccessCheckIn(false)}
+        >
+          You have successfully checked in. Thank you for helping the community!
+          You have earned 10 points for your contribution and have{" "}
+          {newUserScore} points now.
+        </Alert>
+      ) : null}
+      {checkIn && activeWindow !== null ? (
+        <>
+          {console.log("this is running")}
+          <Modal
+            opened={checkIn}
+            onClose={() => setCheckIn(false)}
+            radius="md"
+            size="auto"
+            withCloseButton={false}
+            // centered
+          >
+            <div className={classes.wrapper}>
+              <div className={classes.body}>
+                <Text weight={500} size="lg" mb={5}>
+                  At {pinMarkers[activeWindow].name} and want to check in?
+                </Text>
+                <Text size="sm" color="dimmed">
+                  Earn 10 points if you provide your feedback and help the
+                  community!
+                </Text>
+                <div className={classes.select}>
                   <Select
-                    style={{ marginTop: 20, zIndex: 2 }}
+                    style={{ marginTop: 20, zIndex: 2, padding: 0 }}
                     data={[
                       {
                         value: "very crowded",
@@ -1456,48 +1434,547 @@ export default function Map() {
                     value={crowdValue}
                     onChange={setCrowdValue}
                   />
-                  <div className={classes.controls}>
-                    <Button
-                      className={classes.control}
-                      onClick={handleSubmitCrowd}
-                      name="with location"
-                    >
-                      Check In With Location for XX more Points
-                    </Button>
-                    <br />
-                    <Button
-                      className={classes.control}
-                      onClick={handleSubmitCrowd}
-                      name="without location"
-                    >
-                      Check In Without Location
-                    </Button>
-                  </div>
                 </div>
-                {/* <Image src={image.src} className={classes.image} /> */}
+                <div>
+                  <br />
+                  <Group className={classes.crowdNew}>
+                    <Button onClick={handleSubmitCrowd} name="with location">
+                      <IconUserCheck />
+                    </Button>
+                  </Group>
+                  <br />
+                  <Button
+                    className={classes.control}
+                    onClick={handleSubmitCrowd}
+                    name="without location"
+                  >
+                    Check In Without Location
+                  </Button>
+                </div>
               </div>
-            </>
-          ) : null}
-          {activeWindow !== null && successCheckIn ? (
-            <Alert
-              icon={<IconAlertCircle size={16} />}
-              title="Congratulations!"
-              color="aqua"
+              {/* <Image src={image.src} className={classes.image} /> */}
+            </div>
+          </Modal>
+        </>
+      ) : // <Container fluid>
+      // </Container>
+      null}
+      {isLoaded && pinMarkers.length > 0 ? (
+        <>
+          {/* <Container style={{ width: "100%" }}> */}
+          <Grid
+            // grow
+            gutter="md"
+            style={{
+              width: "100%",
+              margin: "-8px 0px",
+              justifyContent: "center",
+            }}
+          >
+            <Box
+              sx={(theme) => ({
+                // minHeight: 250,
+                padding: theme.spacing.md,
+                // backgroundColor:
+                //   theme.colorScheme === "dark"
+                //     ? theme.colors.dark[6]
+                //     : theme.white,
+                // borderRadius: theme.radius.lg,
+                // boxShadow: theme.shadows.lg,
+                display: "flex",
+                width: "95vw",
+                // flexDirection: "column",
+                // justifyContent: "space-between",
+              })}
             >
-              You have successfully checked in. Thank you for helping the
-              community! You have earned 10 points for your contribution and
-              have {newUserScore} points now.
-            </Alert>
-          ) : null}
-          {activeWindow !== null ? (
-            <>
-              <Card>{findPinInfo()}</Card>
-            </>
-          ) : null}
-          {nearbyPlaceDist.length > 0 ? (
-            <Text>NEARBY SIMILAR PLACES OF INTEREST</Text>
-          ) : null}
-          {nearbyPlaceDist.length > 0 ? displayNearbyPlaces() : null}
+              <Grid.Col span={8}>
+                <GoogleMap
+                  onClick={() => {
+                    handleResetMarker();
+                    // if (e.latLng && e.latLng.lat && e.latLng?.lng) {
+                    //   console.log("lat", e.latLng.lat());
+                    //   console.log("lng", e.latLng.lng());
+                    // }
+                  }}
+                  center={mapCenter}
+                  onLoad={(map) => setOriginalMap(map)}
+                  zoom={zoomLevel}
+                  mapContainerStyle={{ width: "60vw", height: "70vh" }}
+                  options={{
+                    streetViewControl: false,
+                    mapTypeControl: false,
+                    fullscreenControl: false,
+                  }}
+                >
+                  {activeWindow !== null ? (
+                    <HeatmapLayer
+                      data={heatmapData}
+                      options={{ radius: crowdMapWeight, opacity: 0.4 }}
+                      onUnmount={onUnmount}
+                    />
+                  ) : null}
+
+                  {activeWindow !== null &&
+                    filterRegion !== 0 &&
+                    control &&
+                    originAddress &&
+                    destinationAddresses && (
+                      <DistanceMatrixService
+                        options={{
+                          destinations: destinationAddresses,
+                          origins: originAddress,
+                          travelMode: google.maps.TravelMode.DRIVING,
+                        }}
+                        callback={async (res) => {
+                          console.log("RESPONSE", res);
+                          setControl(false);
+
+                          if (res !== null) {
+                            const nearbyDistanceObjects =
+                              res.rows[0].elements.map((place, index) => {
+                                const distanceObject = {
+                                  position: index,
+                                  distance: place.distance.value,
+                                };
+
+                                // For each response object, finds the corresponding pin info in state.
+                                const distancePin = pinMarkers.find(
+                                  (pin) =>
+                                    pin.position === destinationAddresses[index]
+                                );
+
+                                // Finds the current pin info in state.
+                                const originPin = pinMarkers.find(
+                                  (pin) => pin.position === originAddress[0]
+                                );
+
+                                // Checks if the response object has common category as the current pin info. Checks if category filter is in place. If category filter in place, filters by set category instead.
+                                if (originPin && distancePin) {
+                                  if (filterCategory !== 0) {
+                                    if (
+                                      distancePin.categoryId.includes(
+                                        filterCategory
+                                      )
+                                    ) {
+                                      return distanceObject;
+                                    } else
+                                      return {
+                                        position: -1,
+                                        distance: Number.MAX_SAFE_INTEGER,
+                                      };
+                                  } else {
+                                    const response = originPin.categoryId.map(
+                                      (category) => {
+                                        if (
+                                          distancePin.categoryId.includes(
+                                            category
+                                          )
+                                        ) {
+                                          return distanceObject;
+                                        } else
+                                          return {
+                                            position: -1,
+                                            distance: Number.MAX_SAFE_INTEGER,
+                                          };
+                                      }
+                                    );
+                                    return response.flat();
+                                  }
+                                }
+                                return [distanceObject];
+                              });
+
+                            // Sets the response object into state, for those that passed the filter. Sorts the objects by distance, from nearest to furthest. Saves only the closest 3 reponse objects.
+                            if (
+                              nearbyDistanceObjects.flat().length > 0 &&
+                              !nearbyDistanceObjects
+                                .flat()
+                                .some((element) => element === null)
+                            ) {
+                              setNearbyPlaceDist(
+                                nearbyDistanceObjects
+                                  .flat(2)
+                                  .sort((a, b) => a.distance - b.distance)
+                                  .slice(0, 3)
+                              );
+                            }
+                          }
+                        }}
+                      />
+                    )}
+
+                  {/* MARKER FOR USER LIVE LOCATION */}
+                  {currentPosition && isLoaded ? (
+                    <MarkerF
+                      key={`current location`}
+                      icon={blueDot}
+                      position={currentPosition}
+                    />
+                  ) : null}
+
+                  {/* MARKERS FOR ALL PINS WITHIN STATE. CHECKS IF CATEGORY FILTER IS SET. */}
+                  {pinMarkers.map((element, index) => {
+                    const { id, name, position, categoryId } = element;
+
+                    if (categoryId.length > 1) {
+                      if (filterCategory !== 0) {
+                        const arrayOfMarkers = categoryId.map(
+                          (category, index) => {
+                            let markerIcon = "";
+
+                            if (category === filterCategory) {
+                              if (category === 1) {
+                                markerIcon =
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/soup.png";
+                              } else if (category === 2) {
+                                markerIcon =
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
+                              } else if (category === 3) {
+                                markerIcon =
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
+                              } else if (category === 4) {
+                                markerIcon =
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
+                              } else {
+                                markerIcon =
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
+                              }
+
+                              return (
+                                <MarkerF
+                                  key={`${id} ${category}`}
+                                  icon={{
+                                    url: `${markerIcon}`,
+                                    scaledSize: new google.maps.Size(30, 30),
+                                    // scale: 0.0005,
+                                  }}
+                                  // icon={markerIcon}
+                                  position={{
+                                    lat: position.lat + index * 0.0001,
+                                    lng: position.lng + index * 0.0001,
+                                  }}
+                                  // position={position}
+                                  onClick={() => handleActiveMarker(id)}
+                                >
+                                  {/* {activeMarker === id ? (
+                            <InfoWindowF
+                              onCloseClick={() => setActiveMarker(null)}
+                            >
+                              <>
+                                <Text>{name}</Text>
+                                <Text>
+                                  {
+                                    pins[
+                                      Number(
+                                        pins.findIndex(
+                                          (item) => item.id === activeMarker
+                                        )
+                                      )
+                                    ].area.prefecture
+                                  }
+                                </Text>
+                              </>
+                            </InfoWindowF>
+                          ) : null} */}
+                                </MarkerF>
+                              );
+                            }
+                          }
+                        );
+
+                        return arrayOfMarkers.map((marker) => marker);
+                      } else {
+                        const arrayOfMarkers = categoryId.map(
+                          (category, index) => {
+                            let markerIcon = "";
+                            if (category === 1) {
+                              markerIcon =
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/soup.png";
+                            } else if (category === 2) {
+                              markerIcon =
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
+                            } else if (category === 3) {
+                              markerIcon =
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
+                            } else if (category === 4) {
+                              markerIcon =
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
+                            } else {
+                              markerIcon =
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
+                            }
+
+                            return (
+                              <MarkerF
+                                key={`${id} ${category}`}
+                                icon={{
+                                  url: `${markerIcon}`,
+                                  scaledSize: new google.maps.Size(30, 30),
+                                  // scale: 0.0005,
+                                }}
+                                // icon={markerIcon}
+                                position={{
+                                  lat: position.lat + index * 0.0001,
+                                  lng: position.lng + index * 0.0001,
+                                }}
+                                // position={position}
+                                onClick={() => handleActiveMarker(id)}
+                              >
+                                {/* {activeMarker === id ? (
+                          <InfoWindowF
+                            onCloseClick={() => setActiveMarker(null)}
+                          >
+                            <>
+                              <Text>{name}</Text>
+                              <Text>
+                                {
+                                  pins[
+                                    Number(
+                                      pins.findIndex(
+                                        (item) => item.id === activeMarker
+                                      )
+                                    )
+                                  ].area.prefecture
+                                }
+                              </Text>
+                            </>
+                          </InfoWindowF>
+                        ) : null} */}
+                              </MarkerF>
+                            );
+                          }
+                        );
+
+                        return arrayOfMarkers.map((marker) => marker);
+                      }
+                    } else {
+                      let markerIcon = "";
+                      if (categoryId[0] === 1) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/soup.png";
+                      } else if (categoryId[0] === 2) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
+                      } else if (categoryId[0] === 3) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
+                      } else if (categoryId[0] === 4) {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
+                      } else {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
+                      }
+
+                      return (
+                        <MarkerF
+                          key={id}
+                          icon={{
+                            url: `${markerIcon}`,
+                            // scale: 0.0005,
+                            scaledSize: new google.maps.Size(30, 30),
+                          }}
+                          // icon={markerIcon}
+                          position={position}
+                          onClick={() => handleActiveMarker(id)}
+                        >
+                          {/* {activeMarker === id ? (
+                      <InfoWindowF onCloseClick={() => setActiveMarker(null)}>
+                        <>
+                          <Text>{name}</Text>
+                          <Text>
+                            {
+                              pins[
+                                Number(
+                                  pins.findIndex(
+                                    (item) => item.id === activeMarker
+                                  )
+                                )
+                              ].area.prefecture
+                            }
+                          </Text>
+                        </>
+                      </InfoWindowF>
+                    ) : null} */}
+                        </MarkerF>
+                      );
+                    }
+                  })}
+                </GoogleMap>
+              </Grid.Col>
+              <Grid.Col span={4}>
+                <Box
+                  sx={(theme) => ({
+                    minHeight: "9vh",
+                    padding: theme.spacing.md,
+                    backgroundColor:
+                      theme.colorScheme === "dark"
+                        ? theme.colors.dark[6]
+                        : theme.white,
+                    borderRadius: theme.radius.lg,
+                    boxShadow: theme.shadows.xs,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    maxWidth: "31vw",
+                  })}
+                >
+                  <UnstyledButton
+                    disabled={activeWindow === null}
+                    onClick={() => {
+                      setInfoOpened((o) => !o);
+                      setCrowdOpened(false);
+                      setNearbyOpened(false);
+                    }}
+                    className={classes.control}
+                  >
+                    <Group position="apart" spacing={0}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <ThemeIcon variant="light" size={40}>
+                          <IconMapPin size={25} />
+                        </ThemeIcon>
+                        <Box ml="md">
+                          <Title order={5}>INFORMATION</Title>
+                        </Box>
+                      </Box>
+                      <ChevronIcon
+                        className={classes.chevron}
+                        size={20}
+                        stroke={1.5}
+                        style={{
+                          transform: infoOpened
+                            ? `rotate(${theme.dir === "rtl" ? -90 : 90}deg)`
+                            : "none",
+                        }}
+                      />
+                    </Group>
+                  </UnstyledButton>
+                  <Collapse in={infoOpened}>
+                    <ScrollArea style={{ height: "30vh" }} offsetScrollbars>
+                      {findPinInfo()}
+                    </ScrollArea>
+                  </Collapse>
+                </Box>
+
+                <br />
+
+                <Box
+                  sx={(theme) => ({
+                    minHeight: "9vh",
+                    padding: theme.spacing.md,
+                    backgroundColor:
+                      theme.colorScheme === "dark"
+                        ? theme.colors.dark[6]
+                        : theme.white,
+                    borderRadius: theme.radius.lg,
+                    boxShadow: theme.shadows.xs,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    maxWidth: "31vw",
+                  })}
+                >
+                  <UnstyledButton
+                    disabled={activeWindow === null}
+                    onClick={() => {
+                      setCrowdOpened((o) => !o);
+                      setInfoOpened(false);
+                      setNearbyOpened(false);
+                    }}
+                    className={classes.control}
+                  >
+                    <Group position="apart" spacing={0}>
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <ThemeIcon variant="light" size={40}>
+                          <IconFriends size={25} />
+                        </ThemeIcon>
+                        <Box ml="md">
+                          <Title order={5}>LATEST CROWDS</Title>
+                        </Box>
+                      </Box>
+                      <ChevronIcon
+                        className={classes.chevron}
+                        size={20}
+                        stroke={1.5}
+                        style={{
+                          transform: crowdOpened
+                            ? `rotate(${theme.dir === "rtl" ? -90 : 90}deg)`
+                            : "none",
+                        }}
+                      />
+                    </Group>
+                  </UnstyledButton>
+                  <Collapse in={crowdOpened}>
+                    <ScrollArea style={{ height: "30vh" }} offsetScrollbars>
+                      {findPinCrowd()}
+                    </ScrollArea>
+                  </Collapse>
+                </Box>
+
+                <br />
+
+                <Box
+                  sx={(theme) => ({
+                    minHeight: "9vh",
+                    padding: theme.spacing.md,
+                    backgroundColor:
+                      theme.colorScheme === "dark"
+                        ? theme.colors.dark[6]
+                        : theme.white,
+                    borderRadius: theme.radius.lg,
+                    boxShadow: theme.shadows.xs,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    maxWidth: "31vw",
+                  })}
+                >
+                  <UnstyledButton
+                    disabled={!(nearbyPlaceDist.length > 0)}
+                    onClick={() => {
+                      setNearbyOpened((o) => !o);
+                      setCrowdOpened(false);
+                      setInfoOpened(false);
+                    }}
+                    className={classes.control}
+                  >
+                    <Group position="apart" spacing={0}>
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <ThemeIcon variant="light" size={40}>
+                          <IconMapPins size={25} />
+                        </ThemeIcon>
+                        <Box ml="md">
+                          <Title order={5}>SIMILAR NEARBY</Title>
+                        </Box>
+                      </Box>
+                      <ChevronIcon
+                        className={classes.chevron}
+                        size={20}
+                        stroke={1.5}
+                        style={{
+                          transform: nearbyOpened
+                            ? `rotate(${theme.dir === "rtl" ? -90 : 90}deg)`
+                            : "none",
+                        }}
+                      />
+                    </Group>
+                  </UnstyledButton>
+                  <Collapse in={nearbyOpened}>
+                    <ScrollArea style={{ height: "30vh" }}>
+                      {/* <br /> */}
+                      {displayNearbyPlaces()}
+                    </ScrollArea>
+                  </Collapse>
+                </Box>
+              </Grid.Col>
+            </Box>
+          </Grid>
+          {/* </Container> */}
         </>
       ) : (
         <Loader />

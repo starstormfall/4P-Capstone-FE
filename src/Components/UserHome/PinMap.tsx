@@ -25,8 +25,16 @@ import {
   Select,
   Alert,
   Anchor,
+  Modal,
+  Box,
 } from "@mantine/core";
-import { IconAlertCircle } from "@tabler/icons";
+import {
+  IconAlertCircle,
+  IconMapSearch,
+  IconFriends,
+  IconMapPins,
+  IconUserCheck,
+} from "@tabler/icons";
 import { backendUrl } from "../../utils";
 import { UseApp } from "../Context";
 import axios from "axios";
@@ -49,13 +57,13 @@ const useStyles = createStyles((theme) => ({
   wrapper: {
     display: "flex",
     alignItems: "center",
-    padding: theme.spacing.xs * 2,
+    // padding: theme.spacing.xs * 2,
     borderRadius: theme.radius.md,
     backgroundColor:
       theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.white,
-    border: `1px solid ${
-      theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[3]
-    }`,
+    // border: `1px solid ${
+    //   theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[3]
+    // }`,
 
     [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
       flexDirection: "column-reverse",
@@ -72,7 +80,7 @@ const useStyles = createStyles((theme) => ({
   },
 
   body: {
-    paddingRight: theme.spacing.xl * 4,
+    // paddingRight: theme.spacing.xl * 4,
 
     [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
       paddingRight: 0,
@@ -106,6 +114,14 @@ const useStyles = createStyles((theme) => ({
   control: {
     borderTopLeftRadius: 0,
     borderBottomLeftRadius: 0,
+  },
+
+  select: {
+    padding: 0,
+  },
+
+  crowdNew: {
+    justifyContent: "flex-end",
   },
 }));
 
@@ -149,7 +165,7 @@ export default function PinMap(props: Props) {
   const [originalMap, setOriginalMap] = useState<google.maps.Map | null>(null);
   const [currentPosition, setCurrentPosition] = useState<Position>();
   const [mapCenter, setMapCenter] = useState<Position>();
-  const [zoomLevel, setZoomLevel] = useState(12);
+  const [zoomLevel, setZoomLevel] = useState(15);
 
   // States for saving pin infos from BE in different formats, to set markers on google map.
   const [pinMarkers, setPinMarkers] = useState<MarkerPositions[]>([]);
@@ -178,6 +194,9 @@ export default function PinMap(props: Props) {
   );
   const [nearbyPlaceDist, setNearbyPlaceDist] = useState<Distance[]>([]);
 
+  const [nearbyVisible, setNearbyVisible] = useState(false);
+  const [crowdVisible, setCrowdVisible] = useState(true);
+
   // useEffect for checking auth0 authentication upon load.
   useEffect(() => {
     if (isAuthenticated) {
@@ -191,11 +210,11 @@ export default function PinMap(props: Props) {
   let blueDot;
   if (isLoaded) {
     blueDot = {
-      fillColor: "purple",
+      fillColor: "#3F9DA1",
       fillOpacity: 1,
       path: google.maps.SymbolPath.CIRCLE,
       scale: 10,
-      strokeColor: "beige",
+      strokeColor: "#FFFFFF",
       strokeWeight: 3,
     };
   }
@@ -374,6 +393,38 @@ export default function PinMap(props: Props) {
     );
   };
 
+  console.log(currentPin);
+
+  const findPinCrowd = () => {
+    if (currentPin && currentPin !== undefined) {
+      const { crowds } = currentPin;
+
+      const allCrowds = crowds.slice(0, 7).map((crowd, i) => {
+        const { crowdIntensity, crowdSize, recordedAt } = crowd;
+        return (
+          <>
+            <Card
+              key={new Date(recordedAt).toLocaleString()}
+              className={classes.select}
+              // withBorder
+            >
+              <Text transform="uppercase" size="md">
+                {crowdIntensity}
+              </Text>
+              <Text transform="capitalize" size="sm">
+                {crowdSize}
+              </Text>
+              <Text color="dimmed" size="xs">
+                {new Date(recordedAt).toLocaleString()}{" "}
+              </Text>
+            </Card>
+          </>
+        );
+      });
+      return <div key={currentPin.placeName}>{allCrowds}</div>;
+    }
+  };
+
   // Function triggered when user clicks submit crowd data. Checks if user is within 100m of the pin. If no, send error banner. If yes, create data within BE and update user score.
   const handleSubmitCrowd: React.MouseEventHandler<HTMLButtonElement> = async (
     e
@@ -451,23 +502,124 @@ export default function PinMap(props: Props) {
       } else {
         setErrorCheckIn(true);
         setSuccessCheckIn(false);
+        setCheckIn(false);
       }
     }
   };
 
+  // To render marker for current pin.
+  let arrayOfMarkers;
+  let singleMarker;
+
+  if (currentPinInfo) {
+    if (currentPinInfo.categoryId.length > 1) {
+      const { categoryId, position } = currentPinInfo;
+      arrayOfMarkers = categoryId.map((category, index) => {
+        let markerIcon = "";
+        if (category === 1) {
+          markerIcon =
+            "https://tabler-icons.io/static/tabler-icons/icons-png/soup.png";
+        } else if (category === 2) {
+          markerIcon =
+            "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
+        } else if (category === 3) {
+          markerIcon =
+            "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
+        } else {
+          markerIcon =
+            "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
+        }
+        return (
+          <MarkerF
+            key={`${category}`}
+            icon={{
+              url: `${markerIcon}`,
+              scaledSize: new google.maps.Size(30, 30),
+            }}
+            position={{
+              lat: position.lat + index * 0.0001,
+              lng: position.lng + index * 0.0001,
+            }}
+          ></MarkerF>
+        );
+      });
+    } else {
+      const { position } = currentPinInfo;
+      let category = currentPinInfo.categoryId[0];
+      let markerIcon = "";
+      if (category === 1) {
+        markerIcon =
+          "https://tabler-icons.io/static/tabler-icons/icons-png/soup.png";
+      } else if (category === 2) {
+        markerIcon =
+          "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
+      } else if (category === 3) {
+        markerIcon =
+          "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
+      } else if (category === 4) {
+        markerIcon =
+          "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
+      } else {
+        markerIcon =
+          "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
+      }
+
+      singleMarker = (
+        <MarkerF
+          key={currentPinInfo.id}
+          icon={{
+            url: `${markerIcon}`,
+
+            scaledSize: new google.maps.Size(30, 30),
+          }}
+          position={position}
+        ></MarkerF>
+      );
+    }
+  }
+
   return (
     <>
-      <br />
+      {errorCheckIn ? (
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          title="Bummer!"
+          color="#C1BBD5"
+          withCloseButton
+          closeButtonLabel="Close alert"
+          onClose={() => setErrorCheckIn(false)}
+        >
+          You are not within the vicinity of the place you are trying to check
+          in at! Please move closer and try again
+        </Alert>
+      ) : null}
+
+      {successCheckIn ? (
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          title="Congratulations!"
+          color="aqua"
+          withCloseButton
+          closeButtonLabel="Close alert"
+          onClose={() => setSuccessCheckIn(false)}
+        >
+          You have successfully checked in. Thank you for helping the community!
+          You have earned 10 points for your contribution and have{" "}
+          {newUserScore} points now.
+        </Alert>
+      ) : null}
+
       {isLoaded && pinMarkers.length > 0 ? (
         <>
           <Grid>
-            <Grid.Col span={6}>
+            <Grid.Col span={7}>
               <GoogleMap
+                key={currentPinInfo?.name}
                 onLoad={(map) => setOriginalMap(map)}
                 zoom={zoomLevel}
                 mapContainerStyle={{
-                  width: "20vw",
-                  height: "20vw",
+                  width: "26.5vw",
+                  height: "55vh",
                   position: "fixed",
                 }}
                 options={{
@@ -478,6 +630,7 @@ export default function PinMap(props: Props) {
               >
                 {heatmapVisible && (
                   <HeatmapLayer
+                    key={currentPinInfo?.position.lng}
                     data={heatmapData}
                     options={{ radius: crowdMapWeight, opacity: 0.4 }}
                     // onUnmount={onUnmount}
@@ -485,6 +638,7 @@ export default function PinMap(props: Props) {
                 )}
                 {control && currentPin && destinationAddresses && (
                   <DistanceMatrixService
+                    key={currentPin.lat}
                     options={{
                       destinations: destinationAddresses,
                       origins: [{ lat: currentPin.lat, lng: currentPin.lng }],
@@ -560,172 +714,202 @@ export default function PinMap(props: Props) {
                     position={currentPosition}
                   />
                 ) : null}
-                {/* MARKERS FOR ALL PINS WITHIN STATE */}
-                {pinMarkers.map((element, index) => {
-                  const { id, name, position, categoryId } = element;
 
-                  if (categoryId.length > 1) {
-                    const arrayOfMarkers = categoryId.map((category, index) => {
-                      let markerIcon = "";
-                      if (category === 1) {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
-                      } else if (category === 2) {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
-                      } else if (category === 3) {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
-                      } else {
-                        markerIcon =
-                          "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
-                      }
+                {/* MARKER FOR SELECTED PIN  */}
+                {currentPinInfo &&
+                isLoaded &&
+                arrayOfMarkers &&
+                arrayOfMarkers.length > 0
+                  ? arrayOfMarkers.map((marker) => marker)
+                  : null}
 
-                      return (
-                        <MarkerF
-                          key={`${id} ${category}`}
-                          icon={{
-                            url: `${markerIcon}`,
-                            scaledSize: new google.maps.Size(50, 50),
-                          }}
-                          position={{
-                            lat: position.lat + index * 0.0001,
-                            lng: position.lng + index * 0.0001,
-                          }}
-                        />
-                      );
-                    });
-
-                    return arrayOfMarkers.map((marker) => marker);
-                  } else {
-                    let markerIcon = "";
-                    if (categoryId[0] === 1) {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/grill.png";
-                    } else if (categoryId[0] === 2) {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/camera-selfie.png";
-                    } else if (categoryId[0] === 3) {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/building.png";
-                    } else {
-                      markerIcon =
-                        "https://tabler-icons.io/static/tabler-icons/icons-png/shirt.png";
-                    }
-
-                    return (
-                      <MarkerF
-                        key={id}
-                        icon={{
-                          url: `${markerIcon}`,
-                          scaledSize: new google.maps.Size(50, 50),
-                        }}
-                        position={position}
-                      />
-                    );
-                  }
-                })}
+                {currentPinInfo && isLoaded && singleMarker
+                  ? singleMarker
+                  : null}
               </GoogleMap>
-              <Button color="greyBlue" onClick={() => navigate("../map")}>
-                SEARCH AROUND THE AREA
-              </Button>
-            </Grid.Col>
-            <Grid.Col span={6}>
-              {currentPinInfo && (
-                <>
-                  <Text>{currentPinInfo.name}</Text>
-                  <Text>
-                    Current Crowd Estimate: {currentPinInfo.latestCrowdSize} -{" "}
-                    {currentPinInfo.latestCrowdIntensity} at{" "}
-                    {new Date(currentPinInfo.latestCrowdTime).toLocaleString()}
-                  </Text>
-                </>
-              )}
 
-              <Button color="greyBlue" onClick={handleCheckIn}>
-                CHECK IN FOR XX POINTS
-              </Button>
+              <Button.Group>
+                <Button fullWidth onClick={handleCheckIn}>
+                  <IconUserCheck />
+                </Button>
+                {crowdVisible ? (
+                  <Button
+                    fullWidth
+                    onClick={() => {
+                      setNearbyVisible(false);
+                      setCrowdVisible(!crowdVisible);
+                    }}
+                    variant="subtle"
+                  >
+                    <IconFriends />
+                  </Button>
+                ) : (
+                  <Button
+                    fullWidth
+                    onClick={() => {
+                      setNearbyVisible(false);
+                      setCrowdVisible(!crowdVisible);
+                    }}
+                  >
+                    <IconFriends />
+                  </Button>
+                )}
+
+                {nearbyVisible ? (
+                  <Button
+                    fullWidth
+                    onClick={() => {
+                      setNearbyVisible(!nearbyVisible);
+                      setCrowdVisible(false);
+                    }}
+                    variant="subtle"
+                  >
+                    <IconMapPins />
+                  </Button>
+                ) : (
+                  <Button
+                    fullWidth
+                    onClick={() => {
+                      setNearbyVisible(!nearbyVisible);
+                      setCrowdVisible(false);
+                    }}
+                  >
+                    <IconMapPins />
+                  </Button>
+                )}
+
+                <Button
+                  fullWidth
+                  onClick={() =>
+                    navigate("../map", {
+                      state: {
+                        pinId: props.pinId,
+                        position: currentPinInfo?.position,
+                      },
+                    })
+                  }
+                >
+                  <IconMapSearch />
+                </Button>
+              </Button.Group>
+            </Grid.Col>
+            <Grid.Col span={5}>
+              {
+                crowdVisible && currentPinInfo && (
+                  <>
+                    <Box
+                      sx={(theme) => ({
+                        minHeight: "60vh",
+                        padding: theme.spacing.md,
+                        backgroundColor:
+                          theme.colorScheme === "dark"
+                            ? theme.colors.dark[6]
+                            : theme.white,
+                        // borderRadius: theme.radius.lg,
+                        // boxShadow: theme.shadows.xs,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        maxWidth: "31vw",
+                        paddingTop: "0px",
+                      })}
+                    >
+                      <ScrollArea style={{ height: "60vh" }} offsetScrollbars>
+                        <Title order={4}>CROWD ESTIMATE</Title>
+                        {findPinCrowd()}
+                      </ScrollArea>
+                    </Box>
+                  </>
+                )
+                // <>
+                // <Title order={4} transform="uppercase">
+                //   {currentPinInfo.name}
+                // </Title>
+                //   <Text>
+                //     Current Crowd Estimate: {currentPinInfo.latestCrowdSize} -{" "}
+                //     {currentPinInfo.latestCrowdIntensity} at{" "}
+                //     {new Date(currentPinInfo.latestCrowdTime).toLocaleString()}
+                //   </Text>
+                // </>
+              }
+
               {checkIn && currentPin ? (
                 <>
-                  {errorCheckIn ? (
-                    <Alert
-                      icon={<IconAlertCircle size={16} />}
-                      title="Bummer!"
-                      color="aqua"
-                    >
-                      You are not within the vicinity of the place you are
-                      trying to check in at! Please move closer and try again
-                    </Alert>
-                  ) : null}
-                  <div className={classes.wrapper}>
-                    <div>
-                      <Text weight={300} size="lg" mb={5}>
-                        At {currentPin.placeName} and want to check in?
-                      </Text>
-                      {/* <Text size="sm" color="dimmed">
-                        Earn XX points if you provide your feedback and help the
-                        community!
-                      </Text> */}
-
-                      <Select
-                        style={{ marginTop: 20, zIndex: 2 }}
-                        data={[
-                          {
-                            value: "very crowded",
-                            label: "Very Crowded (> 100 people)",
-                            name: ">100 pax",
-                          },
-                          {
-                            value: "somewhat crowded",
-                            label: "Somewhat Crowded (30 to 100 people)",
-                            name: "30 to 100 pax",
-                          },
-                          {
-                            value: "little crowd",
-                            label: "Little Crowd (< 30 people)",
-                            name: "<30 pax",
-                          },
-                        ]}
-                        placeholder="Pick one"
-                        label="Current Crowd Estimate"
-                        classNames={classes}
-                        value={crowdValue}
-                        onChange={setCrowdValue}
-                      />
-                      <div className={classes.controls}>
-                        <Button
-                          className={classes.control}
-                          onClick={handleSubmitCrowd}
-                          name="with location"
-                        >
-                          CHECK IN
-                        </Button>
+                  <Modal
+                    opened={checkIn}
+                    onClose={() => setCheckIn(false)}
+                    radius="md"
+                    size="auto"
+                    withCloseButton={false}
+                  >
+                    <div className={classes.wrapper}>
+                      <div className={classes.body}>
+                        <Text weight={500} size="lg" mb={5}>
+                          At {currentPin.placeName} and want to check in?
+                        </Text>
+                        <Text size="sm" color="dimmed">
+                          Earn 10 points if you provide your feedback and help
+                          the community!
+                        </Text>
+                        <div className={classes.select}>
+                          <Select
+                            style={{ marginTop: 20, zIndex: 2, padding: 0 }}
+                            data={[
+                              {
+                                value: "very crowded",
+                                label: "Very Crowded (> 100 people)",
+                                name: ">100 pax",
+                              },
+                              {
+                                value: "somewhat crowded",
+                                label: "Somewhat Crowded (30 to 100 people)",
+                                name: "30 to 100 pax",
+                              },
+                              {
+                                value: "little crowd",
+                                label: "Little Crowd (< 30 people)",
+                                name: "<30 pax",
+                              },
+                            ]}
+                            placeholder="Pick one"
+                            label="Current Crowd Estimate"
+                            classNames={classes}
+                            value={crowdValue}
+                            onChange={setCrowdValue}
+                          />
+                        </div>
+                        <div>
+                          <br />
+                          <Group className={classes.crowdNew}>
+                            <Button
+                              onClick={handleSubmitCrowd}
+                              name="with location"
+                            >
+                              <IconUserCheck />
+                            </Button>
+                          </Group>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Modal>
                 </>
               ) : null}
-              {successCheckIn ? (
-                <Alert
-                  icon={<IconAlertCircle size={16} />}
-                  title="Congratulations!"
-                  color="aqua"
-                >
-                  You have successfully checked in. Thank you for helping the
-                  community! You have earned 10 points for your contribution and
-                  have {newUserScore} points now.
-                </Alert>
-              ) : null}
-              <Text>NEARBY SIMILAR PLACES OF INTEREST</Text>
-              {nearbyPlaceDist.length > 0 && pins.length !== 0 ? (
-                <NearbyPlaces
-                  nearbyPlaceDist={nearbyPlaceDist}
-                  pins={pins}
-                  destinationAddresses={destinationAddresses}
-                  allAvailableCategories={allAvailableCategories}
-                  allAvailableHashtags={allAvailableHashtags}
-                  allAvailableAreas={allAvailableAreas}
-                />
+
+              {nearbyVisible &&
+              nearbyPlaceDist.length > 0 &&
+              pins.length !== 0 ? (
+                <ScrollArea style={{ height: "60vh" }} offsetScrollbars>
+                  <Title order={4}>SIMILAR NEARBY</Title>
+                  <NearbyPlaces
+                    key={`nearby-${props.pinId}`}
+                    nearbyPlaceDist={nearbyPlaceDist}
+                    pins={pins}
+                    destinationAddresses={destinationAddresses}
+                    allAvailableCategories={allAvailableCategories}
+                    allAvailableHashtags={allAvailableHashtags}
+                    allAvailableAreas={allAvailableAreas}
+                  />
+                </ScrollArea>
               ) : null}
             </Grid.Col>
           </Grid>

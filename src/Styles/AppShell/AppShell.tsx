@@ -25,8 +25,10 @@ import {
   Menu,
   Modal,
   Loader,
+  Alert,
 } from "@mantine/core";
 import { LogOut, Search } from "@easy-eva-icons/react";
+import { IconAlertCircle } from "@tabler/icons";
 import { useStyles } from "./useStyles";
 import tdflLogo from "../../Images/tdflLogo.png";
 
@@ -58,6 +60,10 @@ function TdflAppShell() {
   const [streakDialogOn, setStreakDialogOn] = useState<boolean>(false);
   const [userFormOn, setUserFormOn] = useState<boolean>(false);
   const [opened, setOpened] = useState(false);
+
+  const [rewardModalVisible, setRewardModalVisible] = useState(true);
+  const [rewardError, setRewardError] = useState(false);
+  const [rewardClaimed, setRewardClaimed] = useState(false);
 
   // for authentication
   const {
@@ -252,7 +258,14 @@ function TdflAppShell() {
                   </Menu.Target>
 
                   <Menu.Dropdown>
-                    <Rewards />
+                    <Rewards
+                      setRewardModalVisible={setRewardModalVisible}
+                      rewardModalVisible={rewardModalVisible}
+                      rewardError={rewardError}
+                      setRewardError={setRewardError}
+                      rewardClaimed={rewardClaimed}
+                      setRewardClaimed={setRewardClaimed}
+                    />
                   </Menu.Dropdown>
                 </Menu>
                 <ActionIcon>
@@ -263,6 +276,32 @@ function TdflAppShell() {
           </Header>
         }
       >
+        {userInfo && rewardClaimed ? (
+          <Alert
+            icon={<IconAlertCircle size={16} />}
+            title="Congratulations!"
+            color="aqua"
+            withCloseButton
+            closeButtonLabel="Close alert"
+            onClose={() => setRewardClaimed(false)}
+          >
+            You have successfully claimed your reward!
+          </Alert>
+        ) : null}
+        {userInfo && rewardError ? (
+          <Alert
+            icon={<IconAlertCircle size={16} />}
+            title="Bummer!"
+            color="aqua"
+            withCloseButton
+            closeButtonLabel="#C1BBD5"
+            onClose={() => setRewardError(false)}
+          >
+            Sorry, it looks like you have not accumulated enough points yet! You
+            need a minimum of 200 points to be eligible for our rewards. Please
+            come back after earning more points!
+          </Alert>
+        ) : null}
         <Outlet context={[userLoggedIn, setUserLoggedIn]} />
       </AppShell>
 
