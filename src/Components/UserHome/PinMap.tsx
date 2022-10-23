@@ -123,6 +123,14 @@ const useStyles = createStyles((theme) => ({
   crowdNew: {
     justifyContent: "flex-end",
   },
+
+  mapWidth: {
+    width: "26.5vw",
+  },
+
+  quartermapWidth: {
+    width: "6.625vw",
+  },
 }));
 
 // Defining interfaces
@@ -728,13 +736,16 @@ export default function PinMap(props: Props) {
                   : null}
               </GoogleMap>
 
-              <Button.Group>
-                <Button fullWidth onClick={handleCheckIn}>
+              <Button.Group className={classes.mapWidth}>
+                <Button
+                  className={classes.quartermapWidth}
+                  onClick={handleCheckIn}
+                >
                   <IconUserCheck />
                 </Button>
                 {crowdVisible ? (
                   <Button
-                    fullWidth
+                    className={classes.quartermapWidth}
                     onClick={() => {
                       setNearbyVisible(false);
                       setCrowdVisible(!crowdVisible);
@@ -745,7 +756,7 @@ export default function PinMap(props: Props) {
                   </Button>
                 ) : (
                   <Button
-                    fullWidth
+                    className={classes.quartermapWidth}
                     onClick={() => {
                       setNearbyVisible(false);
                       setCrowdVisible(!crowdVisible);
@@ -757,7 +768,7 @@ export default function PinMap(props: Props) {
 
                 {nearbyVisible ? (
                   <Button
-                    fullWidth
+                    className={classes.quartermapWidth}
                     onClick={() => {
                       setNearbyVisible(!nearbyVisible);
                       setCrowdVisible(false);
@@ -768,7 +779,7 @@ export default function PinMap(props: Props) {
                   </Button>
                 ) : (
                   <Button
-                    fullWidth
+                    className={classes.quartermapWidth}
                     onClick={() => {
                       setNearbyVisible(!nearbyVisible);
                       setCrowdVisible(false);
@@ -779,7 +790,7 @@ export default function PinMap(props: Props) {
                 )}
 
                 <Button
-                  fullWidth
+                  className={classes.quartermapWidth}
                   onClick={() =>
                     navigate("../map", {
                       state: {
