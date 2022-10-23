@@ -26,6 +26,7 @@ import {
   Center,
   Divider,
   Collapse,
+  TextInput,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -35,6 +36,15 @@ import {
 } from "firebase/storage";
 import { AwardOutline } from "@easy-eva-icons/react";
 import { create } from "domain";
+
+// Googlemaps Api
+import {
+  GoogleMap,
+  useJsApiLoader,
+  MarkerF,
+  LoadScript,
+  Autocomplete,
+} from "@react-google-maps/api";
 
 type ThreadSingleData = {
   id: number;
@@ -83,6 +93,12 @@ type prefectureDataType = {
 
 type friendListData = {
   [key: number]: string;
+};
+
+// Googlemaps type for position/marker
+type Location = {
+  lat: number;
+  lng: number;
 };
 
 const useStyles = createStyles((theme) => ({
@@ -158,6 +174,15 @@ export default function ThreadSingle() {
   const { getAccessTokenSilently } = useAuth0();
   const params = useParams();
   const navigate = useNavigate();
+
+  // Google map library and API definition
+  const [libraries] = useState<
+    ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
+  >(["visualization", "places"]);
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY as string,
+    libraries: libraries,
+  });
 
   // get data from forum get
   const singleThread = async () => {
@@ -348,6 +373,15 @@ export default function ThreadSingle() {
   const [externalLink, setExternalLink] = useState<string>("");
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
 
+  // Googlemaps states for markers, and for autocomplete
+  const [currentPosition, setCurrentPosition] = useState<Location>({
+    lat: 35.68309653980229,
+    lng: 139.7525871479461,
+  });
+  const [autoCompleteElem, setAutoCompleteElem] = useState<HTMLInputElement>();
+  const [autoCompletePlacePos, setAutoCompletePlacePos] = useState<Location>();
+  const [exactLocation, setExactLocation] = useState("");
+
   const getAllAreaData = async () => {
     const response = await axios.get(`${backendUrl}/info/areas`);
     setAllAreaData(response.data);
@@ -368,6 +402,79 @@ export default function ThreadSingle() {
       }
     );
   }
+
+  console.log(currentPosition);
+  console.log(autoCompletePlacePos);
+  console.log(areaId);
+  console.log(exactLocation);
+  // Handle autocomplete changes. Please dont change order of autocomplete within form.
+  const handleInputChange = () => {
+    let searchInputField = document.getElementsByTagName("input")[3];
+    const autocomplete = new google.maps.places.Autocomplete(searchInputField, {
+      componentRestrictions: { country: "jp" },
+    });
+
+    autocomplete.addListener("place_changed", function () {
+      let placeInfo = autocomplete.getPlace();
+
+      console.log(placeInfo);
+
+      if (
+        placeInfo &&
+        placeInfo.geometry &&
+        placeInfo.geometry.location &&
+        placeInfo.name
+      ) {
+        setAutoCompletePlacePos({
+          lat: placeInfo.geometry.location.lat(),
+          lng: placeInfo.geometry.location.lng(),
+        });
+        setCurrentPosition({
+          lat: placeInfo.geometry.location.lat(),
+          lng: placeInfo.geometry.location.lng(),
+        });
+        setExactLocation(placeInfo.name);
+      }
+    });
+
+    if (searchInputField !== null) {
+      setAutoCompleteElem(searchInputField);
+    }
+  };
+
+  const handlePlaceChanged = () => {
+    if (autoCompleteElem) {
+      const autocomplete = new google.maps.places.Autocomplete(
+        autoCompleteElem,
+        {
+          componentRestrictions: { country: "jp" },
+        }
+      );
+
+      autocomplete.addListener("place_changed", function () {
+        let placeInfo = autocomplete.getPlace();
+        console.log(placeInfo);
+        if (
+          placeInfo &&
+          placeInfo.geometry &&
+          placeInfo.geometry.location &&
+          placeInfo.name
+        ) {
+          setAutoCompletePlacePos({
+            lat: placeInfo.geometry.location.lat(),
+            lng: placeInfo.geometry.location.lng(),
+          });
+          setCurrentPosition({
+            lat: placeInfo.geometry.location.lat(),
+            lng: placeInfo.geometry.location.lng(),
+          });
+          setExactLocation(placeInfo.name);
+        }
+      });
+    } else {
+      console.log("Autocomplete is not loaded yet!");
+    }
+  };
 
   const POST_IMAGE_FOLDER_NAME = "Post Photos";
   const uploadImage = async (fileInputFile?: File) => {
@@ -400,25 +507,68 @@ export default function ThreadSingle() {
     let imageUrl = await uploadImage(fileInputFile);
     console.log(imageUrl);
     console.log(`uploaded to Backend db`);
-    await axios.post(
-      `${backendUrl}/posts/create-comment/${threadId}`,
-      {
-        userId: userInfo.id,
-        content: content,
-        areaId: areaId,
-        forumPost: forumPost,
-        explorePost: explorePost,
-        externalLink: externalLink,
-        title: title,
-        photoLink: imageUrl,
-        locationName: locationName,
-      },
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
+
+    let pinId;
+    if (currentPosition.lat !== 35.68309653980229) {
+      await axios.post(
+        `${backendUrl}/posts/create-comment/${threadId}`,
+        {
+          userId: userInfo.id,
+          content: content,
+          areaId: areaId,
+          forumPost: forumPost,
+          explorePost: explorePost,
+          externalLink: externalLink,
+          title: title,
+          photoLink: imageUrl,
+          locationName: locationName,
+          oldPinId: null,
+          newPin: currentPosition,
+          exactLocation: exactLocation,
+        },
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+    } else {
+      if (Number(areaId) === 1) {
+        pinId = 41;
+      } else if (Number(areaId) === 2) {
+        pinId = 42;
+      } else {
+        pinId = 43;
       }
-    );
+
+      await axios.post(
+        `${backendUrl}/posts/create-comment/${threadId}`,
+        {
+          userId: userInfo.id,
+          content: content,
+          areaId: areaId,
+          forumPost: forumPost,
+          explorePost: explorePost,
+          externalLink: externalLink,
+          title: title,
+          photoLink: imageUrl,
+          locationName: locationName,
+          oldPinId: pinId,
+          newPin: null,
+        },
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+    }
+
     setOpened(false);
     setUpdateComment(!updateComment);
+    setCurrentPosition({
+      lat: 35.68309653980229,
+      lng: 139.7525871479461,
+    });
+    setAutoCompleteElem(undefined);
+    setAutoCompletePlacePos(undefined);
+    setExactLocation("");
     setContent("");
     setAreaId("");
     setExplorePost("");
@@ -483,7 +633,16 @@ export default function ThreadSingle() {
       <div>
         <Modal
           opened={opened}
-          onClose={() => setOpened(false)}
+          onClose={() => {
+            setOpened(false);
+            setCurrentPosition({
+              lat: 35.68309653980229,
+              lng: 139.7525871479461,
+            });
+            setAutoCompleteElem(undefined);
+            setAutoCompletePlacePos(undefined);
+            setExactLocation("");
+          }}
           title="Share your thoughts"
         >
           <Paper radius="md" p="xl" withBorder>
@@ -553,6 +712,46 @@ export default function ThreadSingle() {
                     value={locationName}
                     onChange={(e) => setLocationName(e.target.value)}
                   />
+                  <Autocomplete onPlaceChanged={handlePlaceChanged}>
+                    <TextInput
+                      ref={(thisInput) => thisInput as HTMLInputElement}
+                      type="text"
+                      label="Exact Location"
+                      placeholder="Input place if any"
+                      className="place"
+                      onChange={handleInputChange}
+                    />
+                  </Autocomplete>
+                  {isLoaded && (
+                    <GoogleMap
+                      onClick={(e) => {
+                        if (e.latLng && e.latLng.lat && e.latLng?.lng) {
+                          setCurrentPosition({
+                            lat: e.latLng.lat(),
+                            lng: e.latLng.lng(),
+                          });
+                        }
+                      }}
+                      center={currentPosition}
+                      zoom={15}
+                      mapContainerStyle={{ width: "367px", height: "30vh" }}
+                      options={{
+                        streetViewControl: false,
+                        mapTypeControl: false,
+                        fullscreenControl: false,
+                      }}
+                    >
+                      {currentPosition &&
+                        currentPosition.lat !== 35.68309653980229 && (
+                          <MarkerF
+                            key={`current pin`}
+                            position={currentPosition}
+                          />
+                        )}
+                    </GoogleMap>
+                  )}
+                  <br />
+
                   <Textarea
                     variant="filled"
                     label="External Link"
