@@ -14,6 +14,7 @@ import {
   FileInput,
   Textarea,
   NumberInput,
+  Button,
 } from "@mantine/core";
 
 import { UseApp } from "./Context";
@@ -21,7 +22,11 @@ import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
 import { backendUrl } from "../utils";
 
-export default function UserForm() {
+type Props = {
+  closeModal: (event: React.MouseEvent<HTMLButtonElement>) => void;
+};
+
+export default function UserForm({ closeModal }: Props) {
   const [name, setName] = useState<string>("");
   const [nationality, setNationality] = useState<string>("");
   const [fileInputFile, setFileInputFile] = useState<File>();
@@ -52,6 +57,7 @@ export default function UserForm() {
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
+    console.log("CLICKED");
     const accessToken = await getAccessTokenSilently({
       audience: process.env.REACT_APP_AUDIENCE,
       scope: process.env.REACT_APP_SCOPE,
@@ -67,6 +73,8 @@ export default function UserForm() {
         nationality: nationality,
         photoLink: imageUrl,
         email: userInfo?.email,
+        loginStreak: 1,
+        lastLogin: new Date(),
       },
       {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -109,7 +117,14 @@ export default function UserForm() {
               setFileInputFile(e);
             }}
           />
-          <button>Submit</button>
+          <Button
+            type="submit"
+            onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
+              closeModal(event)
+            }
+          >
+            Submit
+          </Button>
         </form>
       </Container>
     </div>

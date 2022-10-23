@@ -30,6 +30,28 @@ export interface Post {
   externalLink: string;
   likeCount: number;
   userId: number;
+  locationName: string;
+  userFavourite?: boolean;
+  userLike?: boolean;
+}
+
+export interface DisplayPostCard {
+  id: number;
+  title: string;
+  photoLink: string;
+  content: string;
+  explorePost: string;
+  likeCount: number;
+  userFavourite: boolean;
+  userLike: boolean;
+  likePost: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    postId: number
+  ) => void;
+  favouritePost: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    postId: number
+  ) => void;
 }
 
 export interface PostCard {
@@ -68,7 +90,18 @@ export interface AssocThread {
   postsCount: number;
   usersCount: number;
   lastPost: string;
-  lasPostCreated: string;
+  lastPostCreatedAt: string;
+  lastPostUserId: number;
+  lastPostUserName: string;
+}
+
+export interface UserLikePosts {
+  likePostIds: number[];
+  likePosts: AllPost;
+}
+export interface UserFavouritePosts {
+  favouritePostIds: number[];
+  favouritePosts: AllPost;
 }
 
 //Interfaces for PinMap Component

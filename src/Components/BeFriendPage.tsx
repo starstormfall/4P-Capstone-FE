@@ -56,7 +56,12 @@ function BeFriendPage() {
 
   useEffect(() => {
     getFriendList();
-  }, []);
+    setUserLoggedIn(!userLoggedIn);
+  }, [userInfo]);
+
+  // useEffect(() => {
+
+  // }, [userInfo]);
 
   // const useFriendList = useQuery(["friendlist"], () =>
   //   axios

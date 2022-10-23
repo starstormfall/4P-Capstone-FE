@@ -72,24 +72,24 @@ export default function ForumMain() {
   if (forumList) {
     forumListFinal = forumList.map((list: ThreadListData) => {
       return (
-        <div key={list.id}>
+        // <div key={list.id}>
+        // <Link to={`/exchange/${list.id}`}>
+        <Grid.Col key={list.id} span={4}>
+          {/* <Container key={list.id}> */}
           <Link to={`/exchange/${list.id}`}>
-            <Grid>
-              <Grid.Col span={4}>
-                <Container key={list.id}>
-                  <Card>
-                    <Title order={3}>{list.topic}</Title>
-                    <br />
-                    <Text>{list.lastPost}</Text>
-                    <Text>Post Count: {list.postsCount}</Text>
-                    <Text>User Count: {list.usersCount}</Text>
-                    <Text>Last Updated At: {list.lastPostCreatedAt}</Text>
-                  </Card>
-                </Container>
-              </Grid.Col>
-            </Grid>
+            <Card>
+              <Title order={3}>{list.topic}</Title>
+              <br />
+              <Text>{list.lastPost}</Text>
+              <Text>Post Count: {list.postsCount}</Text>
+              <Text>User Count: {list.usersCount}</Text>
+              <Text>Last Updated At: {list.lastPostCreatedAt}</Text>
+            </Card>
           </Link>
-        </div>
+          {/* </Container> */}
+        </Grid.Col>
+
+        // </div>
       );
     });
   }
@@ -287,7 +287,7 @@ export default function ForumMain() {
         </Group>
       </div>
       {updateForum}
-      {forumListFinal}
+      <Grid>{forumListFinal}</Grid>
     </div>
   );
 }
