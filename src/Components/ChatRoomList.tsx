@@ -19,6 +19,7 @@ import {
   ScrollArea,
   Modal,
   Title,
+  Alert,
 } from "@mantine/core";
 import {
   TablerIcon,
@@ -32,6 +33,7 @@ import {
   IconSquarePlus,
   IconMessages,
   IconMessageDots,
+  IconAlertCircle,
 } from "@tabler/icons";
 // import {CheckmarkCircle} from "@easy-eva-icons/react"
 
@@ -583,42 +585,58 @@ export default function ChatRoomList(props: Props) {
               </Box>
             </>
           ) : null}
-          {addChatroom && allFriends && allFriends.length !== 0 ? (
-            <>
-              <Modal
-                opened={addChatroom}
-                onClose={() => setAddChatroom(false)}
-                title="New Chatroom"
-                radius="md"
-              >
-                <TextInput
-                  placeholder="All things Japan"
-                  label="Title"
-                  withAsterisk
-                  required
-                  onChange={handleChange}
-                  // className={classes.modal}
-                />
-                <br />
-                <Text size="sm">Friends to Add</Text>
-                <MultiSelect
-                  value={newUser}
-                  onChange={setNewUser}
-                  data={allFriends}
-                />
-                <br />
-                <UnstyledButton>
-                  <Group className={classes.roomNew}>
-                    <IconMessageDots
-                      onClick={handleCreateRoom}
-                      size={26}
-                      color="#7491A8"
-                    />
-                  </Group>
-                </UnstyledButton>
-                {/* <Button onClick={handleCreateRoom}>Create Chatroom</Button> */}
-              </Modal>
-            </>
+          {addChatroom ? (
+            allFriends && allFriends.length !== 0 ? (
+              <>
+                <Modal
+                  opened={addChatroom}
+                  onClose={() => setAddChatroom(false)}
+                  title="New Chatroom"
+                  radius="md"
+                >
+                  <TextInput
+                    placeholder="All things Japan"
+                    label="Title"
+                    withAsterisk
+                    required
+                    onChange={handleChange}
+                    // className={classes.modal}
+                  />
+                  <br />
+                  <Text size="sm">Friends to Add</Text>
+                  <MultiSelect
+                    value={newUser}
+                    onChange={setNewUser}
+                    data={allFriends}
+                  />
+                  <br />
+                  <UnstyledButton>
+                    <Group className={classes.roomNew}>
+                      <IconMessageDots
+                        onClick={handleCreateRoom}
+                        size={26}
+                        color="#7491A8"
+                      />
+                    </Group>
+                  </UnstyledButton>
+                  {/* <Button onClick={handleCreateRoom}>Create Chatroom</Button> */}
+                </Modal>
+              </>
+            ) : (
+              <>
+                <Alert
+                  icon={<IconAlertCircle size={16} />}
+                  title="Bummer!"
+                  color="#C1BBD5"
+                  withCloseButton
+                  closeButtonLabel="Close alert"
+                  onClose={() => setAddChatroom(false)}
+                >
+                  Sorry, it seems that you currently do not have any friends
+                  yet. Please add friends to start a new chatroom!
+                </Alert>
+              </>
+            )
           ) : null}
         </div>
       ) : (

@@ -21,6 +21,7 @@ import {
   NumberInput,
   Checkbox,
   Select,
+  TextInput,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -28,6 +29,15 @@ import {
   ref as storageRef,
   uploadBytes,
 } from "firebase/storage";
+
+// Googlemaps Api
+import {
+  GoogleMap,
+  useJsApiLoader,
+  MarkerF,
+  LoadScript,
+  Autocomplete,
+} from "@react-google-maps/api";
 
 type ThreadListData = {
   id: number;
@@ -43,6 +53,12 @@ type AllPrefectureData = {
   prefecture: string;
 };
 
+// Googlemaps type for position/marker
+type Location = {
+  lat: number;
+  lng: number;
+};
+
 // type PrefData = {
 //   id: string;
 //   label: string;
@@ -54,6 +70,15 @@ export default function ForumMain() {
   const [forumList, setForumList] = useState<ThreadListData[]>();
   const [updateForum, setUpdateForum] = useState<boolean>(false);
   const { getAccessTokenSilently } = useAuth0();
+
+  // Google map library and API definition
+  const [libraries] = useState<
+    ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
+  >(["visualization", "places"]);
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY as string,
+    libraries: libraries,
+  });
 
   const getForumData = async () => {
     const response = await axios.get(`${backendUrl}/posts/thread`);
@@ -135,7 +160,88 @@ export default function ForumMain() {
   const [topic, setTopic] = useState<string>("");
   const { userInfo } = UseApp();
 
+  // Googlemaps states for markers, and for autocomplete
+  const [currentPosition, setCurrentPosition] = useState<Location>({
+    lat: 35.68309653980229,
+    lng: 139.7525871479461,
+  });
+  const [autoCompleteElem, setAutoCompleteElem] = useState<HTMLInputElement>();
+  const [autoCompletePlacePos, setAutoCompletePlacePos] = useState<Location>();
+  const [exactLocation, setExactLocation] = useState("");
+
   console.log(userInfo.id);
+  console.log(currentPosition);
+  console.log(autoCompletePlacePos);
+  console.log(areaId);
+
+  // Handle autocomplete changes. Please dont change order of autocomplete within form.
+  const handleInputChange = () => {
+    let searchInputField = document.getElementsByTagName("input")[3];
+    const autocomplete = new google.maps.places.Autocomplete(searchInputField, {
+      componentRestrictions: { country: "jp" },
+    });
+
+    autocomplete.addListener("place_changed", function () {
+      let placeInfo = autocomplete.getPlace();
+
+      console.log(placeInfo);
+
+      if (
+        placeInfo &&
+        placeInfo.geometry &&
+        placeInfo.geometry.location &&
+        placeInfo.name
+      ) {
+        setAutoCompletePlacePos({
+          lat: placeInfo.geometry.location.lat(),
+          lng: placeInfo.geometry.location.lng(),
+        });
+        setCurrentPosition({
+          lat: placeInfo.geometry.location.lat(),
+          lng: placeInfo.geometry.location.lng(),
+        });
+        setExactLocation(placeInfo.name);
+      }
+    });
+
+    if (searchInputField !== null) {
+      setAutoCompleteElem(searchInputField);
+    }
+  };
+
+  const handlePlaceChanged = () => {
+    if (autoCompleteElem) {
+      const autocomplete = new google.maps.places.Autocomplete(
+        autoCompleteElem,
+        {
+          componentRestrictions: { country: "jp" },
+        }
+      );
+
+      autocomplete.addListener("place_changed", function () {
+        let placeInfo = autocomplete.getPlace();
+        console.log(placeInfo);
+        if (
+          placeInfo &&
+          placeInfo.geometry &&
+          placeInfo.geometry.location &&
+          placeInfo.name
+        ) {
+          setAutoCompletePlacePos({
+            lat: placeInfo.geometry.location.lat(),
+            lng: placeInfo.geometry.location.lng(),
+          });
+          setCurrentPosition({
+            lat: placeInfo.geometry.location.lat(),
+            lng: placeInfo.geometry.location.lng(),
+          });
+          setExactLocation(placeInfo.name);
+        }
+      });
+    } else {
+      console.log("Autocomplete is not loaded yet!");
+    }
+  };
 
   const POST_IMAGE_FOLDER_NAME = "Post Photos";
   const uploadImage = async (fileInputFile?: File) => {
@@ -168,24 +274,65 @@ export default function ForumMain() {
     console.log(imageUrl);
     console.log(`uploaded to Backend db`);
 
-    const newForumPost = {
-      userId: userInfo.id,
-      content: content,
-      areaId: areaId,
-      forumPost: forumPost,
-      explorePost: explorePost,
-      externalLink: null,
-      title: title,
-      photoLink: imageUrl,
-      locationName: locationName,
-      topic: topic,
-    };
+    let pinId;
+    if (currentPosition.lat !== 35.68309653980229) {
+      const newForumPost = {
+        userId: userInfo.id,
+        content: content,
+        areaId: areaId,
+        forumPost: forumPost,
+        explorePost: explorePost,
+        externalLink: null,
+        title: title,
+        photoLink: imageUrl,
+        locationName: locationName,
+        topic: topic,
+        oldPinId: null,
+        newPin: currentPosition,
+        exactLocation: exactLocation,
+      };
 
-    await axios.post(`${backendUrl}/posts/create-thread`, newForumPost, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+      await axios.post(`${backendUrl}/posts/create-thread`, newForumPost, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+    } else {
+      if (Number(areaId) === 1) {
+        pinId = 41;
+      } else if (Number(areaId) === 2) {
+        pinId = 42;
+      } else {
+        pinId = 43;
+      }
+
+      const newForumPost = {
+        userId: userInfo.id,
+        content: content,
+        areaId: areaId,
+        forumPost: forumPost,
+        explorePost: explorePost,
+        externalLink: null,
+        title: title,
+        photoLink: imageUrl,
+        locationName: locationName,
+        topic: topic,
+        oldPinId: pinId,
+        newPin: null,
+      };
+
+      await axios.post(`${backendUrl}/posts/create-thread`, newForumPost, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+    }
+
     setOpened(false);
     setUpdateForum(!updateForum);
+    setCurrentPosition({
+      lat: 35.68309653980229,
+      lng: 139.7525871479461,
+    });
+    setAutoCompleteElem(undefined);
+    setAutoCompletePlacePos(undefined);
+    setExactLocation("");
   };
 
   return (
@@ -193,7 +340,16 @@ export default function ForumMain() {
       <div>
         <Modal
           opened={opened}
-          onClose={() => setOpened(false)}
+          onClose={() => {
+            setOpened(false);
+            setCurrentPosition({
+              lat: 35.68309653980229,
+              lng: 139.7525871479461,
+            });
+            setAutoCompleteElem(undefined);
+            setAutoCompletePlacePos(undefined);
+            setExactLocation("");
+          }}
           title="Tell us more in details!"
         >
           <Container>
@@ -240,6 +396,42 @@ export default function ForumMain() {
                 value={locationName}
                 onChange={(e) => setLocationName(e.target.value)}
               />
+              <Autocomplete onPlaceChanged={handlePlaceChanged}>
+                <TextInput
+                  ref={(thisInput) => thisInput as HTMLInputElement}
+                  type="text"
+                  label="Exact Location"
+                  placeholder="Input place if any"
+                  className="place"
+                  onChange={handleInputChange}
+                />
+              </Autocomplete>
+              {isLoaded && (
+                <GoogleMap
+                  onClick={(e) => {
+                    if (e.latLng && e.latLng.lat && e.latLng?.lng) {
+                      setCurrentPosition({
+                        lat: e.latLng.lat(),
+                        lng: e.latLng.lng(),
+                      });
+                    }
+                  }}
+                  center={currentPosition}
+                  zoom={15}
+                  mapContainerStyle={{ width: "367px", height: "30vh" }}
+                  options={{
+                    streetViewControl: false,
+                    mapTypeControl: false,
+                    fullscreenControl: false,
+                  }}
+                >
+                  {currentPosition &&
+                    currentPosition.lat !== 35.68309653980229 && (
+                      <MarkerF key={`current pin`} position={currentPosition} />
+                    )}
+                </GoogleMap>
+              )}
+              <br />
               <FileInput
                 variant="filled"
                 placeholder="pick file"

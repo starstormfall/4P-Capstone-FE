@@ -97,7 +97,7 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-// Rewards currently sitting as a child of ExplorePage.tsx. To shift to avatar later. Props being passes are useState pair of rewardModalVisible.
+// Rewards currently sitting as a child of ExplorePage.tsx. To shift to avatar later. Props being passed are useState pair of rewardModalVisible.
 export default function Rewards(props: Props) {
   const navigate = useNavigate();
 

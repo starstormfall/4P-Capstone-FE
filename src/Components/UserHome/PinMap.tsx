@@ -560,9 +560,12 @@ export default function PinMap(props: Props) {
       } else if (category === 3) {
         markerIcon =
           "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
-      } else {
+      } else if (category === 4) {
         markerIcon =
           "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
+      } else {
+        markerIcon =
+          "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
       }
 
       singleMarker = (

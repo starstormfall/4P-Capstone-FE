@@ -752,7 +752,7 @@ export default function Map() {
           //   },
           // }}
         >
-          {infoToReturn}
+          {infoToReturn.length === nearbyPlaceDist.length && infoToReturn}
         </Carousel>
       );
     }
@@ -1486,7 +1486,13 @@ export default function Map() {
             >
               <Grid.Col span={8}>
                 <GoogleMap
-                  onClick={() => handleResetMarker()}
+                  onClick={() => {
+                    handleResetMarker();
+                    // if (e.latLng && e.latLng.lat && e.latLng?.lng) {
+                    //   console.log("lat", e.latLng.lat());
+                    //   console.log("lng", e.latLng.lng());
+                    // }
+                  }}
                   center={mapCenter}
                   onLoad={(map) => setOriginalMap(map)}
                   zoom={zoomLevel}
@@ -1623,9 +1629,12 @@ export default function Map() {
                               } else if (category === 3) {
                                 markerIcon =
                                   "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
-                              } else {
+                              } else if (category === 4) {
                                 markerIcon =
                                   "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
+                              } else {
+                                markerIcon =
+                                  "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
                               }
 
                               return (
@@ -1684,9 +1693,12 @@ export default function Map() {
                             } else if (category === 3) {
                               markerIcon =
                                 "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
-                            } else {
+                            } else if (category === 4) {
                               markerIcon =
                                 "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
+                            } else {
+                              markerIcon =
+                                "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
                             }
 
                             return (
@@ -1743,9 +1755,12 @@ export default function Map() {
                       } else if (categoryId[0] === 3) {
                         markerIcon =
                           "https://tabler-icons.io/static/tabler-icons/icons-png/building-skyscraper.png";
-                      } else {
+                      } else if (categoryId[0] === 4) {
                         markerIcon =
                           "https://tabler-icons.io/static/tabler-icons/icons-png/shopping-cart.png";
+                      } else {
+                        markerIcon =
+                          "https://tabler-icons.io/static/tabler-icons/icons-png/camera.png";
                       }
 
                       return (
