@@ -26,13 +26,26 @@ import {
   Modal,
   Loader,
 } from "@mantine/core";
-import { LogOut, Search } from "@easy-eva-icons/react";
+import {
+  LogOut,
+  Search,
+  Home,
+  Map,
+  People,
+  SmilingFace,
+} from "@easy-eva-icons/react";
 import { useStyles } from "./useStyles";
 import tdflLogo from "../../Images/tdflLogo.png";
 
 import { StreakDialog } from "./StreakDialog";
 import Rewards from "../../Components/Rewards";
 import UserForm from "../../Components/UserForm";
+
+import {
+  Area,
+  Category,
+  Hashtag,
+} from "../../Components/UserHome/HomePageInterface";
 
 export type ContextType = {
   key: [
@@ -53,6 +66,9 @@ function TdflAppShell() {
   const [userLoggedIn, setUserLoggedIn] = useState<boolean>(false);
 
   const [loginScore, setLoginScore] = useState<number>(0);
+
+  // FOR AUTOCOMPLETE DATA
+  const [allAreas, setAllAreas] = useState<Area[]>([]);
 
   // render components
   const [streakDialogOn, setStreakDialogOn] = useState<boolean>(false);
@@ -139,18 +155,22 @@ function TdflAppShell() {
     {
       link: "home",
       label: "Home",
+      icon: <Home />,
     },
     {
       link: "/map",
       label: "Map",
+      icon: <Map />,
     },
     {
       link: "/exchange",
       label: "Exchange",
+      icon: <People />,
     },
     {
       link: "/befriend",
       label: "Befriend",
+      icon: <SmilingFace />,
     },
   ];
 
@@ -167,7 +187,10 @@ function TdflAppShell() {
         navigate(link.link);
       }}
     >
-      {link.label}
+      <Group spacing={5}>
+        {link.icon}
+        {link.label}
+      </Group>
     </UnstyledButton>
   ));
 
@@ -180,10 +203,7 @@ function TdflAppShell() {
       <AppShell
         styles={{
           main: {
-            background:
-              theme.colorScheme === "dark"
-                ? theme.colors.dark[8]
-                : theme.colors.gray[0],
+            paddingTop: "70px",
           },
         }}
         // do when got time for styling
