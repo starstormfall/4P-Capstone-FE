@@ -22,7 +22,7 @@ const ScrollTopButton = ({ scrollUp }: Props) => {
     <Button
       radius="xl"
       variant="gradient"
-      gradient={{ from: "aqua", to: "purple" }}
+      gradient={{ from: "beige.9", to: "beige.4" }}
       className={classes.showButton}
       onClick={scrollUp}
       rightIcon={<ArrowheadUp />}

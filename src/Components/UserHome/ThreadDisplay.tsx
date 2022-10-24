@@ -1,6 +1,7 @@
 import React, { useEffect, useState, MouseEvent } from "react";
 import axios from "axios";
 import { backendUrl } from "../../utils";
+import { useNavigate } from "react-router-dom";
 
 // import interface
 import { AssocThread, Post } from "./HomePageInterface";
@@ -9,7 +10,6 @@ import { AssocThread, Post } from "./HomePageInterface";
 import {
   Container,
   Grid,
-  ThemeIcon,
   Text,
   Avatar,
   Timeline,
@@ -20,6 +20,10 @@ import {
   Button,
   Divider,
   Stack,
+  Mark,
+  Paper,
+  Blockquote,
+  Box,
 } from "@mantine/core";
 import { Edit } from "@easy-eva-icons/react";
 
@@ -49,6 +53,8 @@ export default function ThreadDisplay({
   likePost,
   favouritePost,
 }: Props) {
+  const navigate = useNavigate();
+
   const [tags, setTags] = useState({
     categories: [],
     hashtags: [],
@@ -64,18 +70,29 @@ export default function ThreadDisplay({
     } catch (err) {}
   };
 
-  const handleGoToThread = async () => {};
+  const handleGoToThread = (threadId: number) => {
+    navigate(`/exchange/${threadId}`);
+  };
 
   useEffect(() => {
     getTags();
   }, []);
+
+  const handleStartNewThread = () => {
+    navigate("/exchange");
+  };
 
   const showThreads = assocThreads.map((thread, index) => (
     <Timeline.Item
       key={index}
       title={
         <Group noWrap>
-          <Button>
+          <Button
+            // variant="light"
+            color="beige.7"
+            radius="md"
+            onClick={(event: MouseEvent) => handleGoToThread(thread.id)}
+          >
             <Title order={5}>{thread.topic}</Title>
           </Button>
           <Stack spacing={0}>
@@ -86,12 +103,25 @@ export default function ThreadDisplay({
       }
       bulletSize={24}
     >
-      <Text size="xs" mt={4}>
-        Latest post by {thread.lastPostUserName} on {thread.lastPostCreatedAt}:
-      </Text>
-      <Text size="sm" mt={4}>
-        {thread.lastPost}
-      </Text>
+      <Blockquote
+        cite={
+          <Group>
+            <Avatar
+              src={thread.lastPostUserPhoto}
+              alt={thread.lastPostUserName}
+              radius="xl"
+            />
+            <div>
+              <Text size="sm">posted by {thread.lastPostUserName}</Text>
+              <Text size="xs" color="dimmed">
+                {thread.lastPostCreatedAt}
+              </Text>
+            </div>
+          </Group>
+        }
+      >
+        <Text size="md">{thread.lastPost}</Text>
+      </Blockquote>
     </Timeline.Item>
   ));
 
@@ -113,31 +143,45 @@ export default function ThreadDisplay({
       </Grid.Col>
 
       <Grid.Col span={7}>
-        <Divider
-          my="xs"
-          label={
-            <Text align="center" size="lg" weight="700">
-              Check Out the Conversations Here!
-            </Text>
-          }
-          labelPosition="center"
-        />
+        <Box
+          sx={(theme) => ({
+            textAlign: "center",
+            padding: theme.spacing.sm,
+            height: "60vh",
+          })}
+        >
+          <Button
+            color="beige.7"
+            rightIcon={<Edit />}
+            onClick={handleStartNewThread}
+          >
+            <Title order={5}> Start a New Discussion on This!</Title>
+          </Button>
+          <Space h="lg" />
+          <Divider
+            label={
+              <Text color="greyBlue.7" align="center" size="lg" weight="700">
+                Or Check Out the Latest Conversations Here!
+              </Text>
+            }
+            labelPosition="center"
+          />
 
-        <Space h="lg" />
-        <ScrollArea style={{ height: "55vh" }}>
-          <Container>
-            {showThreads && showThreads.length ? (
-              <Timeline>{showThreads}</Timeline>
-            ) : (
-              <Stack>
-                <Title align="center" order={3}>
-                  No discussions started yet...
-                </Title>
-                <Button rightIcon={<Edit />}>Start a Discussion!</Button>
-              </Stack>
-            )}
-          </Container>
-        </ScrollArea>
+          <Space h="lg" />
+          <ScrollArea style={{ height: "45vh" }}>
+            <Container>
+              {showThreads && showThreads.length ? (
+                <Timeline>{showThreads}</Timeline>
+              ) : (
+                <Stack>
+                  <Title align="center" order={4}>
+                    No discussions started yet...
+                  </Title>
+                </Stack>
+              )}
+            </Container>
+          </ScrollArea>
+        </Box>
       </Grid.Col>
     </Grid>
   );

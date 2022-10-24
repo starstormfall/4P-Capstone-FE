@@ -26,6 +26,9 @@ import {
   Tabs,
   Text,
   Center,
+  SimpleGrid,
+  Stack,
+  ThemeIcon,
 } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 import { Heart, Star, Camera, ArrowheadUp } from "@easy-eva-icons/react";
@@ -37,10 +40,7 @@ import {
   Hashtag,
   AllPost,
   Post,
-  PostCard,
   AssocThread,
-  UserFavouritePosts,
-  UserLikePosts,
 } from "./HomePageInterface";
 
 // import child components
@@ -295,10 +295,13 @@ function HomePage() {
   const listAreas = allAreas.map((area: Area) => (
     <Carousel.Slide key={area.id}>
       <Button
+        uppercase
+        variant={selectedAreas === area.id ? "gradient" : "light"}
+        gradient={{ from: "aqua.5", to: "aqua.3", deg: 105 }}
         compact
         radius="md"
         size="sm"
-        color={selectedAreas === area.id ? "aqua.7" : "aqua"}
+        color="aqua"
         id={`${area.id}`}
         name="prefecture"
         onClick={handleFilter}
@@ -312,10 +315,15 @@ function HomePage() {
   const listCategories = allCategories.map((category: Category, index) => (
     <Carousel.Slide key={category.id}>
       <Button
+        uppercase
         disabled={!selectedAreas ? true : false}
         compact
         radius="md"
         size="sm"
+        variant={
+          selectedCategories.includes(category.id) ? "gradient" : "light"
+        }
+        gradient={{ from: "blue.5", to: "blue.3", deg: 105 }}
         color="blue"
         key={index}
         id={`${category.id}`}
@@ -330,10 +338,13 @@ function HomePage() {
   const listHashtags = allHashtags.map((hashtag: Hashtag, index) => (
     <Carousel.Slide key={hashtag.id}>
       <Button
+        uppercase
         disabled={!selectedCategories.length ? true : false}
         compact
         radius="md"
         size="sm"
+        variant={selectedHashtags.includes(hashtag.id) ? "gradient" : "light"}
+        gradient={{ from: "purple.5", to: "purple.3", deg: 105 }}
         color="purple"
         key={index}
         id={`${hashtag.id}`}
@@ -356,6 +367,7 @@ function HomePage() {
     setSelectedPostId(postId);
     setSelectedPost(allPosts[postId]);
     getTags(postId);
+    setShowButton(false);
   };
 
   // // handleLike
@@ -396,6 +408,7 @@ function HomePage() {
     setThreadDisplayDrawerOn(true);
     setSelectedPost(allPosts[postId]);
     getTags(postId);
+    setShowButton(false);
   };
 
   // // handleShareLink
@@ -466,7 +479,7 @@ function HomePage() {
   };
 
   return (
-    <Container fluid px={0}>
+    <>
       {/* FOR SHARE POST MODAL  */}
       <Modal
         transition="fade"
@@ -493,13 +506,20 @@ function HomePage() {
         title={
           <Group>
             <Title order={3}>{selectedPost.locationName}</Title>
-            <Badge>{tags.prefecture}</Badge> <Text color="dimmed">|</Text>
+            <Badge size="md" color="aqua">
+              {tags.prefecture}
+            </Badge>
+            <Text color="dimmed">|</Text>
             {tags.categories.map((category, index) => (
-              <Badge key={`thread-category-${index}`}>{category}</Badge>
+              <Badge size="md" color="blue" key={`pin-category-${index}`}>
+                {category}
+              </Badge>
             ))}
             <Text color="dimmed">|</Text>
             {tags.hashtags.map((hashtag, index) => (
-              <Badge key={`thread-hashtag-${index}`}>{hashtag}</Badge>
+              <Badge size="md" color="purple" key={`pin-hashtag-${index}`}>
+                {hashtag}
+              </Badge>
             ))}
           </Group>
         }
@@ -529,7 +549,7 @@ function HomePage() {
             <Title order={3}>{selectedPost.locationName}</Title>
             <Badge size="md" color="aqua">
               {tags.prefecture}
-            </Badge>{" "}
+            </Badge>
             <Text color="dimmed">|</Text>
             {tags.categories.map((category, index) => (
               <Badge size="md" color="blue" key={`pin-category-${index}`}>
@@ -561,124 +581,199 @@ function HomePage() {
 
       {/* FOR RENDERING ALL/FILTERED POSTS  */}
       <Space h="xs" />
-      {/* <Grid columns={15} grow> */}
 
-      <Tabs variant="outline" value={activeTab} onTabChange={setActiveTab}>
-        <Tabs.List>
-          <Tabs.Tab
-            value="allExplore"
-            icon={
-              <Camera
-                color={activeTab === "allExplore" ? "#387592" : "#868E96"}
-              />
-            }
-          >
-            <Title
-              color={activeTab === "allExplore" ? "blue.6" : "gray.6"}
-              order={6}
-            >
-              All
-            </Title>
-            {/* FOR SEARCH FILTERS */}
-            <Box
-              sx={(theme) => ({
-                textAlign: "center",
-                padding: theme.spacing.xs,
-              })}
-            >
-              <Grid justify="center" grow>
-                <Grid.Col span={4}>
-                  <Text size="xs" color="dimmed" align="center">
-                    Prefecture
-                  </Text>
-                  <Space h="xs" />
+      <Tabs value={activeTab} onTabChange={setActiveTab}>
+        <Tabs.List position="apart">
+          {/* ALL EXPLORE POSTS */}
+          <Tabs.Tab value="allExplore">
+            <Group noWrap spacing="xs">
+              <Stack spacing={3}>
+                <Title
+                  color={activeTab === "allExplore" ? "blue.6" : "gray.6"}
+                  size={12}
+                >
+                  All Posts
+                </Title>
+                <Center>
+                  <ThemeIcon
+                    size="sm"
+                    radius="xl"
+                    color={activeTab === "allExplore" ? "blue.6" : "gray.6"}
+                    variant={activeTab === "allExplore" ? "filled" : "light"}
+                  >
+                    <Camera />
+                  </ThemeIcon>
+                </Center>
+              </Stack>
 
-                  {allAreas && allAreas.length ? (
-                    <Center>
-                      <Carousel
-                        sx={{ width: "30vw" }}
-                        height={30}
-                        loop
-                        slideGap="xs"
-                        slidesToScroll={3}
-                        slideSize="20%"
+              {/* FOR SEARCH FILTERS */}
+              {/* <Box
+                sx={(theme) => ({
+                  textAlign: "center",
+                  padding: "0",
+                  backgroundColor: "blue",
+                  borderRadius: theme.radius.md,
+                })}
+              > */}
+              {activeTab === "allExplore" ? (
+                <SimpleGrid cols={3} spacing="xs">
+                  <div>
+                    <Group noWrap spacing="xs">
+                      <Box
+                        sx={(theme) => ({
+                          textAlign: "center",
+                          padding: "2px",
+                          // backgroundColor: "blue",
+                          // borderRadius: theme.radius.md,
+                        })}
                       >
-                        {listAreas}
-                      </Carousel>
-                    </Center>
-                  ) : (
-                    <Loader />
-                  )}
-                </Grid.Col>
-                <Divider size="sm" orientation="vertical" />
-                <Grid.Col span={4}>
-                  <Text size="xs" color="dimmed" align="center">
-                    Categories
-                  </Text>
-                  <Space h="xs" />
-                  {allCategories && allCategories.length ? (
-                    <Center>
-                      <Carousel
-                        sx={{ width: "30vw" }}
-                        height={30}
-                        slideGap="xs"
-                        slidesToScroll={1}
-                        slideSize="20%"
+                        <Text size="xs" color="dimmed" align="center">
+                          Choose 1 of 47 Prefectures
+                        </Text>
+                        <Space h="xs" />
+                        {allAreas && allAreas.length ? (
+                          <Center>
+                            <Carousel
+                              sx={{ width: "24vw" }}
+                              height={30}
+                              loop
+                              slideGap="xs"
+                              slidesToScroll={3}
+                              slideSize="20%"
+                              controlsOffset={0}
+                              controlSize={14}
+                            >
+                              {listAreas}
+                            </Carousel>
+                          </Center>
+                        ) : (
+                          <Loader />
+                        )}
+                      </Box>
+                      <Divider size="sm" orientation="vertical" />
+                    </Group>
+                  </div>
+
+                  <div>
+                    <Group noWrap spacing="xs">
+                      <Box
+                        sx={(theme) => ({
+                          textAlign: "center",
+                          padding: "2px",
+                          // backgroundColor: "blue",
+                          // borderRadius: theme.radius.md,
+                        })}
                       >
-                        {listCategories}
-                      </Carousel>
-                    </Center>
-                  ) : (
-                    <Loader />
-                  )}
-                </Grid.Col>
-                <Divider size="sm" orientation="vertical" />
-                <Grid.Col span={3}>
-                  <Text size="xs" color="dimmed" align="center">
-                    Hashtags
-                  </Text>
-                  <Space h="xs" />
-                  {allHashtags && allHashtags.length ? (
-                    <Carousel
-                      sx={{ width: "30vw" }}
-                      height={30}
-                      slideGap="xs"
-                      slidesToScroll={1}
-                      slideSize="20%"
-                    >
-                      {listHashtags}{" "}
-                    </Carousel>
-                  ) : (
-                    <Loader />
-                  )}
-                </Grid.Col>
-              </Grid>
-            </Box>
+                        <Text size="xs" color="dimmed" align="center">
+                          Categories
+                        </Text>
+                        <Space h="xs" />
+                        {allCategories && allCategories.length ? (
+                          <Center>
+                            <Carousel
+                              sx={{ width: "24vw" }}
+                              height={30}
+                              loop
+                              slideGap="xs"
+                              slidesToScroll={3}
+                              slideSize="20%"
+                              controlsOffset={0}
+                              controlSize={14}
+                            >
+                              {listCategories}
+                            </Carousel>
+                          </Center>
+                        ) : (
+                          <Loader />
+                        )}
+                      </Box>
+                      <Divider size="sm" orientation="vertical" />
+                    </Group>
+                  </div>
+
+                  <div>
+                    <Group noWrap spacing="xs">
+                      <Box
+                        sx={(theme) => ({
+                          textAlign: "center",
+                          padding: "2px",
+                          // backgroundColor: "blue",
+                          // borderRadius: theme.radius.md,
+                        })}
+                      >
+                        <Text size="xs" color="dimmed" align="center">
+                          Hashtags
+                        </Text>
+                        <Space h="xs" />
+                        {allHashtags && allHashtags.length ? (
+                          <Carousel
+                            sx={{ width: "24vw" }}
+                            height={30}
+                            loop
+                            slideGap="xs"
+                            slidesToScroll={3}
+                            slideSize="20%"
+                            controlsOffset={0}
+                            controlSize={14}
+                          >
+                            {listHashtags}
+                          </Carousel>
+                        ) : (
+                          <Loader />
+                        )}
+                      </Box>
+                      <Divider size="sm" orientation="vertical" />
+                    </Group>
+                  </div>
+                </SimpleGrid>
+              ) : null}
+              {/* </Box> */}
+            </Group>
             {/* END OF SEARCH FILTERS */}
           </Tabs.Tab>
 
           {/* LIKES TAB */}
-          <Tabs.Tab value="likes" icon={<Heart color="#FA5252" />}>
-            {activeTab === "likes" ? (
+          <Tabs.Tab value="likes">
+            <Stack spacing={3}>
               <Title
                 color={activeTab === "likes" ? "red.6" : "gray.6"}
-                order={6}
+                size={12}
               >
-                Posts You've Liked
+                Likes
               </Title>
-            ) : null}
+              <Center>
+                <ThemeIcon
+                  size="sm"
+                  radius="xl"
+                  color={activeTab === "likes" ? "red.6" : "gray.6"}
+                  variant={activeTab === "likes" ? "filled" : "light"}
+                >
+                  <Heart />
+                </ThemeIcon>
+              </Center>
+            </Stack>
           </Tabs.Tab>
 
           {/* FAVOURITES TAB */}
-          <Tabs.Tab value="favourites" icon={<Star color="#FAB005" />}>
-            {activeTab === "favourites" ? (
+          <Tabs.Tab value="favourites">
+            <Stack spacing={3}>
               <Title
                 color={activeTab === "favourites" ? "yellow.6" : "gray.6"}
-                order={6}
+                size={12}
               >
-                Saved Favourites
+                Favourites
               </Title>
-            ) : null}
+              <Center>
+                <ThemeIcon
+                  size="sm"
+                  radius="xl"
+                  color={activeTab === "favourites" ? "yellow.6" : "gray.6"}
+                  variant={activeTab === "favourites" ? "filled" : "light"}
+                >
+                  <Star />
+                </ThemeIcon>
+              </Center>
+            </Stack>
           </Tabs.Tab>
         </Tabs.List>
 
@@ -722,9 +817,7 @@ function HomePage() {
           </section>
         </Tabs.Panel>
       </Tabs>
-
-      {/* </Grid> */}
-    </Container>
+    </>
   );
 }
 
