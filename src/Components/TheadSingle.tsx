@@ -521,9 +521,9 @@ export default function ThreadSingle() {
                       setExplorePost("forum");
                       setExploreOpen((o) => !o);
                       setForumPost(true);
-                      // if (!exploreOpen) {
-                      //   setExplorePost("");
-                      // }
+                      if (exploreOpen) {
+                        setExplorePost("");
+                      }
                       console.log(`explore status`, explorePost);
                       console.log(`forum state`, forumPost);
                     }}
