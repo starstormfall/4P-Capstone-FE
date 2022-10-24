@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, Outlet, useOutletContext } from "react-router-dom";
 import { withAuthenticationRequired } from "@auth0/auth0-react";
 
-import { Grid, Space } from "@mantine/core";
+import { Grid, Space, Title } from "@mantine/core";
 import FriendList from "./FriendList";
 import FriendRequestList from "./FriendRequest";
 import ChatRoomList from "./ChatRoomList";
@@ -80,7 +80,9 @@ function BeFriendPage() {
   return (
     <div>
       <Space h="lg" />
-      BeFriendPage Page
+      <Title align="center" my="lg">
+        Befriend
+      </Title>
       <Grid justify="space-between" align="start">
         {openChatroom ? (
           <>

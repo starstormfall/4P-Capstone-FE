@@ -17,6 +17,7 @@ import {
   ActionIcon,
   Box,
   ScrollArea,
+  Title,
 } from "@mantine/core";
 import { IconCheck, IconLetterX } from "@tabler/icons";
 import { useMutation } from "@tanstack/react-query";
@@ -87,7 +88,9 @@ export default function FriendRequestList({
           flexDirection: "column",
         })}
       >
-        <Text align="center">Friend Request</Text>
+        <Title align="center" order={3} mb="md">
+          Friend List
+        </Title>
         <Container>
           <ScrollArea
             style={{ height: 600 }}
