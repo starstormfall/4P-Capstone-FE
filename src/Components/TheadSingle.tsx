@@ -28,6 +28,7 @@ import {
   Collapse,
   TextInput,
   Grid,
+  Space,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -584,6 +585,7 @@ export default function ThreadSingle() {
 
   return (
     <div>
+      <Space h="lg" />
       <Container className={classes.borderContain}>
         {singleThreadData ? (
           <Box>

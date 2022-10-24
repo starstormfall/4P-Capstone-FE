@@ -36,6 +36,7 @@ import {
   Modal,
   Paper,
   useMantineTheme,
+  Space,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { Carousel } from "@mantine/carousel";
@@ -1317,6 +1318,7 @@ export default function Map() {
 
   return (
     <>
+      <Space h="lg" />
       <Grid>
         <Grid.Col span={4}>
           <ScrollArea style={{ height: 50 }}>

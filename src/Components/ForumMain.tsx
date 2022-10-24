@@ -20,6 +20,7 @@ import {
   Title,
   Paper,
   createStyles,
+  Space,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -386,6 +387,7 @@ export default function ForumMain() {
 
   return (
     <div>
+      <Space h="lg" />
       <Title align="center">Exchange</Title>
       <Text size="sm" align="center" color="aqua">
         reach out to like-minded enthusiasts and share tips or ask advice from
