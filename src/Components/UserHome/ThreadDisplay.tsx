@@ -24,11 +24,13 @@ import {
   Paper,
   Blockquote,
   Box,
+  Center,
 } from "@mantine/core";
-import { Edit } from "@easy-eva-icons/react";
+import { Edit, Close } from "@easy-eva-icons/react";
 
 // import child components
 import DisplayPost from "./DisplayPost";
+import ThreadForm from "./NewThreadForm";
 
 interface Props {
   selectedPost: Post;
@@ -43,6 +45,8 @@ interface Props {
     event: React.MouseEvent<HTMLButtonElement>,
     postId: number
   ) => void;
+  setAssocThreads: React.Dispatch<React.SetStateAction<AssocThread[]>>;
+  threadDisplayDrawerOn: boolean;
 }
 
 export default function ThreadDisplay({
@@ -52,6 +56,8 @@ export default function ThreadDisplay({
   userFavourite,
   likePost,
   favouritePost,
+  setAssocThreads,
+  threadDisplayDrawerOn,
 }: Props) {
   const navigate = useNavigate();
 
@@ -60,6 +66,8 @@ export default function ThreadDisplay({
     hashtags: [],
     prefecture: [],
   });
+
+  const [showNewThreadForm, setShowNewThreadForm] = useState<boolean>(false);
 
   const getTags = async () => {
     try {
@@ -78,9 +86,7 @@ export default function ThreadDisplay({
     getTags();
   }, []);
 
-  const handleStartNewThread = () => {
-    navigate("/exchange");
-  };
+  useEffect(() => {}, [assocThreads]);
 
   const showThreads = assocThreads.map((thread, index) => (
     <Timeline.Item
@@ -145,30 +151,52 @@ export default function ThreadDisplay({
       <Grid.Col span={7}>
         <Box
           sx={(theme) => ({
-            textAlign: "center",
             padding: theme.spacing.sm,
             height: "60vh",
           })}
         >
-          <Button
-            color="beige.7"
-            rightIcon={<Edit />}
-            onClick={handleStartNewThread}
-          >
-            <Title order={5}> Start a New Discussion on This!</Title>
-          </Button>
-          <Space h="lg" />
-          <Divider
-            label={
-              <Text color="greyBlue.7" align="center" size="lg" weight="700">
-                Or Check Out the Latest Conversations Here!
-              </Text>
-            }
-            labelPosition="center"
-          />
+          <ScrollArea style={{ height: "60vh" }}>
+            <Center>
+              <Button
+                color={!showNewThreadForm ? "beige.9" : "beige.5"}
+                rightIcon={!showNewThreadForm ? <Edit /> : null}
+                leftIcon={showNewThreadForm ? <Close /> : null}
+                onClick={() => setShowNewThreadForm(!showNewThreadForm)}
+              >
+                <Title order={5}>
+                  {!showNewThreadForm
+                    ? "Start a New Exchange Thread on This!"
+                    : "Cancel Start New Exchange Thread..."}
+                </Title>
+              </Button>
+            </Center>
+            <Space h="md" />
 
-          <Space h="lg" />
-          <ScrollArea style={{ height: "45vh" }}>
+            {showNewThreadForm && (
+              <ThreadForm
+                postId={selectedPost.id}
+                areaId={selectedPost.areaId}
+                showForm={showNewThreadForm}
+                setShowForm={setShowNewThreadForm}
+                assocThreads={assocThreads}
+                setAssocThreads={setAssocThreads}
+                threadDisplayDrawerOn={threadDisplayDrawerOn}
+              />
+            )}
+
+            <Space h="lg" />
+
+            <Divider
+              label={
+                <Text color="greyBlue.7" align="center" size="lg" weight="700">
+                  Or Check Out the Latest Conversations Here!
+                </Text>
+              }
+              labelPosition="center"
+            />
+
+            <Space h="lg" />
+
             <Container>
               {showThreads && showThreads.length ? (
                 <Timeline>{showThreads}</Timeline>
