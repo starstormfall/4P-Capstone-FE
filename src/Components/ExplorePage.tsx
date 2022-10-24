@@ -29,7 +29,7 @@ export default function ExplorePage() {
   // get a certain number of photos based on number query
   const getPhotos = async () => {
     try {
-      const response = await axios.get(`${backendUrl}/info/photos?number=12`);
+      const response = await axios.get(`${backendUrl}/info/photos?number=13`);
 
       setAllPhotos(response.data);
     } catch (err) {

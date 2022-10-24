@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link, useParams } from "react-router-dom";
-import { useOutletContext } from "react-router-dom";
+
 import axios from "axios";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
@@ -9,7 +9,6 @@ import {
   Button,
   Container,
   Image,
-  Grid,
   Card,
   Text,
   Modal,
@@ -23,6 +22,11 @@ import {
   createStyles,
   Box,
   Title,
+  Paper,
+  Center,
+  Divider,
+  Collapse,
+  Grid,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -31,6 +35,7 @@ import {
   uploadBytes,
 } from "firebase/storage";
 import { AwardOutline } from "@easy-eva-icons/react";
+import { create } from "domain";
 
 type ThreadSingleData = {
   id: number;
@@ -82,6 +87,22 @@ type friendListData = {
 };
 
 const useStyles = createStyles((theme) => ({
+  comment: {
+    padding: `${theme.spacing.lg}px ${theme.spacing.xl}px`,
+  },
+
+  body: {
+    paddingLeft: 25,
+    paddingTop: theme.spacing.sm,
+    fontSize: theme.fontSizes.sm,
+  },
+
+  contentComment: {
+    "& > p:last-child": {
+      marginBottom: 0,
+    },
+  },
+
   title: {
     // fontSize: 20,
     fontWeight: 500,
@@ -97,13 +118,26 @@ const useStyles = createStyles((theme) => ({
     backgroundColor: "white",
   },
 
-  commentBorder: {
-    borderRadius: "25px",
-    // change color
-    backgroundColor: "floralwhite",
-    padding: "40px",
-    border: "dotted",
-    borderColor: "lightcyan",
+  card: {
+    position: "relative",
+    backgroundColor:
+      theme.colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
+  },
+
+  rating: {
+    position: "absolute",
+    top: theme.spacing.xs,
+    right: theme.spacing.xs + 2,
+    pointerEvents: "none",
+  },
+
+  cardTitle: {
+    display: "block",
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xs / 2,
+  },
+  footer: {
+    marginTop: theme.spacing.md,
   },
 }));
 
@@ -119,7 +153,7 @@ export default function ThreadSingle() {
   const [updateComment, setUpdateComment] = useState<boolean>(false);
   const [updateFriendRequest, setUpdateFriendRequest] =
     useState<boolean>(false);
-  const { classes, theme } = useStyles();
+  const { classes } = useStyles();
 
   const { userInfo } = UseApp();
   const { getAccessTokenSilently } = useAuth0();
@@ -168,14 +202,11 @@ export default function ThreadSingle() {
     setThreadId(params.threadId);
   }
   // handle post req for comments (to post to table)
-
-  // Div > Container > Card > Text;
-
   const onFriendRequest = async (e: React.FormEvent<HTMLFormElement>) => {
-    // const accessToken = await getAccessTokenSilently({
-    //   audience: process.env.REACT_APP_AUDIENCE,
-    //   scope: process.env.REACT_APP_SCOPE,
-    // });
+    const accessToken = await getAccessTokenSilently({
+      audience: process.env.REACT_APP_AUDIENCE,
+      scope: process.env.REACT_APP_SCOPE,
+    });
     e.preventDefault();
     console.log(`Added as Friend!`);
     console.log(`added friend id`, friendAdded);
@@ -186,33 +217,17 @@ export default function ThreadSingle() {
         friendId: friendAdded,
         postId: postId,
         reason: reason,
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
       }
-      // {
-      //   headers: { Authorization: `Bearer ${accessToken}` },
-      // }
     );
     setFriendModalOpen(false);
     setReason("");
     setUpdateFriendRequest(!updateFriendRequest);
   };
 
-  // check for existing friend
-
-  // allfriends contains the array of existing friends
-  // const validateExistingFriend = async () => {
-  //   if (allFriends) {
-  //     for (let i = 0; i < allFriends.length; i++) {
-  //       // check for added friend req
-  //       if (
-  //         allFriends[i].addedUserId === userInfo.id ||
-  //         allFriends[i].initiatedUserId === userInfo.id
-  //       ) {
-  //         setDisableFriendButton(true);
-  //       }
-  //     }
-  //   }
-  // };
-
+  // check for existing friend/yourself/pending request
   const checkFriendShip = (
     friendshipStatus: string,
     userId: number,
@@ -257,20 +272,20 @@ export default function ThreadSingle() {
     }
   };
 
+  console.log(singleThreadData);
+
   const allComments = [];
   if (singleThreadData) {
     for (let i = 1; i < singleThreadData.length; i++) {
       allComments.push(
         <div>
-          <Container key={singleThreadData[i].id}>
-            <Card className={classes.commentBorder} withBorder={true}>
-              {/* <Avatar
-                src={singleThreadData[i].post.user.photoLink}
-                alt={singleThreadData[i].post.user.name}
-                radius="xl"
-                size="lg"
-              />
-              add friend button */}
+          <Paper
+            withBorder
+            radius="md"
+            className={classes.comment}
+            key={singleThreadData[i].id}
+          >
+            <Group>
               <div>
                 <Modal
                   opened={friendModalOpen}
@@ -305,21 +320,17 @@ export default function ThreadSingle() {
                     )}
                 </Group>
               </div>
-              <Box>
-                <Text>
-                  {singleThreadData[i].post.user.name} commented on{" "}
-                  {singleThreadData[i].post.createdAt}:
+              <div>
+                <Text size="sm">{singleThreadData[i].post.user.name}</Text>
+                <Text size="xs" color="dimmed">
+                  commented on: {singleThreadData[i].post.createdAt}
                 </Text>
-                <Text
-                  style={{
-                    backgroundColor: "white",
-                  }}
-                >
-                  {singleThreadData[i].post.content}
-                </Text>
-              </Box>
-            </Card>
-          </Container>
+              </div>
+            </Group>
+            <Text className={classes.body} size="sm">
+              {singleThreadData[i].post.content}
+            </Text>
+          </Paper>
         </div>
       );
     }
@@ -337,6 +348,8 @@ export default function ThreadSingle() {
   const [areaId, setAreaId] = useState<string>();
   const [locationName, setLocationName] = useState<string>("");
   const [allAreaData, setAllAreaData] = useState<AllPrefectureData[]>();
+  const [externalLink, setExternalLink] = useState<string>("");
+  const [exploreOpen, setExploreOpen] = useState<boolean>(false);
 
   const getAllAreaData = async () => {
     const response = await axios.get(`${backendUrl}/info/areas`);
@@ -346,7 +359,6 @@ export default function ThreadSingle() {
   useEffect(() => {
     getAllAreaData();
   }, []);
-  console.log(allAreaData);
 
   let prefectureData: prefectureDataType[] = [];
   if (allAreaData) {
@@ -399,7 +411,7 @@ export default function ThreadSingle() {
         areaId: areaId,
         forumPost: forumPost,
         explorePost: explorePost,
-        externalLink: null,
+        externalLink: externalLink,
         title: title,
         photoLink: imageUrl,
         locationName: locationName,
@@ -416,41 +428,51 @@ export default function ThreadSingle() {
     setTitle("");
     setLocationName("");
     setChecked(false);
+    setExternalLink("");
+    setExploreOpen(false);
   };
 
   return (
     <div>
       <Container className={classes.borderContain}>
         {singleThreadData ? (
-          <Box
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              flexDirection: "column",
-            }}
-          >
-            <Title className={classes.title} align="left">
-              {singleThreadData[0].thread.topic}
-            </Title>
-            <Image
-              src={singleThreadData[0].post.photoLink}
-              alt={singleThreadData[0].post.locationName}
-              style={{
-                maxHeight: "auto",
-                maxWidth: "500px",
-                alignItems: "center",
-                marginLeft: "210px",
-              }}
-            />
-            <Container className={classes.content}>
-              <Text style={{ textAlign: "justify" }}>
+          <Box>
+            <Card withBorder radius="md" className={classes.card}>
+              <Title className={classes.cardTitle} align="left">
+                {singleThreadData[0].thread.topic}
+              </Title>
+
+              <Card.Section>
+                <Image
+                  src={singleThreadData[0].post.photoLink}
+                  alt={singleThreadData[0].post.locationName}
+                  height={400}
+                />
+              </Card.Section>
+
+              <Text size="sm" color="dimmed" lineClamp={4}>
                 {singleThreadData[0].post.content}
               </Text>
-            </Container>
-            <Group position="right">
-              <Text>Started By: {singleThreadData[0].post.user.name}</Text>
-              <Text>Created At: {singleThreadData[0].createdAt}</Text>
-            </Group>
+
+              <br />
+
+              <Group position="apart" className={classes.footer}>
+                <Center>
+                  <Avatar
+                    src={singleThreadData[0].post.user.photoLink}
+                    size={24}
+                    radius="xl"
+                    mr="xs"
+                  />
+                  <Text size="sm" inline>
+                    {singleThreadData[0].post.user.name}
+                  </Text>
+                </Center>
+                <Text size="sm" inline>
+                  Created At: {singleThreadData[0].post.createdAt}
+                </Text>
+              </Group>
+            </Card>
           </Box>
         ) : null}
       </Container>
@@ -460,9 +482,7 @@ export default function ThreadSingle() {
         ) : (
           <div>
             <Card>
-              <Text>Be the first to comment!</Text>
-              {/* add comment function here*/}
-              {/* creat post (forum && explore etc)*/}
+              <Title order={4}>Be the first to comment!</Title>
             </Card>
           </div>
         )}
@@ -471,79 +491,121 @@ export default function ThreadSingle() {
         <Modal
           opened={opened}
           onClose={() => setOpened(false)}
-          title="Tell us more in details!"
+          title="Share your thoughts"
         >
-          <Container>
+          <Paper radius="md" p="xl" withBorder>
             <form onSubmit={handleSubmit}>
-              <Textarea
-                variant="filled"
-                label="Title"
-                placeholder="Give a title!"
-                withAsterisk
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+              <Divider
+                label="Add your comment!"
+                labelPosition="center"
+                my="xs"
               />
               <Textarea
                 variant="filled"
-                label="Content"
+                label="Content/Comment"
                 placeholder="..."
                 withAsterisk
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
               />
-              <Select
-                label="Select your prefecture"
-                placeholder="Pick one"
-                data={prefectureData}
-                value={areaId}
-                onChange={(event: string) => {
-                  console.log(event);
-                  setAreaId(event);
-                }}
-              />
-              <Textarea
-                variant="filled"
-                label="Location Name"
-                placeholder="..."
-                withAsterisk
-                value={locationName}
-                onChange={(e) => setLocationName(e.target.value)}
-              />
-              <FileInput
-                variant="filled"
-                placeholder="pick file"
-                label="Upload Photo if any!"
-                withAsterisk
-                value={fileInputFile}
-                onChange={(e: File) => {
-                  console.log(e);
-                  setFileInputFile(e);
-                }}
-              />
-              {/* Con render explore/forum post */}
-              <Checkbox
-                label="Display in Explore?"
-                description="it will be seen in the explore feed."
-                color="indigo"
-                radius="xl"
-                checked={checked}
-                onChange={(e) => {
-                  setChecked(e.currentTarget.checked);
-                  setExplorePost("forum");
-                  setForumPost(true);
-                }}
-              />
               <br />
-              <Button type="submit">Comment or Create!</Button>
+              {/* <Divider
+                label="Share it on the explore page!"
+                labelPosition="center"
+                my="xs"
+              /> */}
+              <>
+                <Group position="left">
+                  <Button
+                    onClick={() => {
+                      setExplorePost("forum");
+                      setExploreOpen((o) => !o);
+                      setForumPost(true);
+                      if (exploreOpen) {
+                        setExplorePost("");
+                      }
+                      console.log(`explore status`, explorePost);
+                      console.log(`forum state`, forumPost);
+                    }}
+                  >
+                    Add to Explore?
+                  </Button>
+                </Group>
+
+                <Collapse in={exploreOpen}>
+                  <Textarea
+                    variant="filled"
+                    label="Title"
+                    placeholder="Give a title!"
+                    withAsterisk
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+
+                  <Select
+                    label="Select your prefecture"
+                    placeholder="Pick one"
+                    data={prefectureData}
+                    value={areaId}
+                    onChange={(event: string) => {
+                      console.log(event);
+                      setAreaId(event);
+                    }}
+                  />
+                  <Textarea
+                    variant="filled"
+                    label="Location Name"
+                    placeholder="..."
+                    withAsterisk
+                    value={locationName}
+                    onChange={(e) => setLocationName(e.target.value)}
+                  />
+                  <Textarea
+                    variant="filled"
+                    label="External Link"
+                    placeholder="..."
+                    withAsterisk
+                    value={externalLink}
+                    onChange={(e) => setExternalLink(e.target.value)}
+                  />
+                  <FileInput
+                    variant="filled"
+                    placeholder="pick file"
+                    label="Add Photo"
+                    withAsterisk
+                    value={fileInputFile}
+                    onChange={(e: File) => {
+                      console.log(e);
+                      setFileInputFile(e);
+                    }}
+                  />
+                  {/* Con render explore/forum post */}
+                  {/* <Checkbox
+                    label="Display in Explore?"
+                    description="it will be seen in the explore feed."
+                    color="indigo"
+                    radius="xl"
+                    checked={checked}
+                    onChange={(e) => {
+                      setChecked(e.currentTarget.checked);
+                      setExplorePost("forum");
+                      setForumPost(true);
+                    }}
+                  /> */}
+                </Collapse>
+              </>
+
+              <Group position="right">
+                <Button type="submit">Submit</Button>
+              </Group>
             </form>
-          </Container>
+          </Paper>
         </Modal>
 
         <Group position="center">
-          <Button onClick={() => setOpened(true)}>Comment or Create!</Button>
+          <Button onClick={() => setOpened(true)}>Add Comment</Button>
         </Group>
       </div>
-
       <Button onClick={() => navigate(-1)}>Back</Button>
     </div>
   );
