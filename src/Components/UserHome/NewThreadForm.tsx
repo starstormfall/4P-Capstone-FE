@@ -1,6 +1,10 @@
 import { useState, useRef, useEffect } from "react";
+import { backendUrl } from "../../utils";
 
 import axios from "axios";
+
+import { UseApp } from "../Context";
+import { AssocThread } from "./HomePageInterface";
 
 // import style components
 import {
@@ -42,8 +46,27 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-export default function ThreadForm() {
+interface Props {
+  postId: number;
+  areaId: number;
+  showForm: boolean;
+  setShowForm: React.Dispatch<React.SetStateAction<boolean>>;
+  assocThreads: AssocThread[];
+  setAssocThreads: React.Dispatch<React.SetStateAction<AssocThread[]>>;
+  threadDisplayDrawerOn: boolean;
+}
+
+export default function ThreadForm({
+  postId,
+  areaId,
+  showForm,
+  setShowForm,
+  assocThreads,
+  setAssocThreads,
+  threadDisplayDrawerOn,
+}: Props) {
   const { classes } = useStyles();
+  const { userInfo } = UseApp();
 
   const [threadTitle, setThreadTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
@@ -52,7 +75,37 @@ export default function ThreadForm() {
   const resetRef = useRef<() => void>(null);
   const [photoPreview, setPhotoPreview] = useState("");
 
-  const handleSubmitNewThreadPost = async () => {};
+  const handleSubmitNewThreadPost = async (event: React.FormEvent) => {
+    event.preventDefault();
+    try {
+      const requestBody = {
+        userId: userInfo.id,
+        threadTitle: threadTitle,
+        content: content,
+        areaId: areaId,
+      };
+
+      const response = await axios.post(
+        `${backendUrl}/posts/create-thread-from-explore?fromExplorePostId=${postId}`,
+        requestBody
+      );
+
+      setThreadTitle("");
+      setContent("");
+      setPhotoPreview("");
+      clearFile();
+      setShowForm(false);
+
+      const assocThreadsResponse = await axios.get(
+        `${backendUrl}/posts/thread?postId=${postId}`
+      );
+      setAssocThreads(assocThreadsResponse.data);
+
+      console.log(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const clearFile = () => {
     setFile(null);
@@ -69,6 +122,13 @@ export default function ThreadForm() {
 
     // free memory when ever this component is unmounted
   }, [file]);
+
+  useEffect(() => {
+    setThreadTitle("");
+    setContent("");
+    setPhotoPreview("");
+    clearFile();
+  }, [threadDisplayDrawerOn]);
 
   return (
     <Paper radius="md" p="xl" withBorder>

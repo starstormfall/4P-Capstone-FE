@@ -442,7 +442,6 @@ function HomePage() {
     return (Object.values(tabView) as Post[]).map((post: Post, index) => {
       const like = userLikePostIds.includes(post.id);
       const favourite = userFavouritePostIds.includes(post.id);
-      console.log("DOS THIS RUN????");
 
       return (
         // <Grid.Col sm={5} md={4} lg={3} key={post.id}>
@@ -529,6 +528,8 @@ function HomePage() {
           userFavourite={userFavouritePostIds.includes(selectedPost.id)}
           likePost={handleLikePost}
           favouritePost={handleFavouritePost}
+          setAssocThreads={setAssocThreads}
+          threadDisplayDrawerOn={threadDisplayDrawerOn}
         />
       </Drawer>
 

@@ -45,6 +45,8 @@ interface Props {
     event: React.MouseEvent<HTMLButtonElement>,
     postId: number
   ) => void;
+  setAssocThreads: React.Dispatch<React.SetStateAction<AssocThread[]>>;
+  threadDisplayDrawerOn: boolean;
 }
 
 export default function ThreadDisplay({
@@ -54,6 +56,8 @@ export default function ThreadDisplay({
   userFavourite,
   likePost,
   favouritePost,
+  setAssocThreads,
+  threadDisplayDrawerOn,
 }: Props) {
   const navigate = useNavigate();
 
@@ -81,6 +85,8 @@ export default function ThreadDisplay({
   useEffect(() => {
     getTags();
   }, []);
+
+  useEffect(() => {}, [assocThreads]);
 
   const showThreads = assocThreads.map((thread, index) => (
     <Timeline.Item
@@ -166,7 +172,17 @@ export default function ThreadDisplay({
             </Center>
             <Space h="md" />
 
-            {showNewThreadForm && <ThreadForm />}
+            {showNewThreadForm && (
+              <ThreadForm
+                postId={selectedPost.id}
+                areaId={selectedPost.areaId}
+                showForm={showNewThreadForm}
+                setShowForm={setShowNewThreadForm}
+                assocThreads={assocThreads}
+                setAssocThreads={setAssocThreads}
+                threadDisplayDrawerOn={threadDisplayDrawerOn}
+              />
+            )}
 
             <Space h="lg" />
 
