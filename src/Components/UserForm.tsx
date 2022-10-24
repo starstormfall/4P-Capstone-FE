@@ -15,6 +15,8 @@ import {
   Textarea,
   NumberInput,
   Button,
+  Group,
+  Paper,
 } from "@mantine/core";
 
 import { UseApp } from "./Context";
@@ -84,11 +86,14 @@ export default function UserForm({ closeModal }: Props) {
 
   return (
     <div>
-      <Title>Account Creation Form</Title>
-      <Container>
+      <Title order={2} size="h1" weight={900} align="center" mb="md">
+        Account Creation Form
+      </Title>
+      <Paper radius="lg" p="lg" shadow="md" withBorder>
         <form onSubmit={handleSubmit}>
           {/* name */}
           <Textarea
+            size="md"
             variant="filled"
             label="Name"
             placeholder="Please enter your name"
@@ -98,6 +103,7 @@ export default function UserForm({ closeModal }: Props) {
           />
           {/* nationality */}
           <Textarea
+            size="md"
             variant="filled"
             label="Nationality"
             placeholder="Please enter your nationality"
@@ -117,16 +123,20 @@ export default function UserForm({ closeModal }: Props) {
               setFileInputFile(e);
             }}
           />
-          <Button
-            type="submit"
-            onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
-              closeModal(event)
-            }
-          >
-            Submit
-          </Button>
+          <Group position="center" mt="xl">
+            <Button
+              radius="xl"
+              size="md"
+              type="submit"
+              onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
+                closeModal(event)
+              }
+            >
+              Submit
+            </Button>
+          </Group>
         </form>
-      </Container>
+      </Paper>
     </div>
   );
 }

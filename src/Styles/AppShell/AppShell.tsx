@@ -93,6 +93,7 @@ function TdflAppShell() {
   } = useAuth0();
 
   const getUserInfo = async (user: any) => {
+    console.log(`EMAIL`, user.email);
     const accessToken = await getAccessTokenSilently({
       audience: process.env.REACT_APP_AUDIENCE,
       scope: process.env.REACT_APP_SCOPE,
