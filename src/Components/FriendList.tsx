@@ -89,7 +89,7 @@ export default function FriendList({ friendListData, setFriendList }: Props) {
           flexDirection: "column",
         })}
       >
-        <Title align="center" order={3}>
+        <Title align="center" order={3} mb="md">
           Friend List
         </Title>
         <Container>

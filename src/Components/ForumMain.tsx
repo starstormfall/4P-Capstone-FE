@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { backendUrl } from "../utils";
@@ -21,6 +21,9 @@ import {
   Paper,
   createStyles,
   Space,
+  Divider,
+  FileButton,
+  Image,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -28,7 +31,12 @@ import {
   ref as storageRef,
   uploadBytes,
 } from "firebase/storage";
-import { PersonOutline, EditOutline } from "@easy-eva-icons/react";
+import {
+  PersonOutline,
+  EditOutline,
+  CloudUploadOutline,
+  Trash2Outline,
+} from "@easy-eva-icons/react";
 
 // Googlemaps Api
 import {
@@ -199,6 +207,7 @@ export default function ForumMain() {
   const [locationName, setLocationName] = useState<string>("");
   const [topic, setTopic] = useState<string>("");
   const [externalLink, setExternalLink] = useState<string>("");
+  const [photoPreview, setPhotoPreview] = useState<string>("");
   const { userInfo } = UseApp();
 
   // Googlemaps states for markers, and for autocomplete
@@ -382,19 +391,27 @@ export default function ForumMain() {
     setLocationName("");
     setTopic("");
     setExternalLink("");
+    setFileInputFile(undefined);
   };
   console.log(locationName);
+
+  const resetRef = useRef<() => void>(null);
+
+  const clearFile = () => {
+    setFileInputFile(undefined);
+    resetRef.current?.();
+  };
 
   return (
     <div>
       <Space h="lg" />
       <Title align="center">Exchange</Title>
-      <Text size="sm" align="center" color="aqua">
+      <Text size="sm" align="center" color="aqua" mt="sm">
         reach out to like-minded enthusiasts and share tips or ask advice from
         our community of locals and denizens
       </Text>
       {/* create post button */}
-      <div>
+      <div style={{ margin: "15px" }}>
         <Modal
           opened={opened}
           onClose={() => {
@@ -407,27 +424,30 @@ export default function ForumMain() {
             setAutoCompletePlacePos(undefined);
             setExactLocation("");
           }}
-          title="Start a Thread"
+          title="Start Thread"
         >
           <Paper radius="md" p="xl" withBorder>
             <form onSubmit={handleSubmit}>
               <Textarea
                 variant="filled"
-                label="Title"
-                placeholder="Give a title!"
-                withAsterisk
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-              <Textarea
-                variant="filled"
-                label="Topic"
+                label="Thread/Title"
                 placeholder="What is the topic about?"
                 withAsterisk
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
               />
+              <Divider my="md"></Divider>
               <Textarea
+                mb="md"
+                variant="filled"
+                label="Caption"
+                placeholder="Add Caption"
+                withAsterisk
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+              <Textarea
+                mb="md"
                 variant="filled"
                 label="Content"
                 placeholder="Tell us more details!"
@@ -436,6 +456,7 @@ export default function ForumMain() {
                 onChange={(e) => setContent(e.target.value)}
               />
               <Select
+                mb="md"
                 label="Select your prefecture"
                 placeholder="Pick one"
                 data={prefectureData}
@@ -446,6 +467,7 @@ export default function ForumMain() {
                 }}
               />
               <Textarea
+                mb="md"
                 variant="filled"
                 label="Location Name"
                 placeholder="..."
@@ -475,7 +497,7 @@ export default function ForumMain() {
                   }}
                   center={currentPosition}
                   zoom={15}
-                  mapContainerStyle={{ width: "367px", height: "30vh" }}
+                  mapContainerStyle={{ width: "350px", height: "30vh" }}
                   options={{
                     streetViewControl: false,
                     mapTypeControl: false,
@@ -490,6 +512,7 @@ export default function ForumMain() {
               )}
               <br />
               <Textarea
+                mb="lg"
                 variant="filled"
                 label="External Link"
                 placeholder="..."
@@ -497,7 +520,7 @@ export default function ForumMain() {
                 value={externalLink}
                 onChange={(e) => setExternalLink(e.target.value)}
               />
-              <FileInput
+              {/* <FileInput
                 variant="filled"
                 placeholder="pick file"
                 label="Upload Photo if any!"
@@ -507,7 +530,47 @@ export default function ForumMain() {
                   console.log(e);
                   setFileInputFile(e);
                 }}
-              />
+              /> */}
+              <Group position="left" mt="lg">
+                <FileButton
+                  resetRef={resetRef}
+                  onChange={(e: File) => {
+                    setFileInputFile(e);
+                    setPhotoPreview(URL.createObjectURL(e));
+                    console.log(e);
+                  }}
+                  accept="image/png,image/jpeg"
+                >
+                  {(props) => (
+                    <Button {...props} leftIcon={<CloudUploadOutline />}>
+                      Upload Image
+                    </Button>
+                  )}
+                </FileButton>
+                <Button
+                  disabled={!fileInputFile}
+                  color="red"
+                  onClick={clearFile}
+                  leftIcon={<Trash2Outline />}
+                >
+                  Reset
+                </Button>
+              </Group>
+              {fileInputFile && (
+                  <Text size="sm" align="left" mt="sm">
+                    Picked file: {fileInputFile.name}
+                  </Text>
+                ) && (
+                  <Image
+                    src={photoPreview}
+                    alt={`Image`}
+                    // width="75%"
+                    mt="md"
+                    radius="lg"
+                    caption="image preview"
+                  />
+                )}
+
               <br />
               {/* Con render explore/forum post */}
               <Checkbox
@@ -522,6 +585,7 @@ export default function ForumMain() {
                   // setForumPost(true);
                 }}
               />
+              <Divider my="md"></Divider>
               <Group position="right">
                 <Button type="submit">Create Post!</Button>
               </Group>
