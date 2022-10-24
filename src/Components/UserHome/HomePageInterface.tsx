@@ -93,6 +93,7 @@ export interface AssocThread {
   lastPostCreatedAt: string;
   lastPostUserId: number;
   lastPostUserName: string;
+  lastPostUserPhoto: string;
 }
 
 export interface UserLikePosts {

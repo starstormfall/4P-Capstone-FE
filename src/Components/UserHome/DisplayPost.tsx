@@ -189,7 +189,7 @@ export default function DisplayPost({
               }
               color="yellow"
             >
-              {userFavourite ? <StarOutline /> : <Star />}
+              {userFavourite ? <Star /> : <StarOutline />}
             </ActionIcon>
             <ActionIcon
               variant="outline"
