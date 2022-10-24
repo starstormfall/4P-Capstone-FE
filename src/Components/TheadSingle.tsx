@@ -734,7 +734,7 @@ export default function ThreadSingle() {
                       }}
                       center={currentPosition}
                       zoom={15}
-                      mapContainerStyle={{ width: "367px", height: "30vh" }}
+                      mapContainerStyle={{ width: "350px", height: "30vh" }}
                       options={{
                         streetViewControl: false,
                         mapTypeControl: false,
