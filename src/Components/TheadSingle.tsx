@@ -26,6 +26,7 @@ import {
   Center,
   Divider,
   Collapse,
+  Grid,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -271,6 +272,8 @@ export default function ThreadSingle() {
     }
   };
 
+  console.log(singleThreadData);
+
   const allComments = [];
   if (singleThreadData) {
     for (let i = 1; i < singleThreadData.length; i++) {
@@ -438,17 +441,21 @@ export default function ThreadSingle() {
               <Title className={classes.cardTitle} align="left">
                 {singleThreadData[0].thread.topic}
               </Title>
+
               <Card.Section>
                 <Image
                   src={singleThreadData[0].post.photoLink}
                   alt={singleThreadData[0].post.locationName}
-                  height={300}
+                  height={400}
                 />
               </Card.Section>
-              <br />
+
               <Text size="sm" color="dimmed" lineClamp={4}>
                 {singleThreadData[0].post.content}
               </Text>
+
+              <br />
+
               <Group position="apart" className={classes.footer}>
                 <Center>
                   <Avatar
@@ -462,7 +469,7 @@ export default function ThreadSingle() {
                   </Text>
                 </Center>
                 <Text size="sm" inline>
-                  Created At: {singleThreadData[0].createdAt}
+                  Created At: {singleThreadData[0].post.createdAt}
                 </Text>
               </Group>
             </Card>
@@ -511,10 +518,10 @@ export default function ThreadSingle() {
                 <Group position="left">
                   <Button
                     onClick={() => {
-                      setExploreOpen((o) => !o);
                       setExplorePost("forum");
+                      setExploreOpen((o) => !o);
                       setForumPost(true);
-                      if (!exploreOpen) {
+                      if (exploreOpen) {
                         setExplorePost("");
                       }
                       console.log(`explore status`, explorePost);

@@ -18,6 +18,8 @@ import {
   Select,
   TextInput,
   Title,
+  Paper,
+  createStyles,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -25,6 +27,7 @@ import {
   ref as storageRef,
   uploadBytes,
 } from "firebase/storage";
+import { PersonOutline, EditOutline } from "@easy-eva-icons/react";
 
 // Googlemaps Api
 import {
@@ -39,6 +42,8 @@ type ThreadListData = {
   id: number;
   lastPost: string;
   lastPostCreatedAt: string;
+  lastPostUserId: number;
+  lastPostUserName: string;
   postsCount: number;
   topic: string;
   usersCount: number;
@@ -60,12 +65,33 @@ type prefectureDataType = {
   label: string;
 };
 
+const useStyles = createStyles((theme) => ({
+  card: {
+    backgroundColor:
+      theme.colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
+  },
+
+  title: {
+    fontFamily: `Greycliff CF, ${theme.fontFamily}`,
+  },
+
+  footer: {
+    padding: `${theme.spacing.xs}px ${theme.spacing.lg}px`,
+    marginTop: theme.spacing.md,
+    borderTop: `1px solid ${
+      theme.colorScheme === "dark" ? theme.colors.dark[5] : theme.colors.gray[2]
+    }`,
+  },
+}));
+
 export default function ForumMain() {
   // have a create post that can extend to explore page
   const [forumList, setForumList] = useState<ThreadListData[]>();
   const [updateForum, setUpdateForum] = useState<boolean>(false);
   const { getAccessTokenSilently } = useAuth0();
   const [allAreaData, setAllAreaData] = useState<AllPrefectureData[]>();
+  const { classes, theme } = useStyles();
+  const navigate = useNavigate();
 
   // Google map library and API definition
   const [libraries] = useState<
@@ -85,36 +111,55 @@ export default function ForumMain() {
   useEffect(() => {
     getForumData();
   }, [updateForum]);
-  // get all data
-  // const forumList = useQuery(["threadList"], () =>
-  //   axios.get(`${backendUrl}/posts/thread`).then((res) => res.data)
-  // );
+
   console.log(forumList);
-  // console.log("thread ID", forumList.data[0].threads[0].id);
 
   // map out all the threads by TOPIC (Div>Container>Link>Card>Text)
   let forumListFinal;
   if (forumList) {
     forumListFinal = forumList.map((list: ThreadListData) => {
       return (
-        // <div key={list.id}>
-        // <Link to={`/exchange/${list.id}`}>
         <Grid.Col key={list.id} span={4}>
           {/* <Container key={list.id}> */}
-          <Link to={`/exchange/${list.id}`}>
-            <Card>
-              <Title order={3}>{list.topic}</Title>
-              <br />
-              <Text>{list.lastPost}</Text>
-              <Text>Post Count: {list.postsCount}</Text>
-              <Text>User Count: {list.usersCount}</Text>
-              <Text>Last Updated At: {list.lastPostCreatedAt}</Text>
-            </Card>
-          </Link>
-          {/* </Container> */}
-        </Grid.Col>
+          {/* <Link to={`/exchange/${list.id}`}> */}
+          <Card
+            withBorder
+            p="lg"
+            radius="md"
+            className={classes.card}
+            onClick={() => {
+              navigate(`/exchange/${list.id}`);
+            }}
+            style={{ cursor: "pointer" }}
+          >
+            <Text weight={700} className={classes.title} mt="xs">
+              {list.topic}
+            </Text>
 
-        // </div>
+            <Group mt="md" mb="sm">
+              <div>
+                <Text weight={500} size="xs">
+                  {list.lastPostUserName}
+                </Text>
+                <Text size="xs">posted {list.lastPostCreatedAt}</Text>
+                <Text size="xs" color="dimmed">
+                  {list.lastPost}
+                </Text>
+              </div>
+            </Group>
+            <Group position="apart">
+              <Text size="sm">
+                {<PersonOutline />}
+                {list.usersCount} User
+              </Text>
+              <Text size="sm">
+                {<EditOutline />}
+                {list.postsCount} Post
+              </Text>
+            </Group>
+          </Card>
+          {/* </Link> */}
+        </Grid.Col>
       );
     });
   }
@@ -127,7 +172,6 @@ export default function ForumMain() {
   useEffect(() => {
     getAllAreaData();
   }, []);
-  console.log(allAreaData);
 
   let prefectureData: prefectureDataType[] = [];
   if (allAreaData) {
@@ -342,6 +386,12 @@ export default function ForumMain() {
 
   return (
     <div>
+      <Title align="center">Exchange</Title>
+      <Text size="sm" align="center" color="aqua">
+        reach out to like-minded enthusiasts and share tips or ask advice from
+        our community of locals and denizens
+      </Text>
+      {/* create post button */}
       <div>
         <Modal
           opened={opened}
@@ -355,18 +405,10 @@ export default function ForumMain() {
             setAutoCompletePlacePos(undefined);
             setExactLocation("");
           }}
-          title="Tell us more in details!"
+          title="Start a Thread"
         >
-          <Container>
+          <Paper radius="md" p="xl" withBorder>
             <form onSubmit={handleSubmit}>
-              <Textarea
-                variant="filled"
-                label="Topic"
-                placeholder="What is the topic about?"
-                withAsterisk
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-              />
               <Textarea
                 variant="filled"
                 label="Title"
@@ -377,8 +419,16 @@ export default function ForumMain() {
               />
               <Textarea
                 variant="filled"
+                label="Topic"
+                placeholder="What is the topic about?"
+                withAsterisk
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+              />
+              <Textarea
+                variant="filled"
                 label="Content"
-                placeholder="..."
+                placeholder="Tell us more details!"
                 withAsterisk
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
@@ -456,6 +506,7 @@ export default function ForumMain() {
                   setFileInputFile(e);
                 }}
               />
+              <br />
               {/* Con render explore/forum post */}
               <Checkbox
                 label="Display in Explore?"
@@ -473,7 +524,7 @@ export default function ForumMain() {
                 <Button type="submit">Create Post!</Button>
               </Group>
             </form>
-          </Container>
+          </Paper>
         </Modal>
 
         <Group position="center">
