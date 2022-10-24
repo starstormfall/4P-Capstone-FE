@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, Link, useParams } from "react-router-dom";
 
 import axios from "axios";
@@ -29,6 +29,7 @@ import {
   TextInput,
   Grid,
   Space,
+  FileButton,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -36,7 +37,11 @@ import {
   ref as storageRef,
   uploadBytes,
 } from "firebase/storage";
-import { AwardOutline } from "@easy-eva-icons/react";
+import {
+  AwardOutline,
+  CloudUploadOutline,
+  Trash2Outline,
+} from "@easy-eva-icons/react";
 import { create } from "domain";
 
 // Googlemaps Api
@@ -376,6 +381,7 @@ export default function ThreadSingle() {
   const [allAreaData, setAllAreaData] = useState<AllPrefectureData[]>();
   const [externalLink, setExternalLink] = useState<string>("");
   const [exploreOpen, setExploreOpen] = useState<boolean>(false);
+  const [photoPreview, setPhotoPreview] = useState<string>("");
 
   // Googlemaps states for markers, and for autocomplete
   const [currentPosition, setCurrentPosition] = useState<Location>({
@@ -611,6 +617,14 @@ export default function ThreadSingle() {
     setChecked(false);
     setExternalLink("");
     setExploreOpen(false);
+    setFileInputFile(undefined);
+  };
+
+  const resetRef = useRef<() => void>(null);
+
+  const clearFile = () => {
+    setFileInputFile(undefined);
+    resetRef.current?.();
   };
 
   return (
@@ -725,6 +739,7 @@ export default function ThreadSingle() {
 
                 <Collapse in={exploreOpen}>
                   <Textarea
+                    my="md"
                     variant="filled"
                     label="Title"
                     placeholder="Give a title!"
@@ -734,6 +749,7 @@ export default function ThreadSingle() {
                   />
 
                   <Select
+                    mb="md"
                     label="Select your prefecture"
                     placeholder="Pick one"
                     data={prefectureData}
@@ -744,6 +760,7 @@ export default function ThreadSingle() {
                     }}
                   />
                   <Textarea
+                    mb="md"
                     variant="filled"
                     label="Location Name"
                     placeholder="..."
@@ -792,6 +809,7 @@ export default function ThreadSingle() {
                   <br />
 
                   <Textarea
+                    mb="md"
                     variant="filled"
                     label="External Link"
                     placeholder="..."
@@ -799,7 +817,7 @@ export default function ThreadSingle() {
                     value={externalLink}
                     onChange={(e) => setExternalLink(e.target.value)}
                   />
-                  <FileInput
+                  {/* <FileInput
                     variant="filled"
                     placeholder="pick file"
                     label="Add Photo"
@@ -809,7 +827,46 @@ export default function ThreadSingle() {
                       console.log(e);
                       setFileInputFile(e);
                     }}
-                  />
+                  /> */}
+                  <Group position="left" mt="lg">
+                    <FileButton
+                      resetRef={resetRef}
+                      onChange={(e: File) => {
+                        setFileInputFile(e);
+                        setPhotoPreview(URL.createObjectURL(e));
+                        console.log(e);
+                      }}
+                      accept="image/png,image/jpeg"
+                    >
+                      {(props) => (
+                        <Button {...props} leftIcon={<CloudUploadOutline />}>
+                          Upload Image
+                        </Button>
+                      )}
+                    </FileButton>
+                    <Button
+                      disabled={!fileInputFile}
+                      color="red"
+                      onClick={clearFile}
+                      leftIcon={<Trash2Outline />}
+                    >
+                      Reset
+                    </Button>
+                  </Group>
+                  {fileInputFile && (
+                      <Text size="sm" align="left" mt="sm">
+                        Picked file: {fileInputFile.name}
+                      </Text>
+                    ) && (
+                      <Image
+                        src={photoPreview}
+                        alt={`Image`}
+                        // width="75%"
+                        mt="md"
+                        radius="lg"
+                        caption="image preview"
+                      />
+                    )}
                   {/* Con render explore/forum post */}
                   {/* <Checkbox
                     label="Display in Explore?"
@@ -825,7 +882,7 @@ export default function ThreadSingle() {
                   /> */}
                 </Collapse>
               </>
-
+              <Divider my="lg"></Divider>
               <Group position="right">
                 <Button type="submit">Submit</Button>
               </Group>
