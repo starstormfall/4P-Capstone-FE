@@ -73,7 +73,7 @@ function HomePage() {
   // posts that will be displayed based on different filters
   const [allPosts, setAllPosts] = useState<AllPost>({});
   // all unfiltered explore posts
-  const [allExplorePosts, setAllExplorePosts] = useState<AllPost>({});
+  const [allExplore, setAllExplore] = useState<AllPost>({});
   const [allAreas, setAllAreas] = useState<Area[]>([]);
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [allHashtags, setAllHashtags] = useState<Hashtag[]>([]);
@@ -103,9 +103,6 @@ function HomePage() {
   const [sharePostModalOn, setSharePostModalOn] = useState<boolean>(false);
   const [threadDisplayDrawerOn, setThreadDisplayDrawerOn] =
     useState<boolean>(false);
-
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const [showGoTop, setShowGoTop] = useState("hideButton");
   const [showButton, setShowButton] = useState<boolean>(false);
 
   ///////// START OF USEEFFECT API CALLS /////////
@@ -115,7 +112,7 @@ function HomePage() {
     try {
       const response = await axios.get(`${backendUrl}/posts/explore`);
       setAllPosts(response.data);
-      setAllExplorePosts(response.data);
+      setAllExplore(response.data);
     } catch (err) {}
   };
 
@@ -175,7 +172,7 @@ function HomePage() {
   useEffect(() => {
     switch (activeTab) {
       case "allExplore":
-        setAllPosts(allExplorePosts);
+        setAllPosts(allExplore);
         break;
       case "favourites":
         setAllPosts(userFavouritePosts);
@@ -184,7 +181,7 @@ function HomePage() {
         setAllPosts(userLikePosts);
         break;
       default:
-        setAllPosts(allExplorePosts);
+        setAllPosts(allPosts);
     }
   }, [activeTab]);
 
@@ -445,6 +442,7 @@ function HomePage() {
     return (Object.values(tabView) as Post[]).map((post: Post, index) => {
       const like = userLikePostIds.includes(post.id);
       const favourite = userFavouritePostIds.includes(post.id);
+      console.log("DOS THIS RUN????");
 
       return (
         // <Grid.Col sm={5} md={4} lg={3} key={post.id}>
