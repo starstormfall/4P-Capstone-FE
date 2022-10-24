@@ -514,6 +514,8 @@ export default function ThreadSingle() {
 
     let pinId;
     if (currentPosition.lat !== 35.68309653980229) {
+      // Comment to the thread with recommendation by clicking on the map or by using autocomplete to give exact location.
+
       await axios.post(
         `${backendUrl}/posts/create-comment/${threadId}`,
         {
@@ -535,33 +537,61 @@ export default function ThreadSingle() {
         }
       );
     } else {
-      if (Number(areaId) === 1) {
-        pinId = 41;
-      } else if (Number(areaId) === 2) {
-        pinId = 42;
-      } else {
-        pinId = 43;
-      }
-
-      await axios.post(
-        `${backendUrl}/posts/create-comment/${threadId}`,
-        {
-          userId: userInfo.id,
-          content: content,
-          areaId: areaId,
-          forumPost: forumPost,
-          explorePost: explorePost,
-          externalLink: externalLink,
-          title: title,
-          photoLink: imageUrl,
-          locationName: locationName,
-          oldPinId: pinId,
-          newPin: null,
-        },
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
+      // User wants to share to explore page. User opens collapsed portion but did not click map.
+      if (explorePost === "forum") {
+        if (Number(areaId) === 1) {
+          pinId = 41;
+        } else if (Number(areaId) === 2) {
+          pinId = 42;
+        } else {
+          pinId = 43;
         }
-      );
+
+        await axios.post(
+          `${backendUrl}/posts/create-comment/${threadId}`,
+          {
+            userId: userInfo.id,
+            content: content,
+            areaId: areaId,
+            forumPost: forumPost,
+            explorePost: explorePost,
+            externalLink: externalLink,
+            title: title,
+            photoLink: imageUrl,
+            locationName: locationName,
+            oldPinId: pinId,
+            newPin: null,
+          },
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+      } else {
+        // Normal comment without any recommendation.
+
+        if (singleThreadData) {
+          const threadAreaId = singleThreadData[0].post.areaId;
+          await axios.post(
+            `${backendUrl}/posts/create-comment/${threadId}`,
+            {
+              userId: userInfo.id,
+              content: content,
+              areaId: threadAreaId,
+              forumPost: forumPost,
+              explorePost: explorePost,
+              externalLink: externalLink,
+              title: title,
+              photoLink: imageUrl,
+              locationName: locationName,
+              oldPinId: null,
+              newPin: null,
+            },
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }
+          );
+        }
+      }
     }
 
     setOpened(false);
