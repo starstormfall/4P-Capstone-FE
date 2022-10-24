@@ -516,13 +516,11 @@ export default function ChatRoomList(props: Props) {
     <>
       {props.chatroomType === "hosted" ? (
         <div align-self="flex-start">
-          {/* <Button onClick={handleAddRoom}>New Chat</Button> */}
-
           {allChatrooms ? (
             <>
               <Box
                 sx={(theme) => ({
-                  minHeight: 250,
+                  minHeight: props.openChatroom ? 250 : 580,
                   padding: theme.spacing.md,
                   backgroundColor:
                     theme.colorScheme === "dark"
@@ -567,7 +565,9 @@ export default function ChatRoomList(props: Props) {
                   </UnstyledButton>
                   {hasLinks ? (
                     <Collapse in={opened}>
-                      <ScrollArea style={{ height: 120 }}>
+                      <ScrollArea
+                        style={{ height: props.openChatroom ? 120 : 450 }}
+                      >
                         {hostedRooms}
                       </ScrollArea>
                     </Collapse>
@@ -645,7 +645,7 @@ export default function ChatRoomList(props: Props) {
             <div align-self="flex-start">
               <Box
                 sx={(theme) => ({
-                  minHeight: 250,
+                  minHeight: props.openChatroom ? 250 : 580,
                   padding: theme.spacing.md,
                   backgroundColor:
                     theme.colorScheme === "dark"
@@ -686,7 +686,9 @@ export default function ChatRoomList(props: Props) {
                   </UnstyledButton>
                   {hasLinks ? (
                     <Collapse in={opened}>
-                      <ScrollArea style={{ height: 140 }}>
+                      <ScrollArea
+                        style={{ height: props.openChatroom ? 140 : 470 }}
+                      >
                         {invitedRooms}
                       </ScrollArea>
                     </Collapse>

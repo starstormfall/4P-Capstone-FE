@@ -82,26 +82,26 @@ function BeFriendPage() {
       <Space h="lg" />
       BeFriendPage Page
       <Grid justify="space-between" align="start">
-        <Grid.Col span={3}>
-          {friendList && (
-            <FriendList
-              friendListData={friendList}
-              setFriendList={setFriendList}
-            />
-          )}
-          <br />
-          <br />
-          <br />
-          {friendList && (
-            <FriendRequestList
-              friendListData={friendList}
-              setFriendList={setFriendList}
-            />
-          )}
-        </Grid.Col>
-        <Grid.Col span={5}>
-          {openChatroom ? (
-            <>
+        {openChatroom ? (
+          <>
+            <Grid.Col span={3}>
+              {friendList && (
+                <FriendList
+                  friendListData={friendList}
+                  setFriendList={setFriendList}
+                />
+              )}
+              <br />
+              <br />
+              <br />
+              {friendList && (
+                <FriendRequestList
+                  friendListData={friendList}
+                  setFriendList={setFriendList}
+                />
+              )}
+            </Grid.Col>
+            <Grid.Col span={5}>
               {friendList && (
                 <ChatRoom
                   friendListData={friendList}
@@ -113,38 +113,88 @@ function BeFriendPage() {
                   chatroomTitle={chatroomTitle}
                 />
               )}
-            </>
-          ) : null}
-        </Grid.Col>
-        <Grid.Col span={3}>
-          {friendList && (
-            <ChatRoomList
-              friendListData={friendList}
-              chatroomType="hosted"
-              openChatroom={openChatroom}
-              setOpenChatroom={setOpenChatroom}
-              setChatroomId={setChatroomId}
-              setChatroomActive={setChatroomActive}
-              setChatroomHostId={setChatroomHostId}
-              setChatroomTitle={setChatroomTitle}
-            />
-          )}
-          <br />
-          <br />
-          <br />
-          {friendList && (
-            <ChatRoomList
-              friendListData={friendList}
-              chatroomType="invited"
-              openChatroom={openChatroom}
-              setOpenChatroom={setOpenChatroom}
-              setChatroomId={setChatroomId}
-              setChatroomActive={setChatroomActive}
-              setChatroomHostId={setChatroomHostId}
-              setChatroomTitle={setChatroomTitle}
-            />
-          )}
-        </Grid.Col>
+            </Grid.Col>
+            <Grid.Col span={3}>
+              {friendList && (
+                <ChatRoomList
+                  friendListData={friendList}
+                  chatroomType="hosted"
+                  openChatroom={openChatroom}
+                  setOpenChatroom={setOpenChatroom}
+                  setChatroomId={setChatroomId}
+                  setChatroomActive={setChatroomActive}
+                  setChatroomHostId={setChatroomHostId}
+                  setChatroomTitle={setChatroomTitle}
+                />
+              )}
+              <br />
+              <br />
+              <br />
+              {friendList && (
+                <ChatRoomList
+                  friendListData={friendList}
+                  chatroomType="invited"
+                  openChatroom={openChatroom}
+                  setOpenChatroom={setOpenChatroom}
+                  setChatroomId={setChatroomId}
+                  setChatroomActive={setChatroomActive}
+                  setChatroomHostId={setChatroomHostId}
+                  setChatroomTitle={setChatroomTitle}
+                />
+              )}
+            </Grid.Col>
+          </>
+        ) : (
+          <>
+            <Grid.Col span={3}>
+              {friendList && (
+                <FriendList
+                  friendListData={friendList}
+                  setFriendList={setFriendList}
+                />
+              )}
+            </Grid.Col>
+
+            <Grid.Col span={3}>
+              {friendList && (
+                <FriendRequestList
+                  friendListData={friendList}
+                  setFriendList={setFriendList}
+                />
+              )}
+            </Grid.Col>
+
+            <Grid.Col span={3}>
+              {friendList && (
+                <ChatRoomList
+                  friendListData={friendList}
+                  chatroomType="hosted"
+                  openChatroom={openChatroom}
+                  setOpenChatroom={setOpenChatroom}
+                  setChatroomId={setChatroomId}
+                  setChatroomActive={setChatroomActive}
+                  setChatroomHostId={setChatroomHostId}
+                  setChatroomTitle={setChatroomTitle}
+                />
+              )}
+            </Grid.Col>
+            <Grid.Col span={3}>
+              {friendList && (
+                <ChatRoomList
+                  friendListData={friendList}
+                  chatroomType="invited"
+                  openChatroom={openChatroom}
+                  setOpenChatroom={setOpenChatroom}
+                  setChatroomId={setChatroomId}
+                  setChatroomActive={setChatroomActive}
+                  setChatroomHostId={setChatroomHostId}
+                  setChatroomTitle={setChatroomTitle}
+                />
+              )}
+            </Grid.Col>
+          </>
+        )}
+
         {/* <Grid.Col span={4}>
           {friendList && (
             <FriendRequestList

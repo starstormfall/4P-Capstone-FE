@@ -37,6 +37,8 @@ import {
   Paper,
   useMantineTheme,
   Space,
+  Center,
+  SimpleGrid,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { Carousel } from "@mantine/carousel";
@@ -832,98 +834,70 @@ export default function Map() {
   };
 
   // Renders out area buttons for further filters.
-  const listAreas = allAvailableAreas.map((area: Area, index) => {
-    if (area.id === filterRegion) {
-      return (
-        <Button
-          color="aqua"
-          variant="light"
-          key={index}
-          id={`${area.id}`}
-          name="prefecture"
-          onClick={handleFilter}
-        >
-          {area.prefecture}
-        </Button>
-      );
-    } else {
-      return (
-        <Button
-          color="aqua"
-          key={index}
-          id={`${area.id}`}
-          name="prefecture"
-          onClick={handleFilter}
-        >
-          {area.prefecture}
-        </Button>
-      );
-    }
-  });
+  const listAreas = allAvailableAreas.map((area: Area, index) => (
+    <Carousel.Slide key={area.id}>
+      <Button
+        uppercase
+        variant={filterRegion === area.id ? "gradient" : "light"}
+        gradient={{ from: "aqua.5", to: "aqua.3", deg: 105 }}
+        compact
+        radius="md"
+        size="sm"
+        color="aqua"
+        id={`${area.id}`}
+        name="prefecture"
+        onClick={handleFilter}
+      >
+        {area.prefecture}
+      </Button>
+    </Carousel.Slide>
+  ));
 
   // Renders out category buttons for further filters.
   const listCategories = allAvailableCategories.map(
-    (category: Category, index) => {
-      if (category.id === filterCategory) {
-        return (
-          <Button
-            color="blue"
-            variant="light"
-            key={index}
-            id={`${category.id}`}
-            name="category"
-            onClick={handleFilter}
-          >
-            {category.name.toUpperCase()}
-          </Button>
-        );
-      } else {
-        return (
-          <Button
-            color="blue"
-            key={index}
-            id={`${category.id}`}
-            name="category"
-            onClick={handleFilter}
-          >
-            {category.name.toUpperCase()}
-          </Button>
-        );
-      }
-    }
+    (category: Category, index) => (
+      <Carousel.Slide key={category.id}>
+        <Button
+          uppercase
+          disabled={!categoryVisible ? true : false}
+          compact
+          radius="md"
+          size="sm"
+          variant={category.id === filterCategory ? "gradient" : "light"}
+          gradient={{ from: "blue.5", to: "blue.3", deg: 105 }}
+          color="blue"
+          key={index}
+          id={`${category.id}`}
+          name="category"
+          onClick={handleFilter}
+        >
+          {category.name}
+        </Button>
+      </Carousel.Slide>
+    )
   );
 
   // Renders out hashtag buttons for further filters.
-  const listHashtags = allAvailableHashtags.map((hashtag: Hashtag, index) => {
-    if (filterCategory === hashtag.categoryId) {
-      if (hashtag.id === filterHash) {
-        return (
-          <Button
-            color="purple"
-            variant="light"
-            key={index}
-            id={`${hashtag.id}`}
-            name="hashtag"
-            onClick={handleFilter}
-          >
-            {hashtag.name}
-          </Button>
-        );
-      } else {
-        return (
-          <Button
-            color="purple"
-            key={index}
-            id={`${hashtag.id}`}
-            name="hashtag"
-            onClick={handleFilter}
-          >
-            {hashtag.name}
-          </Button>
-        );
-      }
-    } else return null;
-  });
+  const listHashtags = allAvailableHashtags.map((hashtag: Hashtag, index) => (
+    <Carousel.Slide key={hashtag.id}>
+      <Button
+        uppercase
+        disabled={!hashtagVisible ? true : false}
+        compact
+        radius="md"
+        size="sm"
+        variant={hashtag.id === filterHash ? "gradient" : "light"}
+        gradient={{ from: "purple.5", to: "purple.3", deg: 105 }}
+        color="purple"
+        key={index}
+        id={`${hashtag.id}`}
+        name="hashtag"
+        onClick={handleFilter}
+      >
+        {hashtag.name}
+      </Button>
+    </Carousel.Slide>
+  ));
 
   // Function for obtaining info of pin that is selected on map. Centers the map, obtains crowd data of pin, renders on map. Sets state with all other pin infos for google maps matrix service to calculate nearest pins.
   const handleActiveMarker = async (marker: number) => {
@@ -1319,49 +1293,118 @@ export default function Map() {
   return (
     <>
       <Space h="lg" />
-      <Grid>
-        <Grid.Col span={4}>
-          <ScrollArea style={{ height: 50 }}>
-            <div style={{ width: "xl" }}>
-              <Group position="center">
-                {allAvailableAreas && allAvailableAreas.length ? (
-                  listAreas
-                ) : (
-                  <Loader />
-                )}
-              </Group>
-            </div>
-          </ScrollArea>
-        </Grid.Col>
-        <Divider size="sm" orientation="vertical" />
-        <Grid.Col span={4}>
-          <ScrollArea style={{ height: 50 }}>
-            <div style={{ width: "xl" }}>
-              {allAvailableCategories &&
-              allAvailableCategories.length &&
-              categoryVisible ? (
-                <Group position="center">{listCategories}</Group>
+      <SimpleGrid cols={3} spacing="md">
+        <div>
+          <Group noWrap spacing="xs">
+            <Box
+              sx={(theme) => ({
+                textAlign: "center",
+                padding: "2px",
+                // backgroundColor: "blue",
+                // borderRadius: theme.radius.md,
+              })}
+            >
+              <Text size="xs" color="dimmed" align="center">
+                Choose 1 of 47 Prefectures
+              </Text>
+              <Space h="xs" />
+              {allAvailableAreas && allAvailableAreas.length ? (
+                <Center>
+                  <Carousel
+                    sx={{ width: "31vw" }}
+                    height={30}
+                    loop
+                    slideGap="xs"
+                    slidesToScroll={3}
+                    slideSize="20%"
+                    controlsOffset={0}
+                    controlSize={14}
+                  >
+                    {listAreas}
+                  </Carousel>
+                </Center>
               ) : (
                 <Loader />
               )}
-            </div>
-          </ScrollArea>
-        </Grid.Col>
-        <Divider size="sm" orientation="vertical" />
-        <Grid.Col span={3}>
-          <ScrollArea style={{ height: 50 }}>
-            <div style={{ width: "xl" }}>
-              {allAvailableHashtags &&
-              allAvailableHashtags.length &&
-              hashtagVisible ? (
-                <Group>{listHashtags} </Group>
+            </Box>
+            <Divider size="sm" orientation="vertical" />
+          </Group>
+        </div>
+
+        <div>
+          <Group noWrap spacing="xs">
+            <Box
+              sx={(theme) => ({
+                textAlign: "center",
+                padding: "2px",
+                // backgroundColor: "blue",
+                // borderRadius: theme.radius.md,
+              })}
+            >
+              <Text size="xs" color="dimmed" align="center">
+                Categories
+              </Text>
+              <Space h="xs" />
+              {allAvailableCategories && allAvailableCategories.length ? (
+                <Center>
+                  <Carousel
+                    sx={{ width: "31vw" }}
+                    height={30}
+                    loop
+                    slideGap="xs"
+                    slidesToScroll={3}
+                    slideSize="20%"
+                    controlsOffset={0}
+                    controlSize={14}
+                    align="start"
+                  >
+                    {listCategories}
+                  </Carousel>
+                </Center>
               ) : (
                 <Loader />
               )}
-            </div>
-          </ScrollArea>
-        </Grid.Col>
-      </Grid>
+            </Box>
+            <Divider size="sm" orientation="vertical" />
+          </Group>
+        </div>
+
+        <div>
+          <Group noWrap spacing="xs">
+            <Box
+              sx={(theme) => ({
+                textAlign: "center",
+                padding: "2px",
+                // backgroundColor: "blue",
+                // borderRadius: theme.radius.md,
+              })}
+            >
+              <Text size="xs" color="dimmed" align="center">
+                Hashtags
+              </Text>
+              <Space h="xs" />
+              {allAvailableHashtags && allAvailableHashtags.length ? (
+                <Carousel
+                  sx={{ width: "31vw" }}
+                  height={30}
+                  loop
+                  slideGap="xs"
+                  slidesToScroll={3}
+                  slideSize="20%"
+                  controlsOffset={0}
+                  controlSize={14}
+                >
+                  {listHashtags}
+                </Carousel>
+              ) : (
+                <Loader />
+              )}
+            </Box>
+            <Divider size="sm" orientation="vertical" />
+          </Group>
+        </div>
+      </SimpleGrid>
+
       <br />
       {errorCheckIn ? (
         <Alert
