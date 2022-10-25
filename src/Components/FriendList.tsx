@@ -18,8 +18,15 @@ import {
   ScrollArea,
   createStyles,
   Title,
+  ThemeIcon,
 } from "@mantine/core";
 import { IconLetterX } from "@tabler/icons";
+import {
+  PersonDoneOutline,
+  PersonDeleteOutline,
+  PersonAddOutline,
+  PersonRemoveOutline,
+} from "@easy-eva-icons/react";
 
 //create interface for the data
 interface FriendDataInformation {
@@ -65,8 +72,15 @@ export default function FriendList({ friendListData, setFriendList }: Props) {
   const { classes, theme } = useStyles();
 
   const getFriendList = async () => {
+    const accessToken = await getAccessTokenSilently({
+      audience: process.env.REACT_APP_AUDIENCE,
+      scope: process.env.REACT_APP_SCOPE,
+    });
     const response = await axios.get(
-      `${backendUrl}/friends/${userInfo?.id}/allfriends`
+      `${backendUrl}/friends/${userInfo?.id}/allfriends`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
     );
 
     setFriendList(response.data);
@@ -89,9 +103,16 @@ export default function FriendList({ friendListData, setFriendList }: Props) {
           flexDirection: "column",
         })}
       >
-        <Title align="center" order={3} mb="md">
-          Friend List
-        </Title>
+        {" "}
+        <Group position="center" mb="md" mt="xs">
+          <ThemeIcon variant="light" size={30}>
+            <PersonDoneOutline />
+          </ThemeIcon>
+
+          <Title align="center" order={5}>
+            Friend List
+          </Title>
+        </Group>
         <Container>
           <ScrollArea
             style={{ height: 600 }}

@@ -18,9 +18,17 @@ import {
   Box,
   ScrollArea,
   Title,
+  ThemeIcon,
 } from "@mantine/core";
 import { IconCheck, IconLetterX } from "@tabler/icons";
-import { useMutation } from "@tanstack/react-query";
+
+import {
+  PersonDoneOutline,
+  PersonDeleteOutline,
+  PersonAddOutline,
+  PersonRemoveOutline,
+} from "@easy-eva-icons/react";
+
 //create interface for the data
 interface FriendDataInformation {
   addedUser: {
@@ -64,8 +72,15 @@ export default function FriendRequestList({
   const { getAccessTokenSilently } = useAuth0();
 
   const getFriendList = async () => {
+    const accessToken = await getAccessTokenSilently({
+      audience: process.env.REACT_APP_AUDIENCE,
+      scope: process.env.REACT_APP_SCOPE,
+    });
     const response = await axios.get(
-      `${backendUrl}/friends/${userInfo?.id}/allfriends`
+      `${backendUrl}/friends/${userInfo?.id}/allfriends`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
     );
 
     setFriendList(response.data);
@@ -88,9 +103,15 @@ export default function FriendRequestList({
           flexDirection: "column",
         })}
       >
-        <Title align="center" order={3} mb="md">
-          Friend List
-        </Title>
+        <Group position="center" mb="md" mt="xs">
+          <ThemeIcon variant="light" size={30}>
+            <PersonAddOutline />
+          </ThemeIcon>
+          <Title align="center" order={5}>
+            Friend Request
+          </Title>
+        </Group>
+
         <Container>
           <ScrollArea
             style={{ height: 600 }}

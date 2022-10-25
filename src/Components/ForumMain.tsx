@@ -6,13 +6,11 @@ import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
   Button,
-  Container,
   Grid,
   Card,
   Text,
   Modal,
   Group,
-  FileInput,
   Textarea,
   Checkbox,
   Select,
@@ -24,7 +22,9 @@ import {
   Divider,
   FileButton,
   Image,
+  Box,
 } from "@mantine/core";
+import { useWindowScroll } from "@mantine/hooks";
 import { storage } from "../DB/firebase";
 import {
   getDownloadURL,
@@ -36,6 +36,7 @@ import {
   EditOutline,
   CloudUploadOutline,
   Trash2Outline,
+  ArrowheadUpOutline,
 } from "@easy-eva-icons/react";
 
 // Googlemaps Api
@@ -144,19 +145,20 @@ export default function ForumMain() {
             <Text weight={700} className={classes.title} mt="xs">
               {list.topic}
             </Text>
-
+            <Divider my="sm"></Divider>
             <Group mt="md" mb="sm">
               <div>
                 <Text weight={500} size="xs">
                   {list.lastPostUserName}
                 </Text>
-                <Text size="xs">posted {list.lastPostCreatedAt}</Text>
+                <Text size="xs">posted: {list.lastPostCreatedAt}</Text>
                 <Text size="xs" color="dimmed">
                   {list.lastPost}
                 </Text>
               </div>
             </Group>
-            <Group position="apart">
+            <Divider my="xs"></Divider>
+            <Group position="apart" mt="sm">
               <Text size="sm">
                 {<PersonOutline />}
                 {list.usersCount} User
@@ -209,6 +211,7 @@ export default function ForumMain() {
   const [externalLink, setExternalLink] = useState<string>("");
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const { userInfo } = UseApp();
+  const [scroll, scrollTo] = useWindowScroll();
 
   // Googlemaps states for markers, and for autocomplete
   const [currentPosition, setCurrentPosition] = useState<Location>({
@@ -406,9 +409,9 @@ export default function ForumMain() {
     <div>
       <Space h="lg" />
       <Title align="center">Exchange</Title>
-      <Text size="sm" align="center" color="aqua" mt="sm">
-        reach out to like-minded enthusiasts and share tips or ask advice from
-        our community of locals and denizens
+      <Text size="md" align="center" color="aqua" mt="sm">
+        "reach out to like-minded enthusiasts and share tips or ask advice from
+        our community of locals and denizens"
       </Text>
       {/* create post button */}
       <div style={{ margin: "15px" }}>
@@ -547,20 +550,13 @@ export default function ForumMain() {
                     </Button>
                   )}
                 </FileButton>
-                <Button
-                  disabled={!fileInputFile}
-                  color="red"
-                  onClick={clearFile}
-                  leftIcon={<Trash2Outline />}
-                >
-                  Reset
-                </Button>
               </Group>
               {fileInputFile && (
-                  <Text size="sm" align="left" mt="sm">
+                <Box>
+                  <Text size="sm" align="center" mt="sm">
                     Picked file: {fileInputFile.name}
                   </Text>
-                ) && (
+
                   <Image
                     src={photoPreview}
                     alt={`Image`}
@@ -569,7 +565,18 @@ export default function ForumMain() {
                     radius="lg"
                     caption="image preview"
                   />
-                )}
+                  <Group position="center" mt="md">
+                    <Button
+                      disabled={!fileInputFile}
+                      color="red"
+                      onClick={clearFile}
+                      leftIcon={<Trash2Outline />}
+                    >
+                      Reset
+                    </Button>
+                  </Group>
+                </Box>
+              )}
 
               <br />
               {/* Con render explore/forum post */}
@@ -593,12 +600,30 @@ export default function ForumMain() {
           </Paper>
         </Modal>
 
-        <Group position="center">
-          <Button onClick={() => setOpened(true)}>Create Post!</Button>
+        <Group position="center" mb="lg">
+          <Button
+            variant="light"
+            radius="xl"
+            size="lg"
+            onClick={() => setOpened(true)}
+          >
+            Create Post!
+          </Button>
         </Group>
       </div>
       {updateForum}
       <Grid>{forumListFinal}</Grid>
+      <Group position="right">
+        <Button
+          variant="filled"
+          radius="md"
+          size="md"
+          onClick={() => scrollTo({ y: 0 })}
+          rightIcon={<ArrowheadUpOutline />}
+        >
+          Scroll to Top
+        </Button>
+      </Group>
     </div>
   );
 }
