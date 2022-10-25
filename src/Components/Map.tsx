@@ -3,12 +3,10 @@ import {
   GoogleMap,
   useJsApiLoader,
   MarkerF,
-  InfoWindowF,
-  InfoBoxF,
   HeatmapLayer,
   DistanceMatrixService,
 } from "@react-google-maps/api";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   Button,
   Group,
@@ -19,20 +17,16 @@ import {
   Image,
   ScrollArea,
   Badge,
-  Overlay,
   createStyles,
   Title,
-  TextInput,
   Select,
   Alert,
   Anchor,
   Divider,
   Box,
-  Container,
   Collapse,
   UnstyledButton,
   ThemeIcon,
-  ChevronIcon,
   Modal,
   Paper,
   useMantineTheme,
@@ -45,8 +39,6 @@ import { Carousel } from "@mantine/carousel";
 
 import {
   IconAlertCircle,
-  IconToolsKitchen2,
-  IconBuildingSkyscraper,
   IconFriends,
   IconChevronLeft,
   IconChevronRight,
@@ -54,7 +46,7 @@ import {
   IconMapPins,
   IconUserCheck,
 } from "@tabler/icons";
-import { Heart, HeartOutline } from "@easy-eva-icons/react";
+import { Heart } from "@easy-eva-icons/react";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -88,13 +80,9 @@ const useStyles = createStyles((theme) => ({
   wrapper: {
     display: "flex",
     alignItems: "center",
-    // padding: theme.spacing.xl * 2,
     borderRadius: theme.radius.md,
     backgroundColor:
       theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.white,
-    // border: `1px solid ${
-    //   theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[3]
-    // }`,
 
     [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
       flexDirection: "column-reverse",
@@ -111,8 +99,6 @@ const useStyles = createStyles((theme) => ({
   },
 
   body: {
-    // paddingRight: theme.spacing.xl * 4,
-
     [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
       paddingRight: 0,
       marginTop: theme.spacing.xl,
@@ -157,7 +143,6 @@ const useStyles = createStyles((theme) => ({
   },
 
   crowdNew: {
-    // alignSelf: "self-end",
     justifyContent: "flex-end",
   },
 
@@ -183,11 +168,8 @@ const useStyles = createStyles((theme) => ({
 
   category: {
     color: "white",
-    // opacity: 0.9,
     fontWeight: 700,
     textShadow: "-0.1px 0 grey, 0 0.1px grey, 0.1px 0 grey, 0 -0.1px grey",
-    // lineHeight: 1,
-    // textTransform: "uppercase",
   },
 
   cardWrapper: {
@@ -287,7 +269,6 @@ interface Distance {
 
 export default function Map() {
   const { classes, theme } = useStyles();
-  const navigate = useNavigate();
   const { state } = useLocation();
   const carouselTheme = useMantineTheme();
   const mobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm}px)`);
@@ -305,13 +286,8 @@ export default function Map() {
   const { userId, userInfo, setUserInfo } = UseApp();
 
   // Obtain methods for auth0 authentication.
-  const {
-    isAuthenticated,
-    user,
-    loginWithRedirect,
-    logout,
-    getAccessTokenSilently,
-  } = useAuth0();
+  const { isAuthenticated, user, loginWithRedirect, getAccessTokenSilently } =
+    useAuth0();
 
   // States for loading all prefectures, categories and hashtags.
   const [allAvailableAreas, setAllAvailableAreas] = useState<Area[]>([]);
@@ -564,24 +540,15 @@ export default function Map() {
       const infoToReturn = nearbyPlaceDist.map((place, j) => {
         //place.position is the index within destination address
 
-        console.log(destinationAddresses[place.position]);
-        //this gives me lat long of each place.
-
         const originalPin: PinLocationInformation | undefined = pins.find(
           (pin) => pin.lat === destinationAddresses[place.position].lat
         );
-
-        console.log(originalPin);
 
         if (originalPin) {
           const allCrowds = originalPin.crowds.slice(0, 1).map((crowd, i) => {
             const { crowdIntensity, crowdSize, recordedAt } = crowd;
             return (
               <>
-                {/* <Text className={classes.category} transform="uppercase">
-                  {crowdIntensity}
-                </Text> */}
-
                 <Text
                   className={classes.category}
                   size="xs"
@@ -629,37 +596,11 @@ export default function Map() {
               return (
                 <>
                   {allCategories} &nbsp;
-                  {/* <br /> */}
                   {allHashtags}
                 </>
               );
             } else return null;
           });
-
-          // const allPosts = originalPin.posts.map((post, i) => {
-          //   if (i < 3) {
-          //     return (
-          //       <Card key={post.title}>
-          //         {/* {allCategories}
-          //         <br />
-          //         {allHashtags} */}
-          //         <Text>Title: {post.title}</Text>
-          //         <Text>
-          //           Posted: {new Date(post.createdAt).toLocaleDateString()}
-          //         </Text>
-          //         <Text>{post.content}</Text>
-          //         <Anchor
-          //           href={post.externalLink}
-          //           target="_blank"
-          //           rel="noopener noreferrer"
-          //         >
-          //           <img src={post.photoLink} alt={post.title} height={400} />
-          //         </Anchor>
-          //         <Text>Likes: {post.likeCount}</Text>
-          //       </Card>
-          //     );
-          //   } else return null;
-          // });
 
           return (
             <Carousel.Slide
@@ -674,19 +615,14 @@ export default function Map() {
                 rel="noopener noreferrer"
               >
                 <Paper
-                  // shadow="md"
                   p="xl"
                   radius="md"
                   sx={{
                     backgroundImage: `url(${originalPin.posts[0].photoLink})`,
-                    // height: "26vh",
                   }}
                   className={classes.card}
                 >
                   <div>
-                    {/* <Text className={classes.category} size="xs">
-                      {category}
-                    </Text> */}
                     {allPostsHashCat}
                     <Title order={3} className={classes.titleCaro}>
                       {originalPin.placeName}
@@ -695,37 +631,10 @@ export default function Map() {
                       {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}Km away
                     </Text>
                   </div>
-                  {/* <Button variant="white" color="dark">
-                    Read more
-                  </Button> */}
-                  {/* <br /> */}
                   {allCrowds}
                 </Paper>
-                {/* <Text>
-                  {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}km away //{" "}
-                </Text>
-                <Text>{originalPin.placeName}</Text>{" "}
-                <Text>
-                  {allAvailableAreas[originalPin.areaId - 1].prefecture}{" "}
-                </Text>
-                <Text>LATEST CROWD ESTIMATES</Text>
-                {allCrowds}
-                {allPosts} */}
               </Card>
             </Carousel.Slide>
-
-            // <div key={originalPin.placeName}>
-            //   <Text>
-            //     {(nearbyPlaceDist[j].distance / 1000).toFixed(3)}km away
-            //   </Text>
-            //   <Text>{originalPin.placeName}</Text>
-            //   <Text>
-            //     {allAvailableAreas[originalPin.areaId - 1].prefecture}
-            //   </Text>
-            //   <Text>LATEST CROWD ESTIMATES</Text>
-            //   {allCrowds}
-            //   {allPosts}
-            // </div>
           );
         }
       });
@@ -742,18 +651,6 @@ export default function Map() {
           loop
           orientation="vertical"
           controlsOffset="xs"
-          // withIndicators
-          // styles={{
-          //   indicator: {
-          //     width: 4,
-          //     height: 12,
-          //     transition: "height 250ms ease",
-
-          //     "&[data-active]": {
-          //       height: 40,
-          //     },
-          //   },
-          // }}
         >
           {infoToReturn.length === nearbyPlaceDist.length && infoToReturn}
         </Carousel>
@@ -827,7 +724,6 @@ export default function Map() {
       if (filterHash !== hashtagId) {
         setFilterHash(hashtagId);
       } else if (filterHash === hashtagId) {
-        console.log("this is running");
         setFilterHash(0);
       }
     }
@@ -927,7 +823,6 @@ export default function Map() {
       },
     ]);
 
-    console.log(pinMarkers[realIndex].latestCrowdSize);
     if (pinMarkers[realIndex].latestCrowdSize === "little crowd") {
       setCrowdMapWeight(10);
     } else if (pinMarkers[realIndex].latestCrowdSize === "somewhat crowded") {
@@ -953,15 +848,11 @@ export default function Map() {
 
     setDestinationAddresses(destinationPins);
   };
-  console.log(activeWindow);
-  console.log(nearbyPlaceDist);
 
   // Function to obtain info of current selected pin.
   // Obtains 3 closest places with same category to the selected pin. Allows displaying of the data of those places. Renders pin data, 3 posts and 3 latest crowd data of pin as JSX.
   const findPinInfo = () => {
     if (activeMarker !== null && activeWindow !== null) {
-      // const index = pins.findIndex((item) => item.id === activeMarker);
-
       //activemarker is the id.
       const realIndex = pins.findIndex((item) => item.id === activeMarker);
 
@@ -997,7 +888,6 @@ export default function Map() {
 
           return (
             <div key={post.title}>
-              {/* <Card key={post.title}> */}
               {allCategories}
               <br />
               {allHashtags}
@@ -1017,7 +907,6 @@ export default function Map() {
                 >
                   <Image radius="md" src={post.photoLink} alt={post.title} />
                 </div>
-                {/* <img src={post.photoLink} alt={post.title} width="100%" /> */}
               </Anchor>
               <Text align="right">
                 <Heart color="red" />
@@ -1028,8 +917,6 @@ export default function Map() {
                 {new Date(post.createdAt).toLocaleDateString()}
               </Text>
               <Text size="sm">{post.content}</Text>
-
-              {/* </Card> */}
             </div>
           );
         } else return null;
@@ -1063,8 +950,6 @@ export default function Map() {
 
   const findPinCrowd = () => {
     if (activeMarker !== null && activeWindow !== null) {
-      // const index = pins.findIndex((item) => item.id === activeMarker);
-
       //activemarker is the id.
       const realIndex = pins.findIndex((item) => item.id === activeMarker);
 
@@ -1092,9 +977,6 @@ export default function Map() {
       return <div key={pinMarkers[activeWindow].name}>{allCrowds}</div>;
     }
   };
-
-  console.log(pinMarkers);
-  console.log(pins);
 
   // Function to reset states when pin is unselected on map.
   const handleResetMarker = () => {
@@ -1124,9 +1006,6 @@ export default function Map() {
     setSuccessCheckIn(false);
   };
 
-  console.log(checkIn);
-  console.log(activeWindow);
-
   // Helper function to calculate the distance between the pin position and the user's live position.
   const calcDistanceTwoPoints = (point1: Position, point2: Position) => {
     let latPoint1 = point1.lat / 57.29577951;
@@ -1153,8 +1032,6 @@ export default function Map() {
   const handleSubmitCrowd: React.MouseEventHandler<HTMLButtonElement> = async (
     e
   ) => {
-    console.log(e.currentTarget.name);
-
     if (e.currentTarget.name === "with location") {
       navigator.geolocation.getCurrentPosition((position) => {
         setCurrentPosition({
@@ -1231,62 +1108,6 @@ export default function Map() {
           setCheckIn(false);
         }
       }
-    } else {
-      setErrorCheckIn(false);
-      let crowdIntensity;
-      if (crowdValue === "very crowded") {
-        crowdIntensity = ">100 pax";
-        setCrowdMapWeight(100);
-      } else if (crowdValue === "somewhat crowded") {
-        crowdIntensity = "30 to 100 pax";
-        setCrowdMapWeight(40);
-      } else {
-        crowdIntensity = "<30 pax";
-        setCrowdMapWeight(10);
-      }
-
-      const objectBody = {
-        userId: userId,
-        crowdSize: crowdValue,
-        crowdIntensity: crowdIntensity,
-      };
-
-      const accessToken = await getAccessTokenSilently({
-        audience: process.env.REACT_APP_AUDIENCE,
-        scope: process.env.REACT_APP_SCOPE,
-      });
-
-      await axios.post(
-        `${backendUrl}/maps/${activeMarker}/createCrowdData`,
-        objectBody,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-
-      const newUserScoreObj = {
-        email: userInfo.email,
-        score: Number(userInfo.score + 10),
-        name: userInfo.name,
-        nationality: userInfo.nationality,
-        lastLogin: userInfo.lastLogin,
-        photoLink: userInfo.photoLink,
-        loginStreak: userInfo.loginStreak,
-      };
-
-      const userResponse = await axios.put(
-        `${backendUrl}/users/update/${userId}`,
-        newUserScoreObj,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-
-      setCrowdValue("");
-      setCheckIn(false);
-      setSuccessCheckIn(true);
-      setNewUserScore(userResponse.data.score);
-      setUserInfo({ ...userInfo, score: newUserScoreObj.score });
     }
   };
 
@@ -1300,8 +1121,6 @@ export default function Map() {
               sx={(theme) => ({
                 textAlign: "center",
                 padding: "2px",
-                // backgroundColor: "blue",
-                // borderRadius: theme.radius.md,
               })}
             >
               <Text size="xs" color="dimmed" align="center">
@@ -1337,8 +1156,6 @@ export default function Map() {
               sx={(theme) => ({
                 textAlign: "center",
                 padding: "2px",
-                // backgroundColor: "blue",
-                // borderRadius: theme.radius.md,
               })}
             >
               <Text size="xs" color="dimmed" align="center">
@@ -1375,8 +1192,6 @@ export default function Map() {
               sx={(theme) => ({
                 textAlign: "center",
                 padding: "2px",
-                // backgroundColor: "blue",
-                // borderRadius: theme.radius.md,
               })}
             >
               <Text size="xs" color="dimmed" align="center">
@@ -1435,14 +1250,12 @@ export default function Map() {
       ) : null}
       {checkIn && activeWindow !== null ? (
         <>
-          {console.log("this is running")}
           <Modal
             opened={checkIn}
             onClose={() => setCheckIn(false)}
             radius="md"
             size="auto"
             withCloseButton={false}
-            // centered
           >
             <div className={classes.wrapper}>
               <div className={classes.body}>
@@ -1488,27 +1301,15 @@ export default function Map() {
                     </Button>
                   </Group>
                   <br />
-                  <Button
-                    className={classes.control}
-                    onClick={handleSubmitCrowd}
-                    name="without location"
-                  >
-                    Check In Without Location
-                  </Button>
                 </div>
               </div>
-              {/* <Image src={image.src} className={classes.image} /> */}
             </div>
           </Modal>
         </>
-      ) : // <Container fluid>
-      // </Container>
-      null}
+      ) : null}
       {isLoaded && pinMarkers.length > 0 ? (
         <>
-          {/* <Container style={{ width: "100%" }}> */}
           <Grid
-            // grow
             gutter="md"
             style={{
               width: "100%",
@@ -1518,28 +1319,15 @@ export default function Map() {
           >
             <Box
               sx={(theme) => ({
-                // minHeight: 250,
                 padding: theme.spacing.md,
-                // backgroundColor:
-                //   theme.colorScheme === "dark"
-                //     ? theme.colors.dark[6]
-                //     : theme.white,
-                // borderRadius: theme.radius.lg,
-                // boxShadow: theme.shadows.lg,
                 display: "flex",
                 width: "95vw",
-                // flexDirection: "column",
-                // justifyContent: "space-between",
               })}
             >
               <Grid.Col span={8}>
                 <GoogleMap
                   onClick={() => {
                     handleResetMarker();
-                    // if (e.latLng && e.latLng.lat && e.latLng?.lng) {
-                    //   console.log("lat", e.latLng.lat());
-                    //   console.log("lng", e.latLng.lng());
-                    // }
                   }}
                   center={mapCenter}
                   onLoad={(map) => setOriginalMap(map)}
@@ -1571,7 +1359,6 @@ export default function Map() {
                           travelMode: google.maps.TravelMode.DRIVING,
                         }}
                         callback={async (res) => {
-                          console.log("RESPONSE", res);
                           setControl(false);
 
                           if (res !== null) {
@@ -1691,37 +1478,13 @@ export default function Map() {
                                   icon={{
                                     url: `${markerIcon}`,
                                     scaledSize: new google.maps.Size(30, 30),
-                                    // scale: 0.0005,
                                   }}
-                                  // icon={markerIcon}
                                   position={{
                                     lat: position.lat + index * 0.0001,
                                     lng: position.lng + index * 0.0001,
                                   }}
-                                  // position={position}
                                   onClick={() => handleActiveMarker(id)}
-                                >
-                                  {/* {activeMarker === id ? (
-                            <InfoWindowF
-                              onCloseClick={() => setActiveMarker(null)}
-                            >
-                              <>
-                                <Text>{name}</Text>
-                                <Text>
-                                  {
-                                    pins[
-                                      Number(
-                                        pins.findIndex(
-                                          (item) => item.id === activeMarker
-                                        )
-                                      )
-                                    ].area.prefecture
-                                  }
-                                </Text>
-                              </>
-                            </InfoWindowF>
-                          ) : null} */}
-                                </MarkerF>
+                                ></MarkerF>
                               );
                             }
                           }
@@ -1755,37 +1518,13 @@ export default function Map() {
                                 icon={{
                                   url: `${markerIcon}`,
                                   scaledSize: new google.maps.Size(30, 30),
-                                  // scale: 0.0005,
                                 }}
-                                // icon={markerIcon}
                                 position={{
                                   lat: position.lat + index * 0.0001,
                                   lng: position.lng + index * 0.0001,
                                 }}
-                                // position={position}
                                 onClick={() => handleActiveMarker(id)}
-                              >
-                                {/* {activeMarker === id ? (
-                          <InfoWindowF
-                            onCloseClick={() => setActiveMarker(null)}
-                          >
-                            <>
-                              <Text>{name}</Text>
-                              <Text>
-                                {
-                                  pins[
-                                    Number(
-                                      pins.findIndex(
-                                        (item) => item.id === activeMarker
-                                      )
-                                    )
-                                  ].area.prefecture
-                                }
-                              </Text>
-                            </>
-                          </InfoWindowF>
-                        ) : null} */}
-                              </MarkerF>
+                              ></MarkerF>
                             );
                           }
                         );
@@ -1816,32 +1555,11 @@ export default function Map() {
                           key={id}
                           icon={{
                             url: `${markerIcon}`,
-                            // scale: 0.0005,
                             scaledSize: new google.maps.Size(30, 30),
                           }}
-                          // icon={markerIcon}
                           position={position}
                           onClick={() => handleActiveMarker(id)}
-                        >
-                          {/* {activeMarker === id ? (
-                      <InfoWindowF onCloseClick={() => setActiveMarker(null)}>
-                        <>
-                          <Text>{name}</Text>
-                          <Text>
-                            {
-                              pins[
-                                Number(
-                                  pins.findIndex(
-                                    (item) => item.id === activeMarker
-                                  )
-                                )
-                              ].area.prefecture
-                            }
-                          </Text>
-                        </>
-                      </InfoWindowF>
-                    ) : null} */}
-                        </MarkerF>
+                        ></MarkerF>
                       );
                     }
                   })}
@@ -2011,7 +1729,6 @@ export default function Map() {
                   </UnstyledButton>
                   <Collapse in={nearbyOpened}>
                     <ScrollArea style={{ height: "30vh" }}>
-                      {/* <br /> */}
                       {displayNearbyPlaces()}
                     </ScrollArea>
                   </Collapse>
@@ -2019,7 +1736,6 @@ export default function Map() {
               </Grid.Col>
             </Box>
           </Grid>
-          {/* </Container> */}
         </>
       ) : (
         <Loader />

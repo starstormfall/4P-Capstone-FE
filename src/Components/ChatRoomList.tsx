@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
 import {
-  Button,
-  Card,
   Text,
-  Container,
   MultiSelect,
   TextInput,
   Group,
@@ -22,8 +18,6 @@ import {
   Alert,
 } from "@mantine/core";
 import {
-  TablerIcon,
-  IconCalendarStats,
   IconChevronLeft,
   IconChevronRight,
   IconCircleCheck,
@@ -31,11 +25,9 @@ import {
   IconUser,
   IconUsers,
   IconSquarePlus,
-  IconMessages,
   IconMessageDots,
   IconAlertCircle,
 } from "@tabler/icons";
-// import {CheckmarkCircle} from "@easy-eva-icons/react"
 
 import { backendUrl } from "../utils";
 
@@ -114,15 +106,10 @@ const useStyles = createStyles((theme) => ({
   link: {
     fontWeight: 500,
     display: "block",
-    // textDecoration: "none",
     padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
     paddingLeft: 31,
     marginLeft: 30,
     fontSize: theme.fontSizes.sm,
-    // color:
-    //   theme.colorScheme === "dark"
-    //     ? theme.colors.dark[0]
-    //     : theme.colors.gray[7],
     borderLeft: `1px solid ${
       theme.colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
     }`,
@@ -141,22 +128,14 @@ const useStyles = createStyles((theme) => ({
   },
 
   chatNew: {
-    // alignSelf: "self-end",
     justifyContent: "flex-end",
     padding: "10px 12px",
   },
 
   roomNew: {
-    // alignSelf: "self-end",
     justifyContent: "flex-end",
     padding: "10px 0px 0px 374px",
   },
-
-  // modal: {
-  //   display: "flex",
-  //   flexDirection: "column",
-  //   justifyContent: "space-between",
-  // },
 }));
 
 interface Links {
@@ -169,7 +148,6 @@ interface Links {
 
 export default function ChatRoomList(props: Props) {
   const { classes, theme } = useStyles();
-  // const [links, setLinks] = useState<Links[]>([]);
   let links: Links[] = [];
   const hasLinks = Array.isArray(links);
   const [opened, setOpened] = useState(false);
@@ -177,20 +155,14 @@ export default function ChatRoomList(props: Props) {
 
   const { userId } = UseApp();
   // Obtain methods for auth0 authentication.
-  const {
-    isAuthenticated,
-    user,
-    loginWithRedirect,
-    logout,
-    getAccessTokenSilently,
-  } = useAuth0();
+  const { isAuthenticated, user, loginWithRedirect, getAccessTokenSilently } =
+    useAuth0();
 
   const [newUser, setNewUser] = useState<string[]>([]);
   const [allFriends, setAllFriends] = useState<Friend[]>();
   const [addChatroom, setAddChatroom] = useState(false);
   const [chatroomName, setChatroomName] = useState("");
   const [allChatrooms, setAllChatrooms] = useState<ChatroomInformation[]>([]);
-  // const [openChatroom, setOpenChatroom] = useState(false);
 
   // useEffect for checking auth0 authentication upon load.
   useEffect(() => {
@@ -225,10 +197,6 @@ export default function ChatRoomList(props: Props) {
     }
   }, [props.friendListData]);
 
-  console.log(props.friendListData);
-  // console.log("userId", userId);
-  // console.log(allFriends);
-
   const getAllChatrooms = async () => {
     if (userId) {
       const accessToken = await getAccessTokenSilently({
@@ -244,11 +212,6 @@ export default function ChatRoomList(props: Props) {
       );
 
       setAllChatrooms(response.data.allChatrooms);
-      console.log(response.data.allChatrooms);
-
-      // response.data.allChatrooms.forEach((chatroom: ChatroomInformation) => {
-      //   setLinks([...links, { label: chatroom.chatroom.roomName, link: "./" }]);
-      // });
     }
   };
 
@@ -256,7 +219,6 @@ export default function ChatRoomList(props: Props) {
     getAllChatrooms();
   }, [chatroomName, props.openChatroom, props.friendListData]);
 
-  // let links: Links[] = [];
   if (allChatrooms.length > 0) {
     allChatrooms.forEach((chatroom) => {
       const newObj = {
@@ -268,8 +230,6 @@ export default function ChatRoomList(props: Props) {
       };
 
       links.push(newObj);
-
-      // setLinks([...links, { label: chatroom.chatroom.roomName, link: "./" }]);
     });
   }
 
@@ -300,7 +260,6 @@ export default function ChatRoomList(props: Props) {
             <Text<"a">
               component="a"
               className={classes.link}
-              // strikethrough
               color="#B4ADCC"
               href={link.link}
               key={link.label}
@@ -349,7 +308,6 @@ export default function ChatRoomList(props: Props) {
             <Text<"a">
               component="a"
               className={classes.link}
-              // strikethrough
               color="#B4ADCC"
               href={link.link}
               key={link.label}
@@ -371,14 +329,6 @@ export default function ChatRoomList(props: Props) {
     }
   });
 
-  // useEffect(() => {
-  //   if (allChatrooms.length > 0) {
-  //     allChatrooms.forEach((chatroom) => {
-  //       setLinks([...links, { label: chatroom.chatroom.roomName, link: "./" }]);
-  //     });
-  //   }
-  // }, [allChatrooms]);
-
   const handleAddRoom = () => {
     setAddChatroom(!addChatroom);
   };
@@ -386,8 +336,6 @@ export default function ChatRoomList(props: Props) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setChatroomName(e.currentTarget.value);
   };
-  console.log(chatroomName);
-  console.log(newUser);
 
   const handleCreateRoom = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -409,11 +357,6 @@ export default function ChatRoomList(props: Props) {
       await axios.post(`${backendUrl}/chats/createchatroom`, objectBody, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-
-      //response.data.newRoom.id
-      //response.data.newRoom.roomName
-      //response.data.newRoom.updatedAt
-      //To set these in chatlist if needed.
 
       setChatroomName("");
       setNewUser([]);
@@ -438,80 +381,6 @@ export default function ChatRoomList(props: Props) {
     }
   };
 
-  console.log(allChatrooms);
-
-  const hostedChatrooms = allChatrooms.map((chatroom) => {
-    if (userId && userId === chatroom.chatroom.hostUserId) {
-      return (
-        <div key={chatroom.chatroomId}>
-          {/* <Button value={chatroom.chatroomId} onClick={handleChatroom}> */}
-          <Container key={chatroom.chatroomId}>
-            <Link
-              onClick={(
-                event: React.MouseEvent<HTMLAnchorElement, MouseEvent>
-              ) =>
-                handleChatroom(
-                  event,
-                  chatroom.chatroomId,
-                  chatroom.chatroom.active,
-                  chatroom.chatroom.hostUserId,
-                  chatroom.chatroom.roomName
-                )
-              }
-              to="./"
-            >
-              <Card>
-                <p>{chatroom.chatroom.roomName}</p>
-                <p>
-                  Last Message:{" "}
-                  {new Date(chatroom.chatroom.updatedAt).toLocaleString()}
-                </p>
-                {chatroom.chatroom.active ? <p>ACTIVE</p> : <p>DEACTIVATED</p>}
-              </Card>
-            </Link>
-          </Container>
-          {/* </Button> */}
-        </div>
-      );
-    } else return null;
-  });
-
-  const invitedChatrooms = allChatrooms.map((chatroom) => {
-    if (userId && userId !== chatroom.chatroom.hostUserId) {
-      return (
-        <div key={chatroom.chatroomId}>
-          {/* <Button value={chatroom.chatroomId} onClick={handleChatroom}> */}
-          <Container key={chatroom.chatroomId}>
-            <Link
-              onClick={(
-                event: React.MouseEvent<HTMLAnchorElement, MouseEvent>
-              ) =>
-                handleChatroom(
-                  event,
-                  chatroom.chatroomId,
-                  chatroom.chatroom.active,
-                  chatroom.chatroom.hostUserId,
-                  chatroom.chatroom.roomName
-                )
-              }
-              to="./"
-            >
-              <Card>
-                <p>{chatroom.chatroom.roomName}</p>
-                <p>
-                  Last Message:{" "}
-                  {new Date(chatroom.chatroom.updatedAt).toLocaleString()}
-                </p>
-                {chatroom.chatroom.active ? <p>ACTIVE</p> : <p>DEACTIVATED</p>}
-              </Card>
-            </Link>
-          </Container>
-          {/* </Button> */}
-        </div>
-      );
-    } else return null;
-  });
-
   return (
     <>
       {props.chatroomType === "hosted" ? (
@@ -520,7 +389,8 @@ export default function ChatRoomList(props: Props) {
             <>
               <Box
                 sx={(theme) => ({
-                  minHeight: props.openChatroom ? 250 : 580,
+                  height: props.openChatroom ? "46vh" : "100vh",
+                  // minHeight: props.openChatroom ? 250 : 580,
                   padding: theme.spacing.md,
                   backgroundColor:
                     theme.colorScheme === "dark"
@@ -533,7 +403,6 @@ export default function ChatRoomList(props: Props) {
                   justifyContent: "space-between",
                 })}
               >
-                {/* {hostedChatrooms} */}
                 <>
                   <UnstyledButton
                     onClick={() => setOpened((o) => !o)}
@@ -566,7 +435,7 @@ export default function ChatRoomList(props: Props) {
                   {hasLinks ? (
                     <Collapse in={opened}>
                       <ScrollArea
-                        style={{ height: props.openChatroom ? 120 : 450 }}
+                        style={{ height: props.openChatroom ? "28vh" : "82vh" }}
                       >
                         {hostedRooms}
                       </ScrollArea>
@@ -600,7 +469,6 @@ export default function ChatRoomList(props: Props) {
                     withAsterisk
                     required
                     onChange={handleChange}
-                    // className={classes.modal}
                   />
                   <br />
                   <Text size="sm">Friends to Add</Text>
@@ -619,7 +487,6 @@ export default function ChatRoomList(props: Props) {
                       />
                     </Group>
                   </UnstyledButton>
-                  {/* <Button onClick={handleCreateRoom}>Create Chatroom</Button> */}
                 </Modal>
               </>
             ) : (
@@ -645,7 +512,7 @@ export default function ChatRoomList(props: Props) {
             <div align-self="flex-start">
               <Box
                 sx={(theme) => ({
-                  minHeight: props.openChatroom ? 250 : 580,
+                  height: props.openChatroom ? "46vh" : "100vh",
                   padding: theme.spacing.md,
                   backgroundColor:
                     theme.colorScheme === "dark"
@@ -655,7 +522,6 @@ export default function ChatRoomList(props: Props) {
                   boxShadow: theme.shadows.lg,
                 })}
               >
-                {/* {invitedChatrooms} */}
                 <>
                   <UnstyledButton
                     onClick={() => setOpened((o) => !o)}
@@ -687,7 +553,7 @@ export default function ChatRoomList(props: Props) {
                   {hasLinks ? (
                     <Collapse in={opened}>
                       <ScrollArea
-                        style={{ height: props.openChatroom ? 140 : 470 }}
+                        style={{ height: props.openChatroom ? "34vh" : "88vh" }}
                       >
                         {invitedRooms}
                       </ScrollArea>

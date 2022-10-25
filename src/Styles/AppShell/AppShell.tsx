@@ -137,9 +137,6 @@ function TdflAppShell() {
         `${backendUrl}/users/${response.data[0].id}/login`,
         { currentDate: new Date() },
         {
-          currentDate: new Date(),
-        },
-        {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
       );

@@ -82,8 +82,6 @@ function BeFriendPage() {
   const [chatroomhostId, setChatroomHostId] = useState<number>();
   const [chatroomTitle, setChatroomTitle] = useState("");
 
-  console.log(openChatroom);
-
   return (
     <div>
       <Space h="lg" />
@@ -136,9 +134,8 @@ function BeFriendPage() {
                   setChatroomTitle={setChatroomTitle}
                 />
               )}
-              <br />
-              <br />
-              <br />
+              <Space h="sm" />
+              <Space h="lg" />
               {friendList && (
                 <ChatRoomList
                   friendListData={friendList}
