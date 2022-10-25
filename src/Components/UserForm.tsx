@@ -159,18 +159,18 @@ export default function UserForm({ closeModal }: Props) {
             <Stack spacing={2} align="center" mt="lg">
               {fileInputFile && (
                 <Box
-                  sx={(theme) => ({
-                    backgroundColor: theme.colors.aqua[1],
-                    textAlign: "center",
-                    padding: theme.spacing.xs,
-                    borderRadius: theme.radius.xl,
-                    borderColor: theme.colors.aqua[9],
-                    cursor: "pointer",
+                // sx={(theme) => ({
+                //   backgroundColor: theme.colors.aqua[1],
+                //   textAlign: "center",
+                //   padding: theme.spacing.xs,
+                //   borderRadius: theme.radius.xl,
+                //   borderColor: theme.colors.aqua[9],
+                //   cursor: "pointer",
 
-                    "&:hover": {
-                      backgroundColor: theme.colors.aqua[4],
-                    },
-                  })}
+                //   "&:hover": {
+                //     backgroundColor: theme.colors.aqua[4],
+                //   },
+                // })}
                 >
                   <Text size="sm" align="center" mt="sm">
                     Chosen file: {fileInputFile.name}

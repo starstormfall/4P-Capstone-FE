@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useState } from "react";
-import { useNavigate, Outlet, useOutletContext } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Outlet, useOutletContext } from "react-router-dom";
 import { withAuthenticationRequired } from "@auth0/auth0-react";
 
 import { Grid, Space, Title } from "@mantine/core";
@@ -96,15 +96,16 @@ function BeFriendPage() {
                 <FriendList
                   friendListData={friendList}
                   setFriendList={setFriendList}
+                  openChatroom={openChatroom}
                 />
               )}
-              <br />
-              <br />
-              <br />
+              <Space h="sm" />
+              <Space h="lg" />
               {friendList && (
                 <FriendRequestList
                   friendListData={friendList}
                   setFriendList={setFriendList}
+                  openChatroom={openChatroom}
                 />
               )}
             </Grid.Col>
@@ -157,6 +158,7 @@ function BeFriendPage() {
                 <FriendList
                   friendListData={friendList}
                   setFriendList={setFriendList}
+                  openChatroom={openChatroom}
                 />
               )}
             </Grid.Col>
@@ -166,6 +168,7 @@ function BeFriendPage() {
                 <FriendRequestList
                   friendListData={friendList}
                   setFriendList={setFriendList}
+                  openChatroom={openChatroom}
                 />
               )}
             </Grid.Col>
@@ -200,15 +203,6 @@ function BeFriendPage() {
             </Grid.Col>
           </>
         )}
-
-        {/* <Grid.Col span={4}>
-          {friendList && (
-            <FriendRequestList
-              friendListData={friendList}
-              setFriendList={setFriendList}
-            />
-          )}
-        </Grid.Col> */}
       </Grid>
       <Outlet />
     </div>
