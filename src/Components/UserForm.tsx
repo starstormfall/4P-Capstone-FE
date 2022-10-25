@@ -61,14 +61,13 @@ export default function UserForm({
       storage,
       `${PROFILE_IMAGE_FOLDER_NAME}/${fileInputFile?.name}`
     );
-    console.log(fileInputFile);
+
     if (fileInputFile) {
       const imageUrl = uploadBytes(storageRefInstance, fileInputFile)
         .then((snapshot) => {
           return getDownloadURL(snapshot.ref);
         })
         .then((url) => {
-          console.log(url);
           setImage(url);
           return url;
         });
@@ -77,15 +76,13 @@ export default function UserForm({
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
-    console.log("CLICKED");
     const accessToken = await getAccessTokenSilently({
       audience: process.env.REACT_APP_AUDIENCE,
       scope: process.env.REACT_APP_SCOPE,
     });
     event.preventDefault();
     let imageUrl = await uploadImage(fileInputFile);
-    console.log(imageUrl);
-    console.log(`uploaded to Backend db`);
+
     await axios.put(
       `${backendUrl}/users/update/${userInfo?.id}`,
       {
@@ -163,14 +160,13 @@ export default function UserForm({
               variant="filled"
               disabled={newUserDone}
             />
-            
+
             <Group position="center" mt="xl">
               <FileButton
                 resetRef={resetRef}
                 onChange={(e: File) => {
                   setFileInputFile(e);
                   setPhotoPreview(URL.createObjectURL(e));
-                  console.log(e);
                 }}
                 accept="image/png,image/jpeg"
                 disabled={newUserDone}

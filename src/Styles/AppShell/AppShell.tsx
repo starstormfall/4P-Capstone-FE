@@ -132,13 +132,11 @@ function TdflAppShell() {
   const [token, setToken] = useState<string>("");
 
   const getUserInfo = async (user: any) => {
-    console.log(`EMAIL`, user.email);
     const accessToken = await getAccessTokenSilently({
       audience: process.env.REACT_APP_AUDIENCE,
       scope: process.env.REACT_APP_SCOPE,
     });
 
-    console.log("access token", accessToken);
     setToken(accessToken);
     // findOrCreate user in model
     const response = await axios.post(
