@@ -3,6 +3,13 @@ import { backendUrl } from "../../utils";
 
 import axios from "axios";
 
+import { storage } from "../../DB/firebase";
+import {
+  getDownloadURL,
+  ref as storageRef,
+  uploadBytes,
+} from "firebase/storage";
+
 import { UseApp } from "../Context";
 import { AssocThread } from "./HomePageInterface";
 
@@ -71,18 +78,44 @@ export default function ThreadForm({
   const [threadTitle, setThreadTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
   // const [fileInputFile, setFileInputFile] = useState<File>();
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File>();
   const resetRef = useRef<() => void>(null);
   const [photoPreview, setPhotoPreview] = useState("");
 
+  const POST_IMAGE_FOLDER_NAME = "Post Photos";
+  const uploadImage = async (file?: File) => {
+    // e.preventDefault();
+    const storageRefInstance = storageRef(
+      storage,
+      `${POST_IMAGE_FOLDER_NAME}/${file?.name}`
+    );
+
+    if (file) {
+      const imageUrl = uploadBytes(storageRefInstance, file)
+        .then((snapshot) => {
+          return getDownloadURL(snapshot.ref);
+        })
+        .then((url) => {
+          console.log(url);
+          return url;
+        });
+      return imageUrl;
+    }
+  };
+
   const handleSubmitNewThreadPost = async (event: React.FormEvent) => {
     event.preventDefault();
+
     try {
+      let imageUrl = await uploadImage(file);
+
+      console.log("IMAGE URL HEREEREEEEE", imageUrl);
       const requestBody = {
         userId: userInfo.id,
         threadTitle: threadTitle,
         content: content,
         areaId: areaId,
+        photoLink: imageUrl,
       };
 
       const response = await axios.post(
@@ -96,7 +129,7 @@ export default function ThreadForm({
       setThreadTitle("");
       setContent("");
       setPhotoPreview("");
-      clearFile();
+      setFile(undefined);
       setShowForm(false);
 
       const assocThreadsResponse = await axios.get(
@@ -114,7 +147,7 @@ export default function ThreadForm({
   };
 
   const clearFile = () => {
-    setFile(null);
+    setFile(undefined);
     resetRef.current?.();
   };
 
@@ -201,7 +234,9 @@ export default function ThreadForm({
                 <Center>
                   <FileButton
                     resetRef={resetRef}
-                    onChange={setFile}
+                    onChange={(e: File) => {
+                      setFile(e);
+                    }}
                     accept="image/png,image/jpeg"
                   >
                     {(props) => (

@@ -3,7 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import axios from "axios";
 import { backendUrl } from "../../utils";
 import { UseApp } from "../../Components/Context";
-import { withAuthenticationRequired, useAuth0 } from "@auth0/auth0-react";
+import { withAuthenticationRequired } from "@auth0/auth0-react";
 
 import { ContextType } from "../../Styles/AppShell/AppShell";
 
@@ -48,7 +48,7 @@ import SharePost from "./SharePost";
 import ScrollTopButton from "./ScrollToTop";
 
 function HomePage() {
-  const [userLoggedIn, setUserLoggedIn, token] =
+  const [userLoggedIn, setUserLoggedIn, token, inputValue] =
     useOutletContext<ContextType["key"]>();
   const { userInfo } = UseApp();
 
@@ -103,6 +103,21 @@ function HomePage() {
   const [showButton, setShowButton] = useState<boolean>(false);
 
   ///////// START OF USEEFFECT API CALLS /////////
+
+  // trigger search based on search bar from appshell
+  useEffect(() => {
+    const getPostsBySource = async () => {
+      const postsBySourceResponse = await axios.get(
+        `${backendUrl}/posts/explore?source=${inputValue}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setAllPosts(postsBySourceResponse.data);
+    };
+
+    getPostsBySource();
+  }, [inputValue]);
 
   // useEffect api call to get subset of explore posts (need to set up pagination on backend)
   const getExplorePosts = async () => {
@@ -396,6 +411,7 @@ function HomePage() {
   ) => {
     const updatedLikePost = await axios.put(
       `${backendUrl}/posts/${postId}/${userInfo.id}/like`,
+      { body: "body" },
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -414,6 +430,7 @@ function HomePage() {
   ) => {
     await axios.post(
       `${backendUrl}/users/${userInfo.id}/post/${postId}/favourites`,
+      { body: "body" },
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -444,6 +461,15 @@ function HomePage() {
     event: MouseEvent<HTMLButtonElement>,
     postId: number
   ) => {
+    const assocThreads = await axios.get(
+      `${backendUrl}/posts/thread?postId=${postId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    setAssocThreads(assocThreads.data);
+    setSelectedPost(allPosts[postId]);
     setSharePostModalOn(true);
   };
 
@@ -515,10 +541,10 @@ function HomePage() {
         transitionTimingFunction="ease"
         centered
         opened={sharePostModalOn}
-        withCloseButton={false}
         onClose={() => setSharePostModalOn(false)}
+        title="Share Post"
       >
-        <SharePost />
+        <SharePost selectedPost={selectedPost} assocThreads={assocThreads} />
       </Modal>
 
       {/* FOR ASSOC THREADS DISPLAY */}
@@ -811,10 +837,7 @@ function HomePage() {
         <Tabs.Panel value="allExplore" pt="xs">
           <Space h="xs" />
           <section>
-            {allPosts &&
-            Object.keys(allPosts).length &&
-            userFavouritePostIds.length &&
-            userLikePostIds.length ? (
+            {allPosts && Object.keys(allPosts).length ? (
               listPosts(allPosts)
             ) : (
               <Loader />
@@ -824,10 +847,7 @@ function HomePage() {
 
         <Tabs.Panel value="likes" pt="xs">
           <section>
-            {allPosts &&
-            Object.keys(allPosts).length &&
-            userFavouritePostIds.length &&
-            userLikePostIds.length ? (
+            {allPosts && Object.keys(allPosts).length ? (
               listPosts(userLikePosts)
             ) : (
               <Loader />
@@ -837,10 +857,7 @@ function HomePage() {
 
         <Tabs.Panel value="favourites" pt="xs">
           <section>
-            {allPosts &&
-            Object.keys(allPosts).length &&
-            userFavouritePostIds.length &&
-            userLikePostIds.length ? (
+            {allPosts && Object.keys(allPosts).length ? (
               listPosts(userFavouritePosts)
             ) : (
               <Loader />

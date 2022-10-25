@@ -1,5 +1,5 @@
 import React, { FormEvent, useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { storage } from "../DB/firebase";
 import {
   getDownloadURL,
@@ -22,19 +22,29 @@ import {
   Image,
   Stack,
   Box,
+  Autocomplete,
+  Space,
+  Alert,
+  Center,
 } from "@mantine/core";
 import { CloudUploadOutline, Trash2Outline } from "@easy-eva-icons/react";
 
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
-import { backendUrl } from "../utils";
+import { backendUrl, nationalities } from "../utils";
 
 type Props = {
   closeModal: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  newUserDone: boolean;
+  setNewUserDone: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export default function UserForm({ closeModal }: Props) {
+export default function UserForm({
+  closeModal,
+  newUserDone,
+  setNewUserDone,
+}: Props) {
   const [name, setName] = useState<string>("");
   const [nationality, setNationality] = useState<string>("");
   const [fileInputFile, setFileInputFile] = useState<File>();
@@ -42,6 +52,7 @@ export default function UserForm({ closeModal }: Props) {
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const { userInfo } = UseApp();
   const { getAccessTokenSilently } = useAuth0();
+  const navigate = useNavigate();
 
   const PROFILE_IMAGE_FOLDER_NAME = "profile pictures";
   const uploadImage = async (fileInputFile?: File) => {
@@ -89,6 +100,7 @@ export default function UserForm({ closeModal }: Props) {
         headers: { Authorization: `Bearer ${accessToken}` },
       }
     );
+    setNewUserDone(true);
   };
 
   const resetRef = useRef<() => void>(null);
@@ -103,6 +115,27 @@ export default function UserForm({ closeModal }: Props) {
       <Title order={2} size="h1" weight={900} align="center" mb="md">
         Account Details
       </Title>
+      <Space h="md" />
+
+      {newUserDone ? (
+        <>
+          <Alert color="aqua">
+            <Text align="center">Account created successfully! 😁</Text>
+            <Space h="xs" />
+            <Center>
+              <Button
+                component="a"
+                href="http://localhost:3001/home"
+                variant="outline"
+              >
+                Go Back Home
+              </Button>
+            </Center>
+          </Alert>
+        </>
+      ) : null}
+      <Space h="md" />
+
       <Container>
         <Paper radius="lg" p="lg" shadow="md" withBorder>
           <form onSubmit={handleSubmit}>
@@ -115,30 +148,21 @@ export default function UserForm({ closeModal }: Props) {
               withAsterisk
               value={name}
               onChange={(e) => setName(e.target.value)}
+              disabled={newUserDone}
             />
             {/* nationality */}
-            <Textarea
+            <Autocomplete
+              label="Nationality"
+              placeholder="Choose your nationality"
+              data={nationalities}
+              withAsterisk
+              value={nationality}
+              onChange={setNationality}
               my="lg"
               size="md"
               variant="filled"
-              label="Nationality"
-              placeholder="Please enter your nationality"
-              withAsterisk
-              value={nationality}
-              onChange={(e) => setNationality(e.target.value)}
+              disabled={newUserDone}
             />
-            {/* Photo Upload */}
-            {/* <FileInput
-              variant="filled"
-              placeholder="pick file"
-              label="Upload Profile Photo"
-              withAsterisk
-              value={fileInputFile}
-              onChange={(e: File) => {
-                console.log(e);
-                setFileInputFile(e);
-              }}
-            /> */}
             <Group position="center" mt="xl">
               <FileButton
                 resetRef={resetRef}
@@ -148,6 +172,7 @@ export default function UserForm({ closeModal }: Props) {
                   console.log(e);
                 }}
                 accept="image/png,image/jpeg"
+                disabled={newUserDone}
               >
                 {(props) => (
                   <Button {...props} leftIcon={<CloudUploadOutline />}>
@@ -160,16 +185,11 @@ export default function UserForm({ closeModal }: Props) {
               {fileInputFile && (
                 <Box
                   sx={(theme) => ({
-                    backgroundColor: theme.colors.aqua[1],
                     textAlign: "center",
                     padding: theme.spacing.xs,
                     borderRadius: theme.radius.xl,
                     borderColor: theme.colors.aqua[9],
                     cursor: "pointer",
-
-                    "&:hover": {
-                      backgroundColor: theme.colors.aqua[4],
-                    },
                   })}
                 >
                   <Text size="sm" align="center" mt="sm">
@@ -199,19 +219,18 @@ export default function UserForm({ closeModal }: Props) {
                 </Box>
               )}
             </Stack>
-
             <Group position="center" mt="xl">
               <Button
+                disabled={newUserDone}
                 radius="xl"
                 size="md"
                 type="submit"
-                onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
-                  closeModal(event)
-                }
               >
                 Submit
               </Button>
             </Group>
+
+            <Space h="md" />
           </form>
         </Paper>
       </Container>
