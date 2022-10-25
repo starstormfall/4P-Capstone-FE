@@ -48,7 +48,6 @@ import {
   Category,
   Hashtag,
 } from "../../Components/UserHome/HomePageInterface";
-import { access } from "fs";
 
 export type ContextType = {
   key: [
@@ -100,6 +99,7 @@ function TdflAppShell() {
       scope: process.env.REACT_APP_SCOPE,
     });
 
+    console.log("access token", accessToken);
     setToken(accessToken);
     // findOrCreate user in model
     const response = await axios.post(
@@ -125,6 +125,7 @@ function TdflAppShell() {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
+
       setUserId(userData.data.id);
       setUserName(userData.data.name);
       setUserPhoto(userData.data.photoLink);
@@ -134,10 +135,13 @@ function TdflAppShell() {
       // check when was user last logged in and to update score if necessary
       const loginData = await axios.put(
         `${backendUrl}/users/${response.data[0].id}/login`,
+        { currentDate: new Date() },
         {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
+
+      console.log("RESPONSEEEEEE", loginData.data);
       switch (loginData.data.status) {
         case "added streak":
           setStreakDialogOn(true);
@@ -163,7 +167,7 @@ function TdflAppShell() {
     } else {
       loginWithRedirect();
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const links = [
     {
