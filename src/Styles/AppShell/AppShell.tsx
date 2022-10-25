@@ -135,6 +135,9 @@ function TdflAppShell() {
       const loginData = await axios.put(
         `${backendUrl}/users/${response.data[0].id}/login`,
         {
+          currentDate: new Date(),
+        },
+        {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
       );

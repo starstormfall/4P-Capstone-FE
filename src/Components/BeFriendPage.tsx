@@ -47,8 +47,15 @@ function BeFriendPage() {
   const { getAccessTokenSilently } = useAuth0();
 
   const getFriendList = async () => {
+    const accessToken = await getAccessTokenSilently({
+      audience: process.env.REACT_APP_AUDIENCE,
+      scope: process.env.REACT_APP_SCOPE,
+    });
     const response = await axios.get(
-      `${backendUrl}/friends/${userInfo?.id}/allfriends`
+      `${backendUrl}/friends/${userInfo?.id}/allfriends`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
     );
 
     setFriendList(response.data);
