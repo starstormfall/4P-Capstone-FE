@@ -400,7 +400,7 @@ export default function ThreadSingle() {
                 <Modal
                   opened={friendModalOpen}
                   onClose={() => setFriendModalOpen(false)}
-                  title="Tell us more in details!"
+                  title="Reason for Adding?"
                 >
                   <Container>
                     {/* update friend here */}
