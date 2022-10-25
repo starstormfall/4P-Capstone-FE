@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useNavigate, Link, useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import axios from "axios";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
@@ -127,17 +127,50 @@ export default function ForumMain() {
     getForumData();
   }, [updateForum]);
 
-  console.log(forumList);
+  const colorPalette = [
+    "#E4F4F5",
+    "#B8E1E3",
+    // "#92D1D4",
+    "#DFECF3",
+    "#C3DCE8",
+    // "#AACDDE",
+    // "#ECF0F3",
+    // "#C8D4DD",
+    "#A8BAC9",
+    "#EBE9F2",
+    "#D7D4E4",
+  ];
 
   // map out all the threads by TOPIC (Div>Container>Link>Card>Text)
   let forumListFinal;
   if (forumList) {
-    forumListFinal = forumList.map((list: ThreadListData) => {
+    forumListFinal = forumList.map((list: ThreadListData, index) => {
+      let colorNumber = 0;
+
+      if (index % 2 === 0) {
+        colorNumber = 0;
+      } else if (index % 3 === 0) {
+        colorNumber = 1;
+      } else if (index % 5 === 0) {
+        colorNumber = 2;
+      } else if (index % 7 === 0) {
+        colorNumber = 3;
+      } else if (index % 11 === 0) {
+        colorNumber = 4;
+      } else if (index % 13 === 0) {
+        colorNumber = 5;
+      } else {
+        colorNumber = 6;
+      }
+
       return (
         <Grid.Col key={list.id} span={4}>
           {/* <Container key={list.id}> */}
           {/* <Link to={`/exchange/${list.id}`}> */}
           <Card
+            sx={{
+              backgroundColor: `${colorPalette[colorNumber]}`,
+            }}
             withBorder
             p="lg"
             radius="md"
@@ -150,7 +183,7 @@ export default function ForumMain() {
             <Text weight={700} className={classes.title} mt="xs">
               {list.topic}
             </Text>
-            <Divider my="sm"></Divider>
+            <Divider my="sm" color="greyBlue.6" size="md"></Divider>
             <Group mt="md" mb="sm">
               <div>
                 <Text weight={500} size="xs">
@@ -162,7 +195,7 @@ export default function ForumMain() {
                 </Text>
               </div>
             </Group>
-            <Divider my="xs"></Divider>
+            <Divider my="xs" color="greyBlue.6" size="xs"></Divider>
             <Group position="apart" mt="sm">
               <Text size="sm">
                 {<PersonOutline />}
@@ -227,12 +260,6 @@ export default function ForumMain() {
   const [autoCompletePlacePos, setAutoCompletePlacePos] = useState<Location>();
   const [exactLocation, setExactLocation] = useState("");
 
-  console.log(userInfo.id);
-  console.log(currentPosition);
-  console.log(autoCompletePlacePos);
-  console.log(areaId);
-  console.log(exactLocation);
-
   // Handle autocomplete changes. Please dont change order of autocomplete within form.
   const handleInputChange = () => {
     let searchInputField = document.getElementsByTagName("input")[3];
@@ -242,8 +269,6 @@ export default function ForumMain() {
 
     autocomplete.addListener("place_changed", function () {
       let placeInfo = autocomplete.getPlace();
-
-      console.log(placeInfo);
 
       if (
         placeInfo &&
@@ -279,7 +304,7 @@ export default function ForumMain() {
 
       autocomplete.addListener("place_changed", function () {
         let placeInfo = autocomplete.getPlace();
-        console.log(placeInfo);
+
         if (
           placeInfo &&
           placeInfo.geometry &&
@@ -401,7 +426,6 @@ export default function ForumMain() {
     setExternalLink("");
     setFileInputFile(undefined);
   };
-  console.log(locationName);
 
   const resetRef = useRef<() => void>(null);
 
@@ -470,7 +494,6 @@ export default function ForumMain() {
                 data={prefectureData}
                 value={areaId}
                 onChange={(event: string) => {
-                  console.log(event);
                   setAreaId(event);
                 }}
               />
@@ -528,17 +551,7 @@ export default function ForumMain() {
                 value={externalLink}
                 onChange={(e) => setExternalLink(e.target.value)}
               />
-              {/* <FileInput
-                variant="filled"
-                placeholder="pick file"
-                label="Upload Photo if any!"
-                withAsterisk
-                value={fileInputFile}
-                onChange={(e: File) => {
-                  console.log(e);
-                  setFileInputFile(e);
-                }}
-              /> */}
+
               <Group position="left" mt="lg">
                 <FileButton
                   resetRef={resetRef}

@@ -1,5 +1,5 @@
 import React, { FormEvent, useEffect, useState, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { storage } from "../DB/firebase";
 import {
   getDownloadURL,
@@ -163,6 +163,7 @@ export default function UserForm({
               variant="filled"
               disabled={newUserDone}
             />
+            
             <Group position="center" mt="xl">
               <FileButton
                 resetRef={resetRef}
@@ -219,18 +220,20 @@ export default function UserForm({
                 </Box>
               )}
             </Stack>
+
             <Group position="center" mt="xl">
               <Button
                 disabled={newUserDone}
                 radius="xl"
                 size="md"
                 type="submit"
+                onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
+                  closeModal(event)
+                }
               >
                 Submit
               </Button>
             </Group>
-
-            <Space h="md" />
           </form>
         </Paper>
       </Container>

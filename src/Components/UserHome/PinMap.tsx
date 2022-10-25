@@ -4,7 +4,6 @@ import {
   GoogleMap,
   useJsApiLoader,
   MarkerF,
-  InfoWindowF,
   HeatmapLayer,
   DistanceMatrixService,
 } from "@react-google-maps/api";
@@ -15,16 +14,11 @@ import {
   Loader,
   Text,
   Card,
-  Image,
   ScrollArea,
-  Badge,
-  Overlay,
   createStyles,
   Title,
-  TextInput,
   Select,
   Alert,
-  Anchor,
   Modal,
   Box,
 } from "@mantine/core";
@@ -57,13 +51,9 @@ const useStyles = createStyles((theme) => ({
   wrapper: {
     display: "flex",
     alignItems: "center",
-    // padding: theme.spacing.xs * 2,
     borderRadius: theme.radius.md,
     backgroundColor:
       theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.white,
-    // border: `1px solid ${
-    //   theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[3]
-    // }`,
 
     [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
       flexDirection: "column-reverse",
@@ -80,8 +70,6 @@ const useStyles = createStyles((theme) => ({
   },
 
   body: {
-    // paddingRight: theme.spacing.xl * 4,
-
     [`@media (max-width: ${theme.breakpoints.sm}px)`]: {
       paddingRight: 0,
       marginTop: theme.spacing.xs,
@@ -401,8 +389,6 @@ export default function PinMap(props: Props) {
     );
   };
 
-  console.log(currentPin);
-
   const findPinCrowd = () => {
     if (currentPin && currentPin !== undefined) {
       const { crowds } = currentPin;
@@ -414,7 +400,6 @@ export default function PinMap(props: Props) {
             <Card
               key={new Date(recordedAt).toLocaleString()}
               className={classes.select}
-              // withBorder
             >
               <Text transform="uppercase" size="md">
                 {crowdIntensity}
@@ -641,7 +626,6 @@ export default function PinMap(props: Props) {
                     key={currentPinInfo?.position.lng}
                     data={heatmapData}
                     options={{ radius: crowdMapWeight, opacity: 0.4 }}
-                    // onUnmount={onUnmount}
                   />
                 )}
                 {control && currentPin && destinationAddresses && (
@@ -653,7 +637,6 @@ export default function PinMap(props: Props) {
                       travelMode: google.maps.TravelMode.DRIVING,
                     }}
                     callback={async (res) => {
-                      console.log("RESPONSE", res);
                       setControl(false);
 
                       if (res !== null) {
@@ -805,44 +788,30 @@ export default function PinMap(props: Props) {
               </Button.Group>
             </Grid.Col>
             <Grid.Col span={5}>
-              {
-                crowdVisible && currentPinInfo && (
-                  <>
-                    <Box
-                      sx={(theme) => ({
-                        minHeight: "60vh",
-                        padding: theme.spacing.md,
-                        backgroundColor:
-                          theme.colorScheme === "dark"
-                            ? theme.colors.dark[6]
-                            : theme.white,
-                        // borderRadius: theme.radius.lg,
-                        // boxShadow: theme.shadows.xs,
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                        maxWidth: "31vw",
-                        paddingTop: "0px",
-                      })}
-                    >
-                      <ScrollArea style={{ height: "60vh" }} offsetScrollbars>
-                        <Title order={4}>CROWD ESTIMATE</Title>
-                        {findPinCrowd()}
-                      </ScrollArea>
-                    </Box>
-                  </>
-                )
-                // <>
-                // <Title order={4} transform="uppercase">
-                //   {currentPinInfo.name}
-                // </Title>
-                //   <Text>
-                //     Current Crowd Estimate: {currentPinInfo.latestCrowdSize} -{" "}
-                //     {currentPinInfo.latestCrowdIntensity} at{" "}
-                //     {new Date(currentPinInfo.latestCrowdTime).toLocaleString()}
-                //   </Text>
-                // </>
-              }
+              {crowdVisible && currentPinInfo && (
+                <>
+                  <Box
+                    sx={(theme) => ({
+                      minHeight: "60vh",
+                      padding: theme.spacing.md,
+                      backgroundColor:
+                        theme.colorScheme === "dark"
+                          ? theme.colors.dark[6]
+                          : theme.white,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      maxWidth: "31vw",
+                      paddingTop: "0px",
+                    })}
+                  >
+                    <ScrollArea style={{ height: "60vh" }} offsetScrollbars>
+                      <Title order={4}>CROWD ESTIMATE</Title>
+                      {findPinCrowd()}
+                    </ScrollArea>
+                  </Box>
+                </>
+              )}
 
               {checkIn && currentPin ? (
                 <>
