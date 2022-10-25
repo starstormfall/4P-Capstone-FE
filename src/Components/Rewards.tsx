@@ -1,29 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { backendUrl } from "../utils";
 import {
   Button,
   Card,
   Text,
-  Container,
-  Textarea,
-  MultiSelect,
-  Stack,
   Group,
-  ScrollArea,
   Avatar,
-  Grid,
   createStyles,
-  Alert,
   Anchor,
   Paper,
   Modal,
   Image,
   Badge,
-  Center,
 } from "@mantine/core";
-import { IconAlertCircle } from "@tabler/icons";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
 import JNTO from "../Images/JNTO.png";
@@ -85,7 +75,6 @@ const useStyles = createStyles((theme) => ({
     fontWeight: 700,
     fontSize: theme.fontSizes.xs,
     letterSpacing: -0.25,
-    // textTransform: "uppercase",
   },
 
   groupNoMargin: {
@@ -103,38 +92,22 @@ const useStyles = createStyles((theme) => ({
 
 // Rewards currently sitting as a child of ExplorePage.tsx. To shift to avatar later. Props being passed are useState pair of rewardModalVisible.
 export default function Rewards(props: Props) {
-  const navigate = useNavigate();
-
   const { classes } = useStyles();
 
-  const {
-    setRewardModalVisible,
-    rewardModalVisible,
-    rewardError,
-    setRewardError,
-    rewardClaimed,
-    setRewardClaimed,
-  } = props;
+  const { setRewardModalVisible, setRewardError, setRewardClaimed } = props;
 
   // Usage of Context to obtain userId and userInfo.
   const { userId, userInfo, setUserInfo } = UseApp();
 
   // Obtain methods for auth0 authentication.
-  const {
-    isAuthenticated,
-    user,
-    loginWithRedirect,
-    logout,
-    getAccessTokenSilently,
-  } = useAuth0();
+  const { isAuthenticated, user, loginWithRedirect, getAccessTokenSilently } =
+    useAuth0();
 
   const [newUserScore, setNewUserScore] = useState(0);
-  // const [modalVisible, setModalVisible] = useState(true);
 
   // useEffect for checking auth0 authentication upon load.
   useEffect(() => {
     if (isAuthenticated) {
-      console.log(user);
       setNewUserScore(userInfo.score);
       setRewardError(false);
       setRewardClaimed(false);
@@ -142,7 +115,6 @@ export default function Rewards(props: Props) {
       loginWithRedirect();
     }
   }, []);
-  console.log(userInfo);
 
   const handleExchange = async () => {
     setRewardError(false);
