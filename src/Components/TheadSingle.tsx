@@ -30,6 +30,7 @@ import {
   Grid,
   Space,
   FileButton,
+  Stack,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -58,6 +59,41 @@ type ThreadSingleData = {
   postId: number;
   threadId: number;
   createdAt: string;
+  updatedAt: string;
+  post: {
+    id: number;
+    title: string;
+    photoLink: string;
+    content: string;
+    areaId: number;
+    pinId: number;
+    locationName: string;
+    forumPost: boolean;
+    explorePost: string;
+    externalLink: string;
+    likeCount: number;
+    userId: number;
+    createdAt: string;
+    updatedAt: string;
+    user: {
+      id: number;
+      name: string;
+      photoLink: string;
+    };
+  };
+  thread: {
+    id: number;
+    topic: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+type newThreadSingleData = {
+  id: number;
+  postId: number;
+  threadId: number;
+  createdAt: Date;
   updatedAt: string;
   post: {
     id: number;
@@ -167,6 +203,7 @@ export default function ThreadSingle() {
   const [threadId, setThreadId] = useState<string>();
   const [singleThreadData, setSingleThreadData] =
     useState<ThreadSingleData[]>();
+  const [newThreadData, setNewThreadData] = useState<newThreadSingleData[]>();
   const [friendModalOpen, setFriendModalOpen] = useState<boolean>(false);
   const [reason, setReason] = useState<string>("");
   const [friendAdded, setFriendAdded] = useState<number>();
@@ -201,6 +238,16 @@ export default function ThreadSingle() {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
+    const newData = response.data.map((obj: any) => {
+      return { ...obj, createdAt: new Date(obj.post.createdAt) };
+    });
+
+    const sortedData = [...newData].sort(
+      (objA, objB) => objA.createdAt.getTime() - objB.createdAt.getTime()
+    );
+    setNewThreadData(sortedData);
+    console.log(newThreadData);
+
     setSingleThreadData(response.data);
   };
 
@@ -232,6 +279,27 @@ export default function ThreadSingle() {
   if (threadId !== params.threadId) {
     setThreadId(params.threadId);
   }
+
+  // const updateData = async () => {
+  //   if (singleThreadData) {
+  //     const newData = singleThreadData.map((obj) => {
+  //       // let key = Object.keys(obj)[0];
+  //       // return obj[key]
+  //       return { ...obj, createdAt: new Date(obj.post.createdAt) };
+  //     });
+
+  //     const sortedData = [...newData].sort(
+  //       (objA, objB) => objA.createdAt.getTime() - objB.createdAt.getTime()
+  //     );
+  //     setNewThreadData(sortedData);
+  //     console.log(newThreadData);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   updateData();
+  // }, [singleThreadData]);
+
   // handle post req for comments (to post to table)
   const onFriendRequest = async (e: React.FormEvent<HTMLFormElement>) => {
     const accessToken = await getAccessTokenSilently({
@@ -264,30 +332,64 @@ export default function ThreadSingle() {
     userId: number,
     postId: number,
     photoLink: string,
-    name: string
+    name: string,
+    createdAt: string
   ) => {
     switch (friendshipStatus) {
       case "confirmed":
         // return icon
         return (
-          <Indicator inline label="Friend" size={16}>
-            <Avatar src={photoLink} alt={name} radius="xl" size="lg" />
-          </Indicator>
+          <>
+            <Indicator inline label="Friend" size={16}>
+              <Avatar src={photoLink} alt={name} radius="xl" size="lg" />
+            </Indicator>
+            <Stack spacing={0}>
+              <Text size="sm">{name}</Text>
+              <Text size="xs" color="dimmed">
+                commented on: {createdAt}
+              </Text>
+            </Stack>
+          </>
         );
 
       case "pending":
         return (
-          <Indicator inline label="Pending" size={16}>
-            <Avatar src={photoLink} alt={name} radius="xl" size="lg" />
-          </Indicator>
+          <>
+            <Indicator inline label="Pending" size={16}>
+              <Avatar src={photoLink} alt={name} radius="xl" size="lg" />
+            </Indicator>
+            <Stack spacing={0}>
+              <Text size="sm">{name}</Text>
+              <Text size="xs" color="dimmed">
+                commented on: {createdAt}
+              </Text>
+            </Stack>
+          </>
         );
 
       case "myself":
-        return <Avatar src={photoLink} alt={name} radius="xl" size="lg" />;
+        return (
+          <>
+            <Avatar src={photoLink} alt={name} radius="xl" size="lg" />
+            <Stack spacing={0}>
+              <Text size="sm">{name}</Text>
+              <Text size="xs" color="dimmed">
+                commented on: {createdAt}
+              </Text>
+            </Stack>
+          </>
+        );
       default:
         return (
           <Group>
             <Avatar src={photoLink} alt={name} radius="xl" size="lg" />
+            <Stack spacing={0}>
+              <Text size="sm">{name}</Text>
+              <Text size="xs" color="dimmed">
+                commented on: {createdAt}
+              </Text>
+            </Stack>
+
             <Button
               onClick={() => {
                 setFriendModalOpen(true);
@@ -303,18 +405,17 @@ export default function ThreadSingle() {
     }
   };
 
-  console.log(singleThreadData);
-
+  // sort the data by date first before mapping
   const allComments = [];
-  if (singleThreadData) {
-    for (let i = 1; i < singleThreadData.length; i++) {
+  if (newThreadData) {
+    for (let i = 1; i < newThreadData.length; i++) {
       allComments.push(
         <div>
           <Paper
             withBorder
             radius="md"
             className={classes.comment}
-            key={singleThreadData[i].id}
+            key={newThreadData[i].id}
           >
             <Group>
               <div>
@@ -343,23 +444,24 @@ export default function ThreadSingle() {
                 <Group position="left">
                   {friendList &&
                     checkFriendShip(
-                      friendList[singleThreadData[i].post.userId],
-                      singleThreadData[i].post.userId,
-                      singleThreadData[i].post.id,
-                      singleThreadData[i].post.user.photoLink,
-                      singleThreadData[i].post.user.name
+                      friendList[newThreadData[i].post.userId],
+                      newThreadData[i].post.userId,
+                      newThreadData[i].post.id,
+                      newThreadData[i].post.user.photoLink,
+                      newThreadData[i].post.user.name,
+                      newThreadData[i].post.createdAt
                     )}
                 </Group>
               </div>
-              <div>
-                <Text size="sm">{singleThreadData[i].post.user.name}</Text>
+              {/* <div>
+                <Text size="sm">{newThreadData[i].post.user.name}</Text>
                 <Text size="xs" color="dimmed">
-                  commented on: {singleThreadData[i].post.createdAt}
+                  commented on: {newThreadData[i].post.createdAt}
                 </Text>
-              </div>
+              </div> */}
             </Group>
             <Text className={classes.body} size="sm">
-              {singleThreadData[i].post.content}
+              {newThreadData[i].post.content}
             </Text>
           </Paper>
         </div>
@@ -393,7 +495,13 @@ export default function ThreadSingle() {
   const [exactLocation, setExactLocation] = useState("");
 
   const getAllAreaData = async () => {
-    const response = await axios.get(`${backendUrl}/info/areas`);
+    const accessToken = await getAccessTokenSilently({
+      audience: process.env.REACT_APP_AUDIENCE,
+      scope: process.env.REACT_APP_SCOPE,
+    });
+    const response = await axios.get(`${backendUrl}/info/areas`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
     setAllAreaData(response.data);
   };
 
@@ -630,24 +738,26 @@ export default function ThreadSingle() {
   return (
     <div>
       <Space h="lg" />
-      <Container className={classes.borderContain}>
-        {singleThreadData ? (
+      <Container>
+        {newThreadData ? (
           <Box>
             <Card withBorder radius="md" className={classes.card}>
               <Title className={classes.cardTitle} align="left">
-                {singleThreadData[0].thread.topic}
+                {newThreadData[0].thread.topic}
               </Title>
 
-              <Card.Section>
-                <Image
-                  src={singleThreadData[0].post.photoLink}
-                  alt={singleThreadData[0].post.locationName}
-                  height={400}
-                />
-              </Card.Section>
+              {newThreadData[0].post.photoLink && (
+                <Card.Section>
+                  <Image
+                    src={newThreadData[0].post.photoLink}
+                    alt={newThreadData[0].post.locationName}
+                    height={400}
+                  />
+                </Card.Section>
+              )}
 
-              <Text size="sm" color="dimmed" lineClamp={4}>
-                {singleThreadData[0].post.content}
+              <Text size="sm" color="dimmed" lineClamp={4} mt="md">
+                {newThreadData[0].post.content}
               </Text>
 
               <br />
@@ -655,17 +765,17 @@ export default function ThreadSingle() {
               <Group position="apart" className={classes.footer}>
                 <Center>
                   <Avatar
-                    src={singleThreadData[0].post.user.photoLink}
+                    src={newThreadData[0].post.user.photoLink}
                     size={24}
                     radius="xl"
                     mr="xs"
                   />
                   <Text size="sm" inline>
-                    {singleThreadData[0].post.user.name}
+                    {newThreadData[0].post.user.name}
                   </Text>
                 </Center>
                 <Text size="sm" inline>
-                  Created At: {singleThreadData[0].post.createdAt}
+                  Created At: {newThreadData[0].post.createdAt}
                 </Text>
               </Group>
             </Card>
@@ -844,20 +954,12 @@ export default function ThreadSingle() {
                         </Button>
                       )}
                     </FileButton>
-                    <Button
-                      disabled={!fileInputFile}
-                      color="red"
-                      onClick={clearFile}
-                      leftIcon={<Trash2Outline />}
-                    >
-                      Reset
-                    </Button>
                   </Group>
                   {fileInputFile && (
+                    <Box>
                       <Text size="sm" align="left" mt="sm">
                         Picked file: {fileInputFile.name}
                       </Text>
-                    ) && (
                       <Image
                         src={photoPreview}
                         alt={`Image`}
@@ -866,7 +968,18 @@ export default function ThreadSingle() {
                         radius="lg"
                         caption="image preview"
                       />
-                    )}
+                      <Group position="center" mt="md">
+                        <Button
+                          disabled={!fileInputFile}
+                          color="red"
+                          onClick={clearFile}
+                          leftIcon={<Trash2Outline />}
+                        >
+                          Reset
+                        </Button>
+                      </Group>
+                    </Box>
+                  )}
                   {/* Con render explore/forum post */}
                   {/* <Checkbox
                     label="Display in Explore?"
@@ -890,7 +1003,7 @@ export default function ThreadSingle() {
           </Paper>
         </Modal>
 
-        <Group position="center">
+        <Group position="center" mt="lg">
           <Button onClick={() => setOpened(true)}>Add Comment</Button>
         </Group>
       </div>

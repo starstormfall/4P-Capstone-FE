@@ -155,14 +155,6 @@ export default function UserForm({ closeModal }: Props) {
                   </Button>
                 )}
               </FileButton>
-              <Button
-                disabled={!fileInputFile}
-                color="red"
-                onClick={clearFile}
-                leftIcon={<Trash2Outline />}
-              >
-                Reset
-              </Button>
             </Group>
             <Stack spacing={2} align="center" mt="lg">
               {fileInputFile && (
@@ -194,6 +186,16 @@ export default function UserForm({ closeModal }: Props) {
                     radius="md"
                     caption="Profile photo preview"
                   />
+                  <Group position="center" mt="md">
+                    <Button
+                      disabled={!fileInputFile}
+                      color="red"
+                      onClick={clearFile}
+                      leftIcon={<Trash2Outline />}
+                    >
+                      Reset
+                    </Button>
+                  </Group>
                 </Box>
               )}
             </Stack>
