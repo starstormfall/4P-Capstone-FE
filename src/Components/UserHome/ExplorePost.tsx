@@ -6,16 +6,13 @@ import {
   Card,
   Text,
   Group,
-  Center,
   Badge,
   ActionIcon,
   createStyles,
   UnstyledButton,
   Image,
-  Container,
   ScrollArea,
   Paper,
-  Overlay,
 } from "@mantine/core";
 
 import {
@@ -142,7 +139,7 @@ export default function ExplorePost({
   userFavourite,
   ...others
 }: PostCard & Omit<React.ComponentPropsWithoutRef<"div">, keyof PostCard>) {
-  const { classes, theme } = useStyles();
+  const { classes } = useStyles();
   const [showContent, setShowContent] = useState<boolean>(false);
 
   return (
