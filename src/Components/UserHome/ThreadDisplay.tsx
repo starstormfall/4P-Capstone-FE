@@ -1,6 +1,6 @@
 import React, { useEffect, useState, MouseEvent } from "react";
-import axios from "axios";
-import { backendUrl } from "../../utils";
+// import axios from "axios";
+// import { backendUrl } from "../../utils";
 import { useNavigate } from "react-router-dom";
 
 // import interface
@@ -20,15 +20,15 @@ import {
   Button,
   Divider,
   Stack,
-  Mark,
-  Paper,
   Blockquote,
   Box,
+  Center,
 } from "@mantine/core";
-import { Edit } from "@easy-eva-icons/react";
+import { Edit, Close } from "@easy-eva-icons/react";
 
 // import child components
 import DisplayPost from "./DisplayPost";
+import ThreadForm from "./NewThreadForm";
 
 interface Props {
   selectedPost: Post;
@@ -43,6 +43,9 @@ interface Props {
     event: React.MouseEvent<HTMLButtonElement>,
     postId: number
   ) => void;
+  setAssocThreads: React.Dispatch<React.SetStateAction<AssocThread[]>>;
+  threadDisplayDrawerOn: boolean;
+  token: string;
 }
 
 export default function ThreadDisplay({
@@ -52,35 +55,38 @@ export default function ThreadDisplay({
   userFavourite,
   likePost,
   favouritePost,
+  setAssocThreads,
+  threadDisplayDrawerOn,
+  token,
 }: Props) {
   const navigate = useNavigate();
 
-  const [tags, setTags] = useState({
-    categories: [],
-    hashtags: [],
-    prefecture: [],
-  });
+  // const [tags, setTags] = useState({
+  //   categories: [],
+  //   hashtags: [],
+  //   prefecture: [],
+  // });
 
-  const getTags = async () => {
-    try {
-      const response = await axios.get(
-        `${backendUrl}/posts/${selectedPost.id}/tags`
-      );
-      setTags(response.data);
-    } catch (err) {}
-  };
+  const [showNewThreadForm, setShowNewThreadForm] = useState<boolean>(false);
+
+  // const getTags = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${backendUrl}/posts/${selectedPost.id}/tags`
+  //     );
+  //     setTags(response.data);
+  //   } catch (err) {}
+  // };
 
   const handleGoToThread = (threadId: number) => {
     navigate(`/exchange/${threadId}`);
   };
 
-  useEffect(() => {
-    getTags();
-  }, []);
+  // useEffect(() => {
+  //   getTags();
+  // }, []);
 
-  const handleStartNewThread = () => {
-    navigate("/exchange");
-  };
+  useEffect(() => {}, [assocThreads]);
 
   const showThreads = assocThreads.map((thread, index) => (
     <Timeline.Item
@@ -145,30 +151,53 @@ export default function ThreadDisplay({
       <Grid.Col span={7}>
         <Box
           sx={(theme) => ({
-            textAlign: "center",
             padding: theme.spacing.sm,
             height: "60vh",
           })}
         >
-          <Button
-            color="beige.7"
-            rightIcon={<Edit />}
-            onClick={handleStartNewThread}
-          >
-            <Title order={5}> Start a New Discussion on This!</Title>
-          </Button>
-          <Space h="lg" />
-          <Divider
-            label={
-              <Text color="greyBlue.7" align="center" size="lg" weight="700">
-                Or Check Out the Latest Conversations Here!
-              </Text>
-            }
-            labelPosition="center"
-          />
+          <ScrollArea style={{ height: "60vh" }}>
+            <Center>
+              <Button
+                color={!showNewThreadForm ? "beige.9" : "beige.5"}
+                rightIcon={!showNewThreadForm ? <Edit /> : null}
+                leftIcon={showNewThreadForm ? <Close /> : null}
+                onClick={() => setShowNewThreadForm(!showNewThreadForm)}
+              >
+                <Title order={5}>
+                  {!showNewThreadForm
+                    ? "Start a New Exchange Thread on This!"
+                    : "Cancel Start New Exchange Thread..."}
+                </Title>
+              </Button>
+            </Center>
+            <Space h="md" />
 
-          <Space h="lg" />
-          <ScrollArea style={{ height: "45vh" }}>
+            {showNewThreadForm && (
+              <ThreadForm
+                postId={selectedPost.id}
+                areaId={selectedPost.areaId}
+                showForm={showNewThreadForm}
+                setShowForm={setShowNewThreadForm}
+                assocThreads={assocThreads}
+                setAssocThreads={setAssocThreads}
+                threadDisplayDrawerOn={threadDisplayDrawerOn}
+                token={token}
+              />
+            )}
+
+            <Space h="lg" />
+
+            <Divider
+              label={
+                <Text color="greyBlue.7" align="center" size="lg" weight="700">
+                  Or Check Out the Latest Conversations Here!
+                </Text>
+              }
+              labelPosition="center"
+            />
+
+            <Space h="lg" />
+
             <Container>
               {showThreads && showThreads.length ? (
                 <Timeline>{showThreads}</Timeline>

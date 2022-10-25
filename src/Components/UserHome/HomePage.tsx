@@ -1,9 +1,9 @@
 import { useEffect, useState, MouseEvent } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 import axios from "axios";
 import { backendUrl } from "../../utils";
 import { UseApp } from "../../Components/Context";
-import { withAuthenticationRequired } from "@auth0/auth0-react";
+import { withAuthenticationRequired, useAuth0 } from "@auth0/auth0-react";
 
 import { ContextType } from "../../Styles/AppShell/AppShell";
 
@@ -12,10 +12,7 @@ import "../../App.css";
 import {
   Button,
   Group,
-  Grid,
   Loader,
-  ScrollArea,
-  Container,
   Space,
   Divider,
   Drawer,
@@ -31,7 +28,7 @@ import {
   ThemeIcon,
 } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
-import { Heart, Star, Camera, ArrowheadUp } from "@easy-eva-icons/react";
+import { Heart, Star, Camera } from "@easy-eva-icons/react";
 
 // import interface
 import {
@@ -51,7 +48,7 @@ import SharePost from "./SharePost";
 import ScrollTopButton from "./ScrollToTop";
 
 function HomePage() {
-  const [userLoggedIn, setUserLoggedIn] =
+  const [userLoggedIn, setUserLoggedIn, token] =
     useOutletContext<ContextType["key"]>();
   const { userInfo } = UseApp();
 
@@ -73,7 +70,7 @@ function HomePage() {
   // posts that will be displayed based on different filters
   const [allPosts, setAllPosts] = useState<AllPost>({});
   // all unfiltered explore posts
-  const [allExplorePosts, setAllExplorePosts] = useState<AllPost>({});
+  const [allExplore, setAllExplore] = useState<AllPost>({});
   const [allAreas, setAllAreas] = useState<Area[]>([]);
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [allHashtags, setAllHashtags] = useState<Hashtag[]>([]);
@@ -103,9 +100,6 @@ function HomePage() {
   const [sharePostModalOn, setSharePostModalOn] = useState<boolean>(false);
   const [threadDisplayDrawerOn, setThreadDisplayDrawerOn] =
     useState<boolean>(false);
-
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const [showGoTop, setShowGoTop] = useState("hideButton");
   const [showButton, setShowButton] = useState<boolean>(false);
 
   ///////// START OF USEEFFECT API CALLS /////////
@@ -113,9 +107,11 @@ function HomePage() {
   // useEffect api call to get subset of explore posts (need to set up pagination on backend)
   const getExplorePosts = async () => {
     try {
-      const response = await axios.get(`${backendUrl}/posts/explore`);
+      const response = await axios.get(`${backendUrl}/posts/explore`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setAllPosts(response.data);
-      setAllExplorePosts(response.data);
+      setAllExplore(response.data);
     } catch (err) {}
   };
 
@@ -146,7 +142,10 @@ function HomePage() {
   const getUserLikes = async () => {
     try {
       const response = await axios.get(
-        `${backendUrl}/users/${userInfo.id}/like`
+        `${backendUrl}/users/${userInfo.id}/like`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       setUserLikePosts(response.data.likePosts);
       setUserLikePostIds(response.data.likePostIds);
@@ -156,7 +155,10 @@ function HomePage() {
   const getUserFavourites = async () => {
     try {
       const response = await axios.get(
-        `${backendUrl}/users/${userInfo.id}/favourite`
+        `${backendUrl}/users/${userInfo.id}/favourite`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       setUserFavouritePosts(response.data.favouritePosts);
       setUserFavouritePostIds(response.data.favouritePostIds);
@@ -175,7 +177,7 @@ function HomePage() {
   useEffect(() => {
     switch (activeTab) {
       case "allExplore":
-        setAllPosts(allExplorePosts);
+        setAllPosts(allExplore);
         break;
       case "favourites":
         setAllPosts(userFavouritePosts);
@@ -184,7 +186,7 @@ function HomePage() {
         setAllPosts(userLikePosts);
         break;
       default:
-        setAllPosts(allExplorePosts);
+        setAllPosts(allPosts);
     }
   }, [activeTab]);
 
@@ -192,7 +194,9 @@ function HomePage() {
 
   const getTags = async (postId: number) => {
     try {
-      const response = await axios.get(`${backendUrl}/posts/${postId}/tags`);
+      const response = await axios.get(`${backendUrl}/posts/${postId}/tags`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setTags(response.data);
     } catch (err) {}
   };
@@ -208,7 +212,10 @@ function HomePage() {
         // if another area is selected, get filtered posts
         if (areaId !== selectedAreas) {
           const areaPosts = await axios.get(
-            `${backendUrl}/posts/explore?areaId=${areaId}`
+            `${backendUrl}/posts/explore?areaId=${areaId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
           );
           setAllPosts(areaPosts.data);
           setSelectedAreas(areaId);
@@ -244,14 +251,20 @@ function HomePage() {
         if (updatedCategoryIds.length) {
           // get associated hashtags if 1 or more categories are selected
           const assocHashtags = await axios.get(
-            `${backendUrl}/info/categories/hashtags?categoryIds=${updatedCategoryIds}`
+            `${backendUrl}/info/categories/hashtags?categoryIds=${updatedCategoryIds}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
           );
           setAllHashtags(assocHashtags.data);
           setDisplayHashtags(true);
 
           // get all relevant posts filtered by area and category
           const areaCategoryPosts = await axios.get(
-            `${backendUrl}/posts/explore?areaId=${selectedAreas}&categoryIds=${updatedCategoryIds}`
+            `${backendUrl}/posts/explore?areaId=${selectedAreas}&categoryIds=${updatedCategoryIds}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
           );
 
           setAllPosts(areaCategoryPosts.data);
@@ -260,7 +273,10 @@ function HomePage() {
           setDisplayHashtags(false);
           // get all area posts not filtered by category
           const areaPosts = await axios.get(
-            `${backendUrl}/posts/explore?areaId=${selectedAreas}`
+            `${backendUrl}/posts/explore?areaId=${selectedAreas}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
           );
           setAllPosts(areaPosts.data);
         }
@@ -281,7 +297,10 @@ function HomePage() {
         }
 
         const areaCategoryHashtagPosts = await axios.get(
-          `${backendUrl}/posts/explore?areaId=${selectedAreas}&categoryIds=${selectedCategories}&hashtagIds=${updatedHashtagIds}`
+          `${backendUrl}/posts/explore?areaId=${selectedAreas}&categoryIds=${selectedCategories}&hashtagIds=${updatedHashtagIds}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
         );
 
         setAllPosts(areaCategoryHashtagPosts.data);
@@ -376,7 +395,10 @@ function HomePage() {
     postId: number
   ) => {
     const updatedLikePost = await axios.put(
-      `${backendUrl}/posts/${postId}/${userInfo.id}/like`
+      `${backendUrl}/posts/${postId}/${userInfo.id}/like`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
     );
     setAllPosts((prev) => ({
       ...prev,
@@ -391,7 +413,10 @@ function HomePage() {
     postId: number
   ) => {
     await axios.post(
-      `${backendUrl}/users/${userInfo.id}/post/${postId}/favourites`
+      `${backendUrl}/users/${userInfo.id}/post/${postId}/favourites`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
     );
     getUserFavourites();
   };
@@ -402,7 +427,10 @@ function HomePage() {
     postId: number
   ) => {
     const assocThreads = await axios.get(
-      `${backendUrl}/posts/thread?postId=${postId}`
+      `${backendUrl}/posts/thread?postId=${postId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
     );
     setAssocThreads(assocThreads.data);
     setThreadDisplayDrawerOn(true);
@@ -531,6 +559,9 @@ function HomePage() {
           userFavourite={userFavouritePostIds.includes(selectedPost.id)}
           likePost={handleLikePost}
           favouritePost={handleFavouritePost}
+          setAssocThreads={setAssocThreads}
+          threadDisplayDrawerOn={threadDisplayDrawerOn}
+          token={token}
         />
       </Drawer>
 
