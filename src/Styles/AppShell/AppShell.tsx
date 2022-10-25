@@ -1,4 +1,4 @@
-import { useState, useEffect, MouseEvent } from "react";
+import { useState, useEffect, MouseEvent, forwardRef } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import axios from "axios";
@@ -13,7 +13,6 @@ import {
   Burger,
   Image,
   Group,
-  Autocomplete,
   Container,
   UnstyledButton,
   Avatar,
@@ -24,7 +23,10 @@ import {
   Modal,
   Loader,
   Alert,
+  MultiSelect,
+  ThemeIcon,
 } from "@mantine/core";
+
 import {
   LogOut,
   Search,
@@ -34,7 +36,13 @@ import {
   SmilingFace,
 } from "@easy-eva-icons/react";
 
-import { IconAlertCircle } from "@tabler/icons";
+import {
+  IconAlertCircle,
+  IconBrandInstagram,
+  IconBlockquote,
+  IconMessages,
+  IconChevronDown,
+} from "@tabler/icons";
 
 import { useStyles } from "./useStyles";
 import tdflLogo from "../../Images/tdflLogo.png";
@@ -43,19 +51,20 @@ import { StreakDialog } from "./StreakDialog";
 import Rewards from "../../Components/Rewards";
 import UserForm from "../../Components/UserForm";
 
-import {
-  Area,
-  Category,
-  Hashtag,
-} from "../../Components/UserHome/HomePageInterface";
-
 export type ContextType = {
   key: [
     userLoggedIn: boolean,
     setUserLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
-    token: string
+    token: string,
+    inputValue: string[]
   ];
 };
+
+interface ItemProps extends React.ComponentPropsWithoutRef<"div"> {
+  image: string;
+  label: string;
+  description: string;
+}
 
 function TdflAppShell() {
   const { userInfo } = UseApp();
@@ -70,7 +79,35 @@ function TdflAppShell() {
   const [loginScore, setLoginScore] = useState<number>(0);
 
   // FOR AUTOCOMPLETE DATA
-  const [allAreas, setAllAreas] = useState<Area[]>([]);
+  const sourceData = [
+    { label: "Instagram", value: "instagram", image: <IconBrandInstagram /> },
+    { label: "Review", value: "review", image: <IconBlockquote /> },
+    { label: "Forum", value: "forum", image: <IconMessages /> },
+  ];
+
+  const SelectItem = forwardRef<HTMLDivElement, ItemProps>(
+    ({ image, label, description, ...others }: ItemProps, ref) => (
+      <div ref={ref} {...others}>
+        <Group noWrap>
+          <ThemeIcon
+            variant="gradient"
+            gradient={{ from: "greyBlue.5", to: "greyBlue.3", deg: 105 }}
+          >
+            {image}
+          </ThemeIcon>
+
+          <div>
+            <Text>{label}</Text>
+            <Text size="xs" color="dimmed">
+              {description}
+            </Text>
+          </div>
+        </Group>
+      </div>
+    )
+  );
+
+  const [inputValue, setInputValue] = useState<string[]>([]);
 
   // render components
   const [streakDialogOn, setStreakDialogOn] = useState<boolean>(false);
@@ -80,6 +117,8 @@ function TdflAppShell() {
   const [rewardModalVisible, setRewardModalVisible] = useState(true);
   const [rewardError, setRewardError] = useState(false);
   const [rewardClaimed, setRewardClaimed] = useState(false);
+
+  const [newUserDone, setNewUserDone] = useState<boolean>(false);
 
   // for authentication
   const {
@@ -141,7 +180,6 @@ function TdflAppShell() {
         }
       );
 
-      console.log("RESPONSEEEEEE", loginData.data);
       switch (loginData.data.status) {
         case "added streak":
           setStreakDialogOn(true);
@@ -167,7 +205,7 @@ function TdflAppShell() {
     } else {
       loginWithRedirect();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, newUserDone]);
 
   const links = [
     {
@@ -213,11 +251,12 @@ function TdflAppShell() {
   ));
 
   const handleCloseModal = (event: MouseEvent) => {
-    setUserFormOn(false);
+    setNewUserDone(true);
   };
 
   if (isLoading) {
     return <Loader />;
+  } else {
   }
 
   return (
@@ -265,10 +304,27 @@ function TdflAppShell() {
                 noWrap
                 spacing="xs"
               >
-                <Autocomplete
-                  placeholder="Search prefectures, categories, hashtags"
+                <MultiSelect
+                  itemComponent={SelectItem}
+                  // filter={(value, selected, item) =>
+                  //   !selected && item &&
+                  //   (item.label
+                  //     .toLowerCase()
+                  //     .includes(value.toLowerCase().trim()) ||
+                  //     item.description
+                  //       .toLowerCase()
+                  //       .includes(value.toLowerCase().trim()))
+                  // }
                   icon={<Search />}
-                  data={["Tokyo", "Osaka", "Hokkaido"]}
+                  data={sourceData}
+                  placeholder="Search by type of post"
+                  searchable
+                  nothingFound="Nothing found"
+                  rightSection={<IconChevronDown size={14} />}
+                  styles={{ rightSection: { pointerEvents: "none" } }}
+                  rightSectionWidth={30}
+                  value={inputValue}
+                  onChange={setInputValue}
                 />
                 <Menu>
                   <Menu.Target>
@@ -338,7 +394,7 @@ function TdflAppShell() {
             come back after earning more points!
           </Alert>
         ) : null}
-        <Outlet context={[userLoggedIn, setUserLoggedIn, token]} />
+        <Outlet context={[userLoggedIn, setUserLoggedIn, token, inputValue]} />
       </AppShell>
 
       <Dialog
@@ -358,11 +414,15 @@ function TdflAppShell() {
 
       <Modal
         opened={userFormOn}
-        // withCloseButton={false}
+        withCloseButton={false}
         onClose={() => setUserFormOn(false)}
         fullScreen
       >
-        <UserForm closeModal={handleCloseModal} />
+        <UserForm
+          closeModal={handleCloseModal}
+          newUserDone={newUserDone}
+          setNewUserDone={setNewUserDone}
+        />
       </Modal>
     </>
   );
