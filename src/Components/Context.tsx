@@ -77,6 +77,5 @@ export function AppContextProvider({ children }: AppContextProviderProps) {
     userId,
     setUserId,
   };
-  console.log(userEmail, userInfo);
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
