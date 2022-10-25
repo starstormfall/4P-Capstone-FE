@@ -13,12 +13,10 @@ import {
   TextInput,
   Group,
   Button,
-  FileInput,
   FileButton,
   Text,
   createStyles,
   Space,
-  Title,
   Box,
   Stack,
   Image,
@@ -54,6 +52,7 @@ interface Props {
   assocThreads: AssocThread[];
   setAssocThreads: React.Dispatch<React.SetStateAction<AssocThread[]>>;
   threadDisplayDrawerOn: boolean;
+  token: string;
 }
 
 export default function ThreadForm({
@@ -64,6 +63,7 @@ export default function ThreadForm({
   assocThreads,
   setAssocThreads,
   threadDisplayDrawerOn,
+  token,
 }: Props) {
   const { classes } = useStyles();
   const { userInfo } = UseApp();
@@ -87,7 +87,10 @@ export default function ThreadForm({
 
       const response = await axios.post(
         `${backendUrl}/posts/create-thread-from-explore?fromExplorePostId=${postId}`,
-        requestBody
+        requestBody,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
       setThreadTitle("");
@@ -97,7 +100,10 @@ export default function ThreadForm({
       setShowForm(false);
 
       const assocThreadsResponse = await axios.get(
-        `${backendUrl}/posts/thread?postId=${postId}`
+        `${backendUrl}/posts/thread?postId=${postId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       setAssocThreads(assocThreadsResponse.data);
 

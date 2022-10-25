@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useOutletContext } from "react-router-dom";
 import axios from "axios";
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
+import { ContextType } from "../Styles/AppShell/AppShell";
 import {
   Button,
   Container,
@@ -101,6 +102,8 @@ export default function ForumMain() {
   const [allAreaData, setAllAreaData] = useState<AllPrefectureData[]>();
   const { classes, theme } = useStyles();
   const navigate = useNavigate();
+  const [userLoggedIn, setUserLoggedIn, token] =
+    useOutletContext<ContextType["key"]>();
 
   // Google map library and API definition
   const [libraries] = useState<
@@ -112,7 +115,9 @@ export default function ForumMain() {
   });
 
   const getForumData = async () => {
-    const response = await axios.get(`${backendUrl}/posts/thread`);
+    const response = await axios.get(`${backendUrl}/posts/thread`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     setForumList(response.data);
   };

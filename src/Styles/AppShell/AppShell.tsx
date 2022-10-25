@@ -9,10 +9,8 @@ import { backendUrl } from "../../utils";
 // imports for style components
 import {
   AppShell,
-  Navbar,
   Header,
   Burger,
-  useMantineTheme,
   Image,
   Group,
   Autocomplete,
@@ -50,16 +48,17 @@ import {
   Category,
   Hashtag,
 } from "../../Components/UserHome/HomePageInterface";
+import { access } from "fs";
 
 export type ContextType = {
   key: [
     userLoggedIn: boolean,
-    setUserLoggedIn: React.Dispatch<React.SetStateAction<boolean>>
+    setUserLoggedIn: React.Dispatch<React.SetStateAction<boolean>>,
+    token: string
   ];
 };
 
 function TdflAppShell() {
-  const theme = useMantineTheme();
   const { userInfo } = UseApp();
   const { setUserEmail, setUserInfo, setUserName, setUserPhoto, setUserId } =
     UseApp();
@@ -86,11 +85,13 @@ function TdflAppShell() {
   // for authentication
   const {
     isAuthenticated,
+    isLoading,
     user,
     logout,
     getAccessTokenSilently,
     loginWithRedirect,
   } = useAuth0();
+  const [token, setToken] = useState<string>("");
 
   const getUserInfo = async (user: any) => {
     console.log(`EMAIL`, user.email);
@@ -99,6 +100,7 @@ function TdflAppShell() {
       scope: process.env.REACT_APP_SCOPE,
     });
 
+    setToken(accessToken);
     // findOrCreate user in model
     const response = await axios.post(
       `${backendUrl}/users/`,
@@ -131,7 +133,10 @@ function TdflAppShell() {
     } else {
       // check when was user last logged in and to update score if necessary
       const loginData = await axios.put(
-        `${backendUrl}/users/${response.data[0].id}/login`
+        `${backendUrl}/users/${response.data[0].id}/login`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
       );
       switch (loginData.data.status) {
         case "added streak":
@@ -206,6 +211,10 @@ function TdflAppShell() {
   const handleCloseModal = (event: MouseEvent) => {
     setUserFormOn(false);
   };
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return (
     <>
@@ -325,7 +334,7 @@ function TdflAppShell() {
             come back after earning more points!
           </Alert>
         ) : null}
-        <Outlet context={[userLoggedIn, setUserLoggedIn]} />
+        <Outlet context={[userLoggedIn, setUserLoggedIn, token]} />
       </AppShell>
 
       <Dialog
