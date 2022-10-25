@@ -96,15 +96,16 @@ function BeFriendPage() {
                 <FriendList
                   friendListData={friendList}
                   setFriendList={setFriendList}
+                  openChatroom={openChatroom}
                 />
               )}
-              <br />
-              <br />
-              <br />
+              <Space h="sm" />
+              <Space h="lg" />
               {friendList && (
                 <FriendRequestList
                   friendListData={friendList}
                   setFriendList={setFriendList}
+                  openChatroom={openChatroom}
                 />
               )}
             </Grid.Col>
@@ -157,6 +158,7 @@ function BeFriendPage() {
                 <FriendList
                   friendListData={friendList}
                   setFriendList={setFriendList}
+                  openChatroom={openChatroom}
                 />
               )}
             </Grid.Col>
@@ -166,6 +168,7 @@ function BeFriendPage() {
                 <FriendRequestList
                   friendListData={friendList}
                   setFriendList={setFriendList}
+                  openChatroom={openChatroom}
                 />
               )}
             </Grid.Col>

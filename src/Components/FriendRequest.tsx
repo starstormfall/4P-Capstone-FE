@@ -52,11 +52,13 @@ type Props = {
   setFriendList: React.Dispatch<
     React.SetStateAction<FriendDataInformation[] | undefined>
   >;
+  openChatroom: boolean;
 };
 
 export default function FriendRequestList({
   friendListData,
   setFriendList,
+  openChatroom,
 }: Props) {
   const [updateRequest, setUpdateRequest] = useState<boolean>(false);
   const { userInfo } = UseApp();
@@ -85,7 +87,7 @@ export default function FriendRequestList({
     <div>
       <Container
         sx={(theme) => ({
-          height: "100vh",
+          height: openChatroom ? "46vh" : "100vh",
           padding: theme.spacing.md,
           backgroundColor: theme.white,
           borderRadius: theme.radius.lg,
@@ -105,7 +107,7 @@ export default function FriendRequestList({
 
         <Container>
           <ScrollArea
-            style={{ height: 600 }}
+            style={{ height: openChatroom ? "35vh" : "94vh" }}
             offsetScrollbars
             scrollbarSize={6}
             scrollHideDelay={0}

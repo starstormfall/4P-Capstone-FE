@@ -47,10 +47,15 @@ type Props = {
   setFriendList: React.Dispatch<
     React.SetStateAction<FriendDataInformation[] | undefined>
   >;
+  openChatroom: boolean;
 };
 
 // recieve props from BeFriendPage
-export default function FriendList({ friendListData, setFriendList }: Props) {
+export default function FriendList({
+  friendListData,
+  setFriendList,
+  openChatroom,
+}: Props) {
   const [updateRequest, setUpdateRequest] = useState<boolean>(false);
   const { userInfo } = UseApp();
   const { getAccessTokenSilently } = useAuth0();
@@ -78,7 +83,7 @@ export default function FriendList({ friendListData, setFriendList }: Props) {
     <div>
       <Container
         sx={(theme) => ({
-          height: "100vh",
+          height: openChatroom ? "46vh" : "100vh",
           padding: theme.spacing.md,
           backgroundColor: theme.white,
           borderRadius: theme.radius.lg,
@@ -99,7 +104,7 @@ export default function FriendList({ friendListData, setFriendList }: Props) {
         </Group>
         <Container>
           <ScrollArea
-            style={{ height: 700 }}
+            style={{ height: openChatroom ? "35vh" : "94vh" }}
             offsetScrollbars
             scrollbarSize={6}
             scrollHideDelay={0}
