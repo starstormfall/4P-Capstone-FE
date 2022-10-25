@@ -55,16 +55,15 @@ export default function ExplorePage() {
     if (isAuthenticated) {
       navigate("/home");
     } else {
-      loginWithRedirect();
+      loginWithRedirect({
+        redirectUri: process.env.REACT_APP_REDIRECT_HOME as string,
+      });
     }
   };
 
   useEffect(() => {
     getPhotos();
-    if (isAuthenticated) {
-      navigate("/home");
-    }
-  }, [isAuthenticated]);
+  }, []);
 
   return (
     <Box

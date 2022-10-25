@@ -1,6 +1,6 @@
 import React, { useEffect, useState, MouseEvent } from "react";
-import axios from "axios";
-import { backendUrl } from "../../utils";
+// import axios from "axios";
+// import { backendUrl } from "../../utils";
 import { useNavigate } from "react-router-dom";
 
 // import interface
@@ -20,8 +20,6 @@ import {
   Button,
   Divider,
   Stack,
-  Mark,
-  Paper,
   Blockquote,
   Box,
   Center,
@@ -47,6 +45,7 @@ interface Props {
   ) => void;
   setAssocThreads: React.Dispatch<React.SetStateAction<AssocThread[]>>;
   threadDisplayDrawerOn: boolean;
+  token: string;
 }
 
 export default function ThreadDisplay({
@@ -58,33 +57,34 @@ export default function ThreadDisplay({
   favouritePost,
   setAssocThreads,
   threadDisplayDrawerOn,
+  token,
 }: Props) {
   const navigate = useNavigate();
 
-  const [tags, setTags] = useState({
-    categories: [],
-    hashtags: [],
-    prefecture: [],
-  });
+  // const [tags, setTags] = useState({
+  //   categories: [],
+  //   hashtags: [],
+  //   prefecture: [],
+  // });
 
   const [showNewThreadForm, setShowNewThreadForm] = useState<boolean>(false);
 
-  const getTags = async () => {
-    try {
-      const response = await axios.get(
-        `${backendUrl}/posts/${selectedPost.id}/tags`
-      );
-      setTags(response.data);
-    } catch (err) {}
-  };
+  // const getTags = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${backendUrl}/posts/${selectedPost.id}/tags`
+  //     );
+  //     setTags(response.data);
+  //   } catch (err) {}
+  // };
 
   const handleGoToThread = (threadId: number) => {
     navigate(`/exchange/${threadId}`);
   };
 
-  useEffect(() => {
-    getTags();
-  }, []);
+  // useEffect(() => {
+  //   getTags();
+  // }, []);
 
   useEffect(() => {}, [assocThreads]);
 
@@ -181,6 +181,7 @@ export default function ThreadDisplay({
                 assocThreads={assocThreads}
                 setAssocThreads={setAssocThreads}
                 threadDisplayDrawerOn={threadDisplayDrawerOn}
+                token={token}
               />
             )}
 
