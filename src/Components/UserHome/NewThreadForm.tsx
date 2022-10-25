@@ -96,7 +96,6 @@ export default function ThreadForm({
           return getDownloadURL(snapshot.ref);
         })
         .then((url) => {
-          console.log(url);
           return url;
         });
       return imageUrl;
@@ -109,7 +108,6 @@ export default function ThreadForm({
     try {
       let imageUrl = await uploadImage(file);
 
-      console.log("IMAGE URL HEREEREEEEE", imageUrl);
       const requestBody = {
         userId: userInfo.id,
         threadTitle: threadTitle,
@@ -139,8 +137,6 @@ export default function ThreadForm({
         }
       );
       setAssocThreads(assocThreadsResponse.data);
-
-      console.log(response.data);
     } catch (err) {
       console.log(err);
     }
