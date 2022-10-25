@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useNavigate, Link, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import axios from "axios";
 import { backendUrl } from "../utils";
@@ -13,9 +13,7 @@ import {
   Text,
   Modal,
   Group,
-  FileInput,
   Textarea,
-  Checkbox,
   Select,
   Avatar,
   Indicator,
@@ -31,6 +29,7 @@ import {
   Space,
   FileButton,
   Stack,
+  SimpleGrid,
 } from "@mantine/core";
 import { storage } from "../DB/firebase";
 import {
@@ -43,7 +42,6 @@ import {
   CloudUploadOutline,
   Trash2Outline,
 } from "@easy-eva-icons/react";
-import { create } from "domain";
 
 // Googlemaps Api
 import {
@@ -67,6 +65,7 @@ type ThreadSingleData = {
     content: string;
     areaId: number;
     pinId: number;
+    quotedExplore: boolean;
     locationName: string;
     forumPost: boolean;
     explorePost: string;
@@ -102,6 +101,7 @@ type newThreadSingleData = {
     content: string;
     areaId: number;
     pinId: number;
+    quotedExplore: boolean;
     locationName: string;
     forumPost: boolean;
     explorePost: string;
@@ -151,7 +151,7 @@ const useStyles = createStyles((theme) => ({
 
   body: {
     paddingLeft: 25,
-    paddingTop: theme.spacing.sm,
+    paddingTop: theme.spacing.md,
     fontSize: theme.fontSizes.sm,
   },
 
@@ -246,7 +246,6 @@ export default function ThreadSingle() {
       (objA, objB) => objA.createdAt.getTime() - objB.createdAt.getTime()
     );
     setNewThreadData(sortedData);
-    console.log(newThreadData);
 
     setSingleThreadData(response.data);
   };
@@ -263,7 +262,7 @@ export default function ThreadSingle() {
         headers: { Authorization: `Bearer ${accessToken}` },
       }
     );
-    console.log(`FRIENDLIST`, response.data);
+
     setFriendList(response.data);
   };
 
@@ -273,32 +272,9 @@ export default function ThreadSingle() {
     currentFriends();
   }, [updateComment, updateFriendRequest]);
 
-  console.log(singleThreadData);
-  // console.log(friendList);
-
   if (threadId !== params.threadId) {
     setThreadId(params.threadId);
   }
-
-  // const updateData = async () => {
-  //   if (singleThreadData) {
-  //     const newData = singleThreadData.map((obj) => {
-  //       // let key = Object.keys(obj)[0];
-  //       // return obj[key]
-  //       return { ...obj, createdAt: new Date(obj.post.createdAt) };
-  //     });
-
-  //     const sortedData = [...newData].sort(
-  //       (objA, objB) => objA.createdAt.getTime() - objB.createdAt.getTime()
-  //     );
-  //     setNewThreadData(sortedData);
-  //     console.log(newThreadData);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   updateData();
-  // }, [singleThreadData]);
 
   // handle post req for comments (to post to table)
   const onFriendRequest = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -307,9 +283,7 @@ export default function ThreadSingle() {
       scope: process.env.REACT_APP_SCOPE,
     });
     e.preventDefault();
-    console.log(`Added as Friend!`);
-    console.log(`added friend id`, friendAdded);
-    console.log(`current post id`, postId);
+
     await axios.post(
       `${backendUrl}/friends/${userInfo.id}/addfriend`,
       {
@@ -407,7 +381,86 @@ export default function ThreadSingle() {
 
   // sort the data by date first before mapping
   const allComments = [];
-  if (newThreadData) {
+  if (
+    newThreadData &&
+    newThreadData.length > 1 &&
+    newThreadData[1].post.quotedExplore === true
+  ) {
+    for (let i = 2; i < newThreadData.length; i++) {
+      allComments.push(
+        <div>
+          <Paper
+            withBorder
+            radius="md"
+            className={classes.comment}
+            key={newThreadData[i].id}
+          >
+            <Group>
+              <div>
+                <Modal
+                  opened={friendModalOpen}
+                  onClose={() => setFriendModalOpen(false)}
+                  title="Tell us more in details!"
+                >
+                  <Container>
+                    {/* update friend here */}
+                    <form onSubmit={onFriendRequest}>
+                      <Textarea
+                        variant="filled"
+                        label="Reason"
+                        placeholder="Give a reason on why you are adding."
+                        withAsterisk
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                      />
+
+                      <Button type="submit">Add as Friend!</Button>
+                    </form>
+                  </Container>
+                </Modal>
+
+                <Group position="left">
+                  {friendList &&
+                    checkFriendShip(
+                      friendList[newThreadData[i].post.userId],
+                      newThreadData[i].post.userId,
+                      newThreadData[i].post.id,
+                      newThreadData[i].post.user.photoLink,
+                      newThreadData[i].post.user.name,
+                      newThreadData[i].post.createdAt
+                    )}
+                </Group>
+              </div>
+              {/* <div>
+                <Text size="sm">{newThreadData[i].post.user.name}</Text>
+                <Text size="xs" color="dimmed">
+                  commented on: {newThreadData[i].post.createdAt}
+                </Text>
+              </div> */}
+            </Group>
+            <SimpleGrid cols={2}>
+              <div>
+                <Text className={classes.body} size="sm" pl="lg">
+                  {newThreadData[i].post.content}
+                </Text>
+              </div>
+              {newThreadData[i].post.photoLink ? (
+                <div>
+                  <Image
+                    src={newThreadData[i].post.photoLink}
+                    alt={newThreadData[i].post.locationName}
+                    height={200}
+                    width="100%"
+                    radius="md"
+                  />
+                </div>
+              ) : null}
+            </SimpleGrid>
+          </Paper>
+        </div>
+      );
+    }
+  } else if (newThreadData) {
     for (let i = 1; i < newThreadData.length; i++) {
       allComments.push(
         <div>
@@ -460,16 +513,27 @@ export default function ThreadSingle() {
                 </Text>
               </div> */}
             </Group>
-            <Text className={classes.body} size="sm">
-              {newThreadData[i].post.content}
-            </Text>
+            <Group position="apart">
+              <Text className={classes.body} size="sm">
+                {newThreadData[i].post.content}
+              </Text>
+              {newThreadData[i].post.photoLink ? (
+                <Box>
+                  <Image
+                    src={newThreadData[i].post.photoLink}
+                    alt={newThreadData[i].post.locationName}
+                    height={200}
+                    radius="md"
+                  />
+                </Box>
+              ) : null}
+            </Group>
           </Paper>
         </div>
       );
     }
   }
 
-  console.log(userInfo.id);
   // states for creating comment/post
   const [forumPost, setForumPost] = useState<boolean>(true);
   const [explorePost, setExplorePost] = useState<string | null>(null);
@@ -521,10 +585,6 @@ export default function ThreadSingle() {
     );
   }
 
-  console.log(currentPosition);
-  console.log(autoCompletePlacePos);
-  console.log(areaId);
-  console.log(exactLocation);
   // Handle autocomplete changes. Please dont change order of autocomplete within form.
   const handleInputChange = () => {
     let searchInputField = document.getElementsByTagName("input")[3];
@@ -534,8 +594,6 @@ export default function ThreadSingle() {
 
     autocomplete.addListener("place_changed", function () {
       let placeInfo = autocomplete.getPlace();
-
-      console.log(placeInfo);
 
       if (
         placeInfo &&
@@ -571,7 +629,7 @@ export default function ThreadSingle() {
 
       autocomplete.addListener("place_changed", function () {
         let placeInfo = autocomplete.getPlace();
-        console.log(placeInfo);
+
         if (
           placeInfo &&
           placeInfo.geometry &&
@@ -739,50 +797,150 @@ export default function ThreadSingle() {
     <div>
       <Space h="lg" />
       <Container>
+        {/* render from */}
         {newThreadData ? (
-          <Box>
-            <Card withBorder radius="md" className={classes.card}>
-              <Title className={classes.cardTitle} align="left">
-                {newThreadData[0].thread.topic}
-              </Title>
+          newThreadData.length > 1 &&
+          newThreadData[1].post.quotedExplore === true ? (
+            // thread created from instagram and review
+            <Box>
+              <Card withBorder radius="md" className={classes.card}>
+                <Title className={classes.cardTitle} align="left">
+                  {newThreadData[1].thread.topic}
+                </Title>
+                <Divider my="md"></Divider>
+                {/* add explore photo and description*/}
+                {/* {newThreadData[1].post.photoLink && ( */}
+                <Grid justify="center" align="center">
+                  <Grid.Col span={5}>
+                    <Stack spacing={0}>
+                      <Box
+                        sx={(theme) => ({
+                          backgroundColor: theme.colors.aqua[1],
+                          textAlign: "center",
+                          padding: theme.spacing.md,
+                          borderRadius: theme.radius.sm,
+                          borderColor: theme.colors.aqua[9],
+                        })}
+                      >
+                        <Text size="md" color="dimmed" lineClamp={4}>
+                          Original Post
+                        </Text>
+                        <Image
+                          src={newThreadData[0].post.photoLink}
+                          alt={newThreadData[0].post.locationName}
+                          height={300}
+                          radius="md"
+                        />
+                        <Text size="md" color="dimmed" lineClamp={4} mt="md">
+                          {newThreadData[0].post.content}
+                        </Text>
+                      </Box>
+                    </Stack>
+                  </Grid.Col>
+                  <Grid.Col span={7}>
+                    <Stack spacing={0}>
+                      <Box>
+                        <Paper
+                          withBorder
+                          radius="md"
+                          className={classes.comment}
+                        >
+                          <Group mb="md">
+                            <Avatar
+                              src={newThreadData[1].post.user.photoLink}
+                              alt={newThreadData[1].post.user.name}
+                              radius="xl"
+                            />
+                            <div>
+                              <Text size="sm">
+                                {newThreadData[1].post.user.name}
+                              </Text>
+                              <Text size="xs" color="dimmed">
+                                {newThreadData[1].post.createdAt}
+                              </Text>
+                            </div>
+                          </Group>
+                          <Image
+                            src={newThreadData[1].post.photoLink}
+                            alt={newThreadData[1].post.locationName}
+                            height={300}
+                            radius="md"
+                          />
+                          <Text size="md" color="dimmed" lineClamp={4} mt="md">
+                            {newThreadData[1].post.content}
+                          </Text>
+                        </Paper>
+                      </Box>
+                    </Stack>
+                  </Grid.Col>
+                </Grid>
+                {/* )} */}
 
-              {newThreadData[0].post.photoLink && (
-                <Card.Section>
-                  <Image
-                    src={newThreadData[0].post.photoLink}
-                    alt={newThreadData[0].post.locationName}
-                    height={400}
-                  />
-                </Card.Section>
-              )}
+                {/* <Space h="sm" /> */}
 
-              <Text size="sm" color="dimmed" lineClamp={4} mt="md">
-                {newThreadData[0].post.content}
-              </Text>
-
-              <br />
-
-              <Group position="apart" className={classes.footer}>
-                <Center>
-                  <Avatar
-                    src={newThreadData[0].post.user.photoLink}
-                    size={24}
-                    radius="xl"
-                    mr="xs"
-                  />
+                {/* <Group position="apart" className={classes.footer}>
+                  <Center>
+                    <Avatar
+                      src={newThreadData[1].post.user.photoLink}
+                      size={24}
+                      radius="xl"
+                      mr="xs"
+                    />
+                    <Text size="sm" inline>
+                      {newThreadData[1].post.user.name}
+                    </Text>
+                  </Center>
                   <Text size="sm" inline>
-                    {newThreadData[0].post.user.name}
+                    Created At: {newThreadData[1].post.createdAt}
                   </Text>
-                </Center>
-                <Text size="sm" inline>
-                  Created At: {newThreadData[0].post.createdAt}
+                </Group> */}
+              </Card>
+            </Box>
+          ) : (
+            <Box>
+              <Card withBorder radius="md" className={classes.card}>
+                <Title className={classes.cardTitle} align="left">
+                  {newThreadData[0].thread.topic}
+                </Title>
+                <Divider my="md"></Divider>
+                {newThreadData[0].post.photoLink && (
+                  <Card.Section>
+                    <Image
+                      src={newThreadData[0].post.photoLink}
+                      alt={newThreadData[0].post.locationName}
+                      height={500}
+                    />
+                  </Card.Section>
+                )}
+
+                <Text size="md" color="dimmed" lineClamp={4} mt="md">
+                  {newThreadData[0].post.content}
                 </Text>
-              </Group>
-            </Card>
-          </Box>
+
+                <Space h="sm" />
+
+                <Group position="apart" className={classes.footer}>
+                  <Center>
+                    <Avatar
+                      src={newThreadData[0].post.user.photoLink}
+                      size={24}
+                      radius="xl"
+                      mr="xs"
+                    />
+                    <Text size="sm" inline>
+                      {newThreadData[0].post.user.name}
+                    </Text>
+                  </Center>
+                  <Text size="sm" inline>
+                    Created At: {newThreadData[0].post.createdAt}
+                  </Text>
+                </Group>
+              </Card>
+            </Box>
+          )
         ) : null}
       </Container>
-      <Container>
+      <Container mt="sm">
         {singleThreadData ? (
           allComments
         ) : (
@@ -839,8 +997,6 @@ export default function ThreadSingle() {
                       if (exploreOpen) {
                         setExplorePost("");
                       }
-                      console.log(`explore status`, explorePost);
-                      console.log(`forum state`, forumPost);
                     }}
                   >
                     Add to Explore?
@@ -865,7 +1021,6 @@ export default function ThreadSingle() {
                     data={prefectureData}
                     value={areaId}
                     onChange={(event: string) => {
-                      console.log(event);
                       setAreaId(event);
                     }}
                   />
@@ -927,17 +1082,7 @@ export default function ThreadSingle() {
                     value={externalLink}
                     onChange={(e) => setExternalLink(e.target.value)}
                   />
-                  {/* <FileInput
-                    variant="filled"
-                    placeholder="pick file"
-                    label="Add Photo"
-                    withAsterisk
-                    value={fileInputFile}
-                    onChange={(e: File) => {
-                      console.log(e);
-                      setFileInputFile(e);
-                    }}
-                  /> */}
+
                   <Group position="left" mt="lg">
                     <FileButton
                       resetRef={resetRef}

@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import axios from "axios";
-import { isError, useQuery } from "@tanstack/react-query";
+
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
-  Button,
   Container,
-  Image,
-  Grid,
-  Card,
   Text,
   Avatar,
   Group,
@@ -22,12 +18,7 @@ import {
 } from "@mantine/core";
 import { IconCheck, IconLetterX } from "@tabler/icons";
 
-import {
-  PersonDoneOutline,
-  PersonDeleteOutline,
-  PersonAddOutline,
-  PersonRemoveOutline,
-} from "@easy-eva-icons/react";
+import { PersonAddOutline } from "@easy-eva-icons/react";
 
 //create interface for the data
 interface FriendDataInformation {
@@ -94,7 +85,7 @@ export default function FriendRequestList({
     <div>
       <Container
         sx={(theme) => ({
-          minHeight: 250,
+          height: "100vh",
           padding: theme.spacing.md,
           backgroundColor: theme.white,
           borderRadius: theme.radius.lg,
@@ -103,7 +94,7 @@ export default function FriendRequestList({
           flexDirection: "column",
         })}
       >
-        <Group position="center" mb="md" mt="xs">
+        <Group position="center" mb="xl" mt="xs">
           <ThemeIcon variant="light" size={30}>
             <PersonAddOutline />
           </ThemeIcon>

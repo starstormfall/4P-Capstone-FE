@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useState } from "react";
-import { useNavigate, Outlet, useOutletContext } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Outlet, useOutletContext } from "react-router-dom";
 import { withAuthenticationRequired } from "@auth0/auth0-react";
 
 import { Grid, Space, Title } from "@mantine/core";
@@ -81,8 +81,6 @@ function BeFriendPage() {
   const [chatroomActive, setChatroomActive] = useState<boolean>();
   const [chatroomhostId, setChatroomHostId] = useState<number>();
   const [chatroomTitle, setChatroomTitle] = useState("");
-
-  console.log(openChatroom);
 
   return (
     <div>
@@ -203,15 +201,6 @@ function BeFriendPage() {
             </Grid.Col>
           </>
         )}
-
-        {/* <Grid.Col span={4}>
-          {friendList && (
-            <FriendRequestList
-              friendListData={friendList}
-              setFriendList={setFriendList}
-            />
-          )}
-        </Grid.Col> */}
       </Grid>
       <Outlet />
     </div>

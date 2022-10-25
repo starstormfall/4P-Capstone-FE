@@ -1,32 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
+
 import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
-  Button,
   Container,
-  Grid,
-  Card,
   Text,
   Avatar,
   Group,
   ActionIcon,
   Box,
   ScrollArea,
-  createStyles,
   Title,
   ThemeIcon,
 } from "@mantine/core";
 import { IconLetterX } from "@tabler/icons";
-import {
-  PersonDoneOutline,
-  PersonDeleteOutline,
-  PersonAddOutline,
-  PersonRemoveOutline,
-} from "@easy-eva-icons/react";
+import { PersonDoneOutline } from "@easy-eva-icons/react";
 
 //create interface for the data
 interface FriendDataInformation {
@@ -51,10 +42,6 @@ interface FriendDataInformation {
   updatedAt: string;
 }
 
-// interface FriendData {
-//   friendDataInformation: FriendDataInformation[];
-// }
-
 type Props = {
   friendListData: FriendDataInformation[];
   setFriendList: React.Dispatch<
@@ -62,14 +49,11 @@ type Props = {
   >;
 };
 
-const useStyles = createStyles((theme) => ({}));
-
 // recieve props from BeFriendPage
 export default function FriendList({ friendListData, setFriendList }: Props) {
   const [updateRequest, setUpdateRequest] = useState<boolean>(false);
   const { userInfo } = UseApp();
   const { getAccessTokenSilently } = useAuth0();
-  const { classes, theme } = useStyles();
 
   const getFriendList = async () => {
     const accessToken = await getAccessTokenSilently({
@@ -94,7 +78,7 @@ export default function FriendList({ friendListData, setFriendList }: Props) {
     <div>
       <Container
         sx={(theme) => ({
-          minHeight: 250,
+          height: "100vh",
           padding: theme.spacing.md,
           backgroundColor: theme.white,
           borderRadius: theme.radius.lg,
@@ -104,7 +88,7 @@ export default function FriendList({ friendListData, setFriendList }: Props) {
         })}
       >
         {" "}
-        <Group position="center" mb="md" mt="xs">
+        <Group position="center" mb="xl" mt="xs">
           <ThemeIcon variant="light" size={30}>
             <PersonDoneOutline />
           </ThemeIcon>
@@ -115,7 +99,7 @@ export default function FriendList({ friendListData, setFriendList }: Props) {
         </Group>
         <Container>
           <ScrollArea
-            style={{ height: 600 }}
+            style={{ height: 700 }}
             offsetScrollbars
             scrollbarSize={6}
             scrollHideDelay={0}
