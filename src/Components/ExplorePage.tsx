@@ -154,7 +154,7 @@ export default function ExplorePage() {
                   icon={<IconGlobe size={30} />}
                 >
                   <Text size="md">
-                    TDFL aims to provide a space for travellers and locals to
+                    TDFL aims to provide a space for travelers and locals to
                     share and exchange ideas & inspiring places throughout
                     Japan, thereby fostering a community that thrives on
                     positive feedback.

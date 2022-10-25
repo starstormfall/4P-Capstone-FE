@@ -33,9 +33,6 @@ import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
 
 interface ServerToClientEvents {
-  // noArg: () => void;
-  // basicEmit: (a: number, b: string, c: Buffer) => void;
-  // withAck: (d: string, callback: (e: number) => void) => void;
   send_chatdata: (data: LoadedMessage[]) => void;
   received_message: (data: LoadedMessage[]) => void;
   received_admin_message: (data: string) => void;
@@ -56,7 +53,6 @@ interface Message {
 }
 
 interface ClientToServerEvents {
-  // hello: () => void;
   join_chatroom: (room: Room) => void;
   send_message: (newMessage: Message) => void;
   leave_disconnect: (itemToDestroy: {
@@ -168,7 +164,6 @@ const useStyles = createStyles((theme) => ({
   justifyFlexEnd: {
     justifyContent: "flex-end",
     flexWrap: "nowrap",
-    // placeSelf: "center",
   },
 
   chatroomTitle: {
@@ -176,31 +171,23 @@ const useStyles = createStyles((theme) => ({
   },
 
   chatNew: {
-    // alignSelf: "self-end",
     justifyContent: "flex-end",
     padding: "15px 0px 0px",
   },
 }));
 
 export default function ChatRoom(props: Props) {
-  const { classes, theme } = useStyles();
+  const { classes } = useStyles();
 
   const { userId, userName, userPhoto } = UseApp();
   // Obtain methods for auth0 authentication.
-  const {
-    isAuthenticated,
-    user,
-    loginWithRedirect,
-    logout,
-    getAccessTokenSilently,
-  } = useAuth0();
+  const { isAuthenticated, user, loginWithRedirect, getAccessTokenSilently } =
+    useAuth0();
 
-  // const { chatroomId } = useParams<chatroomParams>();
   const { chatroomId } = props;
   const [allMessages, setAllMessages] = useState<LoadedMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [adminMessage, setAdminMessage] = useState("");
-  // const [newUser, setNewUser] = useState<friend[]>([]);
   const [allFriends, setAllFriends] = useState<Friend[]>();
   const [newUser, setNewUser] = useState<string[]>([]);
   const [active, setActive] = useState<boolean | undefined>(
@@ -220,7 +207,6 @@ export default function ChatRoom(props: Props) {
 
   // Allows users to join socket room upon load.
   useEffect(() => {
-    console.log("joining chatroom running");
     socket.emit("join_chatroom", { room: `${chatroomId}` });
   }, [props.openChatroom]);
 
@@ -244,19 +230,15 @@ export default function ChatRoom(props: Props) {
   // Allows users to get previous chat data upon load. Allows users to see who are the other people in chat.
   useEffect(() => {
     socket.on("send_chatdata", (data: LoadedMessage[]) => {
-      console.log(data);
       setAllMessages(data);
     });
 
     getAllUsers();
   }, [newMessage]);
 
-  console.log(allMessages);
-
   //Allows users to get updated chat when someone sends a message.
   useEffect(() => {
     socket.on("received_message", (data: LoadedMessage[]) => {
-      console.log(data);
       setAllMessages(data);
       setAdminMessage("");
     });
@@ -265,7 +247,6 @@ export default function ChatRoom(props: Props) {
   //Allow remaining users to see that a user has left the chat, or that new users have been added.
   useEffect(() => {
     socket.on("received_admin_message", (data: string) => {
-      console.log(data);
       setAdminMessage(data);
       getAllUsers();
     });
@@ -309,25 +290,6 @@ export default function ChatRoom(props: Props) {
     allChatMessages = allMessages.map((message) => {
       if (message.posterUserId === userId) {
         return (
-          // <Stack p={0} spacing={2} sx={{ maxWidth: "100%" }} align="flex-end">
-          //   <Card key={message.message}>
-          //     <Grid>
-          //       <Grid.Col span={8}>
-          //         <p>{message.posterUser.name}</p>
-          //         <p>{new Date(message.createdAt).toLocaleString()}</p>
-          //         <p>{message.message}</p>
-          //       </Grid.Col>
-          //       <Grid.Col span={3}>
-          //         <Avatar
-          //           radius="xl"
-          //           size="lg"
-          //           src={message.posterUser.photoLink}
-          //           alt="chat user"
-          //         />
-          //       </Grid.Col>
-          //     </Grid>
-          //   </Card>
-          // </Stack>
           <div>
             <Group position="right">
               <div>
@@ -352,25 +314,6 @@ export default function ChatRoom(props: Props) {
         );
       } else
         return (
-          // <Stack p={0} spacing={2} sx={{ maxWidth: "100%" }} align="flex-end">
-          //   <Card key={message.message}>
-          //     <Grid>
-          //       <Grid.Col span={3}>
-          //         <Avatar
-          //           radius="xl"
-          //           size="lg"
-          //           src={message.posterUser.photoLink}
-          //           alt="chat user"
-          //         />
-          //       </Grid.Col>
-          //       <Grid.Col span={8}>
-          //         <p>{message.posterUser.name}</p>
-          //         <p>{new Date(message.createdAt).toLocaleString()}</p>
-          //         <p>{message.message}</p>
-          //       </Grid.Col>
-          //     </Grid>
-          //   </Card>
-          // </Stack>
           <div>
             <Group>
               <Avatar
@@ -439,7 +382,6 @@ export default function ChatRoom(props: Props) {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
     setNewMessage(e.currentTarget.value);
   };
-  console.log(newMessage);
 
   //Submit new message. Send to socket and update backend.
   const handleSubmit = (e: React.SyntheticEvent) => {
@@ -472,8 +414,6 @@ export default function ChatRoom(props: Props) {
   const handleLeave = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ): void => {
-    console.log(event);
-    console.log("this is running");
     if (userId) {
       const itemToDestroy = {
         chatroomId: Number(chatroomId),
@@ -481,8 +421,6 @@ export default function ChatRoom(props: Props) {
       };
 
       socket.emit("leave_disconnect", itemToDestroy);
-
-      // socket.disconnect();
 
       props.setOpenChatroom(false);
     }
@@ -492,11 +430,6 @@ export default function ChatRoom(props: Props) {
   const handleAdd = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ): void => {
-    // const newUserObj = {
-    //   newUser: newUser,
-    //   chatroomId: Number(chatroomId),
-    // };
-
     //newUser is an array of strings(of userids)
     const newUserObj = newUser.map((user) => ({
       chatroomId: Number(chatroomId),
@@ -526,10 +459,7 @@ export default function ChatRoom(props: Props) {
 
   const handleMinimize = () => {
     props.setOpenChatroom(false);
-    // socket.disconnect();
   };
-
-  console.log(newUser);
 
   const handleMultiOpen = () => {
     setMultiOpen(!multiOpen);
@@ -539,7 +469,7 @@ export default function ChatRoom(props: Props) {
     <Container size="xl">
       <Box
         sx={(theme) => ({
-          minHeight: 250,
+          height: "96.5vh",
           padding: theme.spacing.md,
           backgroundColor:
             theme.colorScheme === "dark" ? theme.colors.dark[6] : theme.white,
@@ -547,7 +477,6 @@ export default function ChatRoom(props: Props) {
           boxShadow: theme.shadows.lg,
           display: "flex",
           flexDirection: "column",
-          // justifyContent: "space-between",
         })}
       >
         <Grid>
@@ -634,10 +563,6 @@ export default function ChatRoom(props: Props) {
                       </Menu.Item>
                     </>
                   )}
-
-                  {/* <Button onClick={handleActive} disabled={!active}>
-                    Deactivate Room
-                  </Button> */}
                 </Menu.Dropdown>
               </Menu>
 
@@ -653,7 +578,6 @@ export default function ChatRoom(props: Props) {
         </Grid>
 
         <br />
-        {/* <Button onClick={handleLeave}>Leave Chatroom</Button> */}
         {props.chatroomhostId === userId &&
         allFriends &&
         allFriends.length !== 0 &&
@@ -673,11 +597,6 @@ export default function ChatRoom(props: Props) {
                 disabled={!active}
               />
               <br />
-              {/* <UnstyledButton disabled={!active}>
-                <Group>
-                  <IconUserPlus onClick={handleAdd} size={26} color="#7491A8" />
-                </Group>
-              </UnstyledButton> */}
               <Group className={classes.chatNew}>
                 <Button disabled={!active} onClick={handleAdd}>
                   <IconUserPlus size={20} />
@@ -686,8 +605,7 @@ export default function ChatRoom(props: Props) {
             </Modal>
           </>
         ) : null}
-        {/* <br /> */}
-        <ScrollArea style={{ height: 200 }} offsetScrollbars>
+        <ScrollArea style={{ height: "70vh" }} offsetScrollbars>
           {allChatMessages}
 
           {adminMessage.length !== 0 ? (
@@ -707,7 +625,6 @@ export default function ChatRoom(props: Props) {
             radius="md"
             required
           />
-          {/* <br /> */}
           <Group className={classes.chatNew}>
             <Button type="submit" disabled={!active}>
               <IconSend size={20} />

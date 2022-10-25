@@ -134,9 +134,8 @@ function BeFriendPage() {
                   setChatroomTitle={setChatroomTitle}
                 />
               )}
-              <br />
-              <br />
-              <br />
+              <Space h="sm" />
+              <Space h="lg" />
               {friendList && (
                 <ChatRoomList
                   friendListData={friendList}
