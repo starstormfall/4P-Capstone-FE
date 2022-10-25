@@ -1,5 +1,4 @@
-import React, { FormEvent, useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useRef } from "react";
 import { storage } from "../DB/firebase";
 import {
   getDownloadURL,
@@ -7,13 +6,9 @@ import {
   uploadBytes,
 } from "firebase/storage";
 import {
-  Card,
   Title,
   Container,
-  NativeSelect,
-  FileInput,
   Textarea,
-  NumberInput,
   Button,
   Group,
   Paper,
@@ -52,7 +47,6 @@ export default function UserForm({
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const { userInfo } = UseApp();
   const { getAccessTokenSilently } = useAuth0();
-  const navigate = useNavigate();
 
   const PROFILE_IMAGE_FOLDER_NAME = "profile pictures";
   const uploadImage = async (fileInputFile?: File) => {
@@ -223,9 +217,6 @@ export default function UserForm({
                 radius="xl"
                 size="md"
                 type="submit"
-                onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
-                  closeModal(event)
-                }
               >
                 Submit
               </Button>

@@ -1,19 +1,14 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 // imports for components
 import TdflAppShell from "./Styles/AppShell/AppShell";
 import NothingFound from "./Components/NothingFound/NothingFound";
 import ExplorePage from "./Components/ExplorePage";
 import HomePage from "./Components/UserHome/HomePage";
-import UserForm from "./Components/UserForm";
 import ForumMain from "./Components/ForumMain";
 import ThreadSingle from "./Components/TheadSingle";
 import BeFriendPage from "./Components/BeFriendPage";
-import FriendList from "./Components/FriendList";
-import ChatRoomList from "./Components/ChatRoomList";
-import ChatRoom from "./Components/ChatRoom";
 import Map from "./Components/Map";
-import Rewards from "./Components/Rewards";
 import { AppContextProvider } from "./Components/Context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 

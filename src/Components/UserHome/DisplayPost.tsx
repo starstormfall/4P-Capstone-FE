@@ -6,27 +6,16 @@ import {
   Card,
   Text,
   Group,
-  Center,
   Badge,
   ActionIcon,
   createStyles,
   UnstyledButton,
   Image,
-  Container,
   ScrollArea,
   Paper,
-  Overlay,
 } from "@mantine/core";
 
-import {
-  Pin,
-  MessageCircle,
-  Heart,
-  HeartOutline,
-  Star,
-  StarOutline,
-  Share,
-} from "@easy-eva-icons/react";
+import { Heart, HeartOutline, Star, StarOutline } from "@easy-eva-icons/react";
 
 const useStyles = createStyles((theme, _params, getRef) => {
   const image = getRef("image");
