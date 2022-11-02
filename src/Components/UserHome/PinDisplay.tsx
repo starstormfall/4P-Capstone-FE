@@ -1,58 +1,15 @@
-import React, { useEffect, useState, MouseEvent } from "react";
-import axios from "axios";
-import { backendUrl } from "../../utils";
+import React from "react";
 
 // import interface
-import {
-  Area,
-  Category,
-  Hashtag,
-  PostCard,
-  AssocThread,
-  Post,
-} from "./HomePageInterface";
+import { AssocThread, Post } from "./HomePageInterface";
 
 // import style components
-import {
-  Container,
-  Grid,
-  Badge,
-  Paper,
-  createStyles,
-  ScrollArea,
-} from "@mantine/core";
+import { Container, Grid, ScrollArea } from "@mantine/core";
 
 // import child components
 import PinMap from "../UserHome/PinMap";
 import DisplayPost from "./DisplayPost";
 
-const useStyles = createStyles((theme) => ({
-  card: {
-    height: 440,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-  },
-
-  title: {
-    fontFamily: `Greycliff CF ${theme.fontFamily}`,
-    fontWeight: 900,
-    color: theme.white,
-    lineHeight: 1.2,
-    fontSize: 32,
-    marginTop: theme.spacing.xs,
-  },
-
-  category: {
-    color: theme.white,
-    opacity: 0.7,
-    fontWeight: 700,
-    textTransform: "uppercase",
-  },
-}));
 interface Props {
   selectedPost: Post;
   assocThreads: AssocThread[];
@@ -76,8 +33,6 @@ export default function PinDisplay({
   likePost,
   favouritePost,
 }: Props) {
-  const { classes } = useStyles();
-
   return (
     <Grid>
       <Grid.Col span={6}>

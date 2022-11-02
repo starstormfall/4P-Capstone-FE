@@ -100,9 +100,10 @@ export default function Rewards(props: Props) {
   const { userId, userInfo, setUserInfo } = UseApp();
 
   // Obtain methods for auth0 authentication.
-  const { isAuthenticated, user, loginWithRedirect, getAccessTokenSilently } =
+  const { isAuthenticated, loginWithRedirect, getAccessTokenSilently } =
     useAuth0();
 
+  // eslint-disable-next-line
   const [newUserScore, setNewUserScore] = useState(0);
 
   // useEffect for checking auth0 authentication upon load.
@@ -114,6 +115,7 @@ export default function Rewards(props: Props) {
     } else {
       loginWithRedirect();
     }
+    // eslint-disable-next-line
   }, []);
 
   const handleExchange = async () => {
