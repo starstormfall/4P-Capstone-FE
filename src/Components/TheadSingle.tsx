@@ -48,7 +48,6 @@ import {
   GoogleMap,
   useJsApiLoader,
   MarkerF,
-  LoadScript,
   Autocomplete,
 } from "@react-google-maps/api";
 
@@ -223,7 +222,7 @@ export default function ThreadSingle() {
   const [libraries] = useState<
     ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
   >(["visualization", "places"]);
-  const { isLoaded, loadError } = useJsApiLoader({
+  const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY as string,
     libraries: libraries,
   });
@@ -270,6 +269,7 @@ export default function ThreadSingle() {
   useEffect(() => {
     singleThread();
     currentFriends();
+    // eslint-disable-next-line
   }, [updateComment, updateFriendRequest]);
 
   if (threadId !== params.threadId) {
@@ -538,6 +538,7 @@ export default function ThreadSingle() {
   const [forumPost, setForumPost] = useState<boolean>(true);
   const [explorePost, setExplorePost] = useState<string | null>(null);
   const [opened, setOpened] = useState<boolean>(false);
+  // eslint-disable-next-line
   const [checked, setChecked] = useState<boolean>(false);
   const [fileInputFile, setFileInputFile] = useState<File>();
   const [title, setTitle] = useState<string>("");
@@ -555,6 +556,7 @@ export default function ThreadSingle() {
     lng: 139.7525871479461,
   });
   const [autoCompleteElem, setAutoCompleteElem] = useState<HTMLInputElement>();
+  // eslint-disable-next-line
   const [autoCompletePlacePos, setAutoCompletePlacePos] = useState<Location>();
   const [exactLocation, setExactLocation] = useState("");
 
@@ -571,6 +573,7 @@ export default function ThreadSingle() {
 
   useEffect(() => {
     getAllAreaData();
+    // eslint-disable-next-line
   }, []);
 
   let prefectureData: prefectureDataType[] = [];

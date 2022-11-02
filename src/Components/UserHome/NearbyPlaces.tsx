@@ -1,22 +1,4 @@
-import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Group,
-  Grid,
-  Loader,
-  Text,
-  Card,
-  Image,
-  ScrollArea,
-  Badge,
-  Overlay,
-  createStyles,
-  Title,
-  TextInput,
-  Select,
-  Alert,
-  Anchor,
-} from "@mantine/core";
+import { Text, Card } from "@mantine/core";
 import {
   Category,
   Hashtag,
@@ -25,13 +7,6 @@ import {
   PinLocationInformation,
   Area,
 } from "./HomePageInterface";
-
-const useStyles = createStyles((theme) => ({
-  titleCaro: {
-    lineHeight: 1.2,
-    marginTop: theme.spacing.sm,
-  },
-}));
 
 // Defining interfaces
 interface Props {
@@ -44,16 +19,8 @@ interface Props {
 }
 
 export default function NearbyPlaces(props: Props) {
-  const {
-    nearbyPlaceDist,
-    pins,
-    destinationAddresses,
-    allAvailableCategories,
-    allAvailableHashtags,
-  } = props;
+  const { nearbyPlaceDist, pins, destinationAddresses } = props;
   // States for loading all prefectures, categories and hashtags.
-
-  const { classes } = useStyles();
 
   // Function to call within googlemaps distance matrix service, to process the response provided back from matrix service.
   // Obtains closest place with same category to the current pin. Allows displaying of the data of that place. Renders pin data, post and crowd data of pin as JSX.
@@ -65,7 +32,7 @@ export default function NearbyPlaces(props: Props) {
 
       if (originalPin) {
         const allCrowds = originalPin.crowds.slice(0, 2).map((crowd, i) => {
-          const { crowdIntensity, crowdSize, recordedAt } = crowd;
+          const { crowdSize, recordedAt } = crowd;
           return (
             <>
               <Text size="sm" transform="uppercase">
@@ -135,7 +102,7 @@ export default function NearbyPlaces(props: Props) {
             {allCrowds}
           </Card>
         );
-      }
+      } else return null;
     });
 
     return infoToReturn;

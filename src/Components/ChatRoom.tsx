@@ -203,11 +203,13 @@ export default function ChatRoom(props: Props) {
     } else {
       loginWithRedirect();
     }
+    // eslint-disable-next-line
   }, []);
 
   // Allows users to join socket room upon load.
   useEffect(() => {
     socket.emit("join_chatroom", { room: `${chatroomId}` });
+    // eslint-disable-next-line
   }, [props.openChatroom]);
 
   const getAllUsers = async () => {
@@ -234,6 +236,7 @@ export default function ChatRoom(props: Props) {
     });
 
     getAllUsers();
+    // eslint-disable-next-line
   }, [newMessage]);
 
   //Allows users to get updated chat when someone sends a message.
@@ -250,6 +253,7 @@ export default function ChatRoom(props: Props) {
       setAdminMessage(data);
       getAllUsers();
     });
+    // eslint-disable-next-line
   }, [adminMessage]);
 
   useEffect(() => {
@@ -282,6 +286,7 @@ export default function ChatRoom(props: Props) {
 
       setAllFriends(allUserFriends);
     }
+    // eslint-disable-next-line
   }, [props.friendListData]);
 
   let allChatMessages;
@@ -343,20 +348,30 @@ export default function ChatRoom(props: Props) {
 
   if (allUsers && allUsers !== null) {
     if (allUsers.length > 3) {
-      eachOtherChatUser = allUsers.map((user, i) => {
-        if (i > 2) {
-          return <div>{user.user.name}</div>;
-        }
-      });
-      firstThreeChatUsers = allUsers.map((user, i) => {
-        if (i < 3) {
-          return (
-            <Tooltip label={user.user.name} withArrow>
-              <Avatar src={user.user.photoLink} radius="xl" />
-            </Tooltip>
-          );
-        }
-      });
+      // eachOtherChatUser = allUsers.map((user, i) => {
+      //   if (i > 2) {
+      //     return <div>{user.user.name}</div>;
+      //   }
+      // });
+      eachOtherChatUser = allUsers.map((user, i) =>
+        i > 2 ? <div>{user.user.name}</div> : null
+      );
+      // firstThreeChatUsers = allUsers.map((user, i) => {
+      //   if (i < 3) {
+      //     return (
+      //       <Tooltip label={user.user.name} withArrow>
+      //         <Avatar src={user.user.photoLink} radius="xl" />
+      //       </Tooltip>
+      //     );
+      //   }
+      // });
+      firstThreeChatUsers = allUsers.map((user, i) =>
+        i < 3 ? (
+          <Tooltip label={user.user.name} withArrow>
+            <Avatar src={user.user.photoLink} radius="xl" />
+          </Tooltip>
+        ) : null
+      );
 
       allOtherChatUsers = (
         <>
@@ -366,15 +381,22 @@ export default function ChatRoom(props: Props) {
         </>
       );
     } else {
-      firstThreeChatUsers = allUsers.map((user, i) => {
-        if (i < 3) {
-          return (
-            <Tooltip label={user.user.name} withArrow>
-              <Avatar src={user.user.photoLink} radius="xl" />
-            </Tooltip>
-          );
-        }
-      });
+      // firstThreeChatUsers = allUsers.map((user, i) => {
+      //   if (i < 3) {
+      //     return (
+      //       <Tooltip label={user.user.name} withArrow>
+      //         <Avatar src={user.user.photoLink} radius="xl" />
+      //       </Tooltip>
+      //     );
+      //   }
+      // });
+      firstThreeChatUsers = allUsers.map((user, i) =>
+        i < 3 ? (
+          <Tooltip label={user.user.name} withArrow>
+            <Avatar src={user.user.photoLink} radius="xl" />
+          </Tooltip>
+        ) : null
+      );
     }
   }
 

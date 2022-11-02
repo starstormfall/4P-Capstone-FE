@@ -143,7 +143,7 @@ export default function PinMap(props: Props) {
   const [libraries] = useState<
     ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
   >(["visualization", "places"]);
-  const { isLoaded, loadError } = useJsApiLoader({
+  const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY as string,
     libraries: libraries,
   });
@@ -160,7 +160,9 @@ export default function PinMap(props: Props) {
   // States for map display.
   const [originalMap, setOriginalMap] = useState<google.maps.Map | null>(null);
   const [currentPosition, setCurrentPosition] = useState<Position>();
+  // eslint-disable-next-line
   const [mapCenter, setMapCenter] = useState<Position>();
+  // eslint-disable-next-line
   const [zoomLevel, setZoomLevel] = useState(15);
 
   // States for saving pin infos from BE in different formats, to set markers on google map.
@@ -200,6 +202,7 @@ export default function PinMap(props: Props) {
     } else {
       loginWithRedirect();
     }
+    // eslint-disable-next-line
   }, []);
 
   // Marker style for current location of user based on GPS. Requires google map instance to be loaded.
@@ -249,6 +252,7 @@ export default function PinMap(props: Props) {
   useEffect(() => {
     getCurrentPin();
     getAllInitialPinsToArea();
+    // eslint-disable-next-line
   }, [checkIn, crowdValue]);
 
   const getCurrentPin = async () => {
@@ -325,6 +329,7 @@ export default function PinMap(props: Props) {
 
       setDestinationAddresses(destinationPins);
     }
+    // eslint-disable-next-line
   }, [currentPin, originalMap, pinMarkers, checkIn]);
 
   // useEffect to set heatMapData when setHeatmap is turned to true. Also renders latest current pin info. Is triggered upon first load of google maps and triggered after submitting crowd data.
@@ -360,6 +365,7 @@ export default function PinMap(props: Props) {
         setCrowdMapWeight(100);
       }
     }
+    // eslint-disable-next-line
   }, [currentPin, originalMap, pinMarkers]);
 
   // Function that handles user when user clicks check in. Sets states for jsx to render.

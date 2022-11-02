@@ -21,7 +21,6 @@ import {
   ScrollArea,
   ThemeIcon,
 } from "@mantine/core";
-import { useViewportSize } from "@mantine/hooks";
 
 import {
   IconGlobe,
@@ -35,7 +34,6 @@ import { LogIn } from "@easy-eva-icons/react";
 
 export default function ExplorePage() {
   const navigate = useNavigate();
-  const { height, width } = useViewportSize();
   const { loginWithRedirect, isAuthenticated } = useAuth0();
 
   const [allPhotos, setAllPhotos] = useState([]);

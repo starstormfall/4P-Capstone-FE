@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import { AssocThread, Post } from "./HomePageInterface";
 
 import { ExternalLinkOutline } from "@easy-eva-icons/react";

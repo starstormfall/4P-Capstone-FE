@@ -48,6 +48,7 @@ import SharePost from "./SharePost";
 import ScrollTopButton from "./ScrollToTop";
 
 function HomePage() {
+  // eslint-disable-next-line
   const [userLoggedIn, setUserLoggedIn, token, inputValue] =
     useOutletContext<ContextType["key"]>();
   const { userInfo } = UseApp();
@@ -77,8 +78,11 @@ function HomePage() {
   const [selectedAreas, setSelectedAreas] = useState<number | null>();
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [selectedHashtags, setSelectedHashtags] = useState<number[]>([]);
+  // eslint-disable-next-line
   const [displayCategories, setDisplayCategories] = useState<boolean>(false);
+  // eslint-disable-next-line
   const [displayHashtags, setDisplayHashtags] = useState<boolean>(false);
+  // eslint-disable-next-line
   const [selectedPostId, setSelectedPostId] = useState<number>(0);
   const [selectedPost, setSelectedPost] = useState<Post>(mockPost);
   const [assocThreads, setAssocThreads] = useState<AssocThread[]>([]);
@@ -117,6 +121,7 @@ function HomePage() {
     };
 
     getPostsBySource();
+    // eslint-disable-next-line
   }, [inputValue]);
 
   // useEffect api call to get subset of explore posts (need to set up pagination on backend)
@@ -187,6 +192,7 @@ function HomePage() {
     getUserFavourites();
     getHashtags();
     getCategories();
+    // eslint-disable-next-line
   }, [userInfo]);
 
   useEffect(() => {
@@ -203,6 +209,7 @@ function HomePage() {
       default:
         setAllPosts(allPosts);
     }
+    // eslint-disable-next-line
   }, [activeTab]);
 
   ///////// END OF USEEFFECT API CALLS /////////

@@ -77,6 +77,7 @@ export default function FriendList({
 
   useEffect(() => {
     getFriendList();
+    // eslint-disable-next-line
   }, [updateRequest]);
 
   return (
@@ -110,122 +111,114 @@ export default function FriendList({
             scrollHideDelay={0}
           >
             {friendListData &&
-              friendListData.map((user: FriendDataInformation) => {
-                if (user.status === "confirmed") {
-                  return (
-                    <div key={user.id}>
-                      {user.addedUserId === userInfo?.id ? (
-                        <Box
-                          sx={() => ({
-                            minHeight: 90,
-                            display: "flex",
-                            flexDirection: "column",
-                            border: "round",
-                          })}
-                        >
-                          <Group>
-                            <Avatar
-                              src={user.initiatedUser.photoLink}
-                              alt={user.initiatedUser.name}
-                              radius="xl"
-                              size="lg"
-                            />
-                            <div style={{ flex: 1 }}>
-                              <Text size="sm" weight={500}>
-                                {user.initiatedUser.name}
-                              </Text>
-                              <Text color="dimmed" size="xs">
-                                Reason: {user.reason}
-                              </Text>
-                            </div>
+              friendListData.map((user: FriendDataInformation) =>
+                user.status === "confirmed" ? (
+                  <div key={user.id}>
+                    {user.addedUserId === userInfo?.id ? (
+                      <Box
+                        sx={() => ({
+                          minHeight: 90,
+                          display: "flex",
+                          flexDirection: "column",
+                          border: "round",
+                        })}
+                      >
+                        <Group>
+                          <Avatar
+                            src={user.initiatedUser.photoLink}
+                            alt={user.initiatedUser.name}
+                            radius="xl"
+                            size="lg"
+                          />
+                          <div style={{ flex: 1 }}>
+                            <Text size="sm" weight={500}>
+                              {user.initiatedUser.name}
+                            </Text>
+                            <Text color="dimmed" size="xs">
+                              Reason: {user.reason}
+                            </Text>
+                          </div>
 
-                            <ActionIcon>
-                              <IconLetterX
-                                onClick={async () => {
-                                  const accessToken =
-                                    await getAccessTokenSilently({
-                                      audience: process.env.REACT_APP_AUDIENCE,
-                                      scope: process.env.REACT_APP_SCOPE,
-                                    });
-                                  console.log(
-                                    `Deleted Friend Request`,
-                                    user.id
-                                  );
-                                  await axios.delete(
-                                    `${backendUrl}/friends/${userInfo.id}/removefriend`,
-                                    {
-                                      data: {
-                                        friendshipId: user.id,
-                                      },
-                                      headers: {
-                                        Authorization: `Bearer ${accessToken}`,
-                                      },
-                                    }
-                                  );
-                                  setUpdateRequest(!updateRequest);
-                                }}
-                              />
-                            </ActionIcon>
-                          </Group>
-                        </Box>
-                      ) : (
-                        <Box
-                          sx={() => ({
-                            minHeight: 90,
-                            display: "flex",
-                            flexDirection: "column",
-                          })}
-                        >
-                          <Group>
-                            <Avatar
-                              src={user.addedUser.photoLink}
-                              alt={user.addedUser.name}
-                              radius="xl"
-                              size="lg"
+                          <ActionIcon>
+                            <IconLetterX
+                              onClick={async () => {
+                                const accessToken =
+                                  await getAccessTokenSilently({
+                                    audience: process.env.REACT_APP_AUDIENCE,
+                                    scope: process.env.REACT_APP_SCOPE,
+                                  });
+                                console.log(`Deleted Friend Request`, user.id);
+                                await axios.delete(
+                                  `${backendUrl}/friends/${userInfo.id}/removefriend`,
+                                  {
+                                    data: {
+                                      friendshipId: user.id,
+                                    },
+                                    headers: {
+                                      Authorization: `Bearer ${accessToken}`,
+                                    },
+                                  }
+                                );
+                                setUpdateRequest(!updateRequest);
+                              }}
                             />
-                            <div style={{ flex: 1 }}>
-                              <Text size="sm" weight={500}>
-                                {user.addedUser.name}
-                              </Text>
-                              <Text color="dimmed" size="xs">
-                                Reason: {user.reason}
-                              </Text>
-                            </div>
+                          </ActionIcon>
+                        </Group>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={() => ({
+                          minHeight: 90,
+                          display: "flex",
+                          flexDirection: "column",
+                        })}
+                      >
+                        <Group>
+                          <Avatar
+                            src={user.addedUser.photoLink}
+                            alt={user.addedUser.name}
+                            radius="xl"
+                            size="lg"
+                          />
+                          <div style={{ flex: 1 }}>
+                            <Text size="sm" weight={500}>
+                              {user.addedUser.name}
+                            </Text>
+                            <Text color="dimmed" size="xs">
+                              Reason: {user.reason}
+                            </Text>
+                          </div>
 
-                            <ActionIcon>
-                              <IconLetterX
-                                onClick={async () => {
-                                  const accessToken =
-                                    await getAccessTokenSilently({
-                                      audience: process.env.REACT_APP_AUDIENCE,
-                                      scope: process.env.REACT_APP_SCOPE,
-                                    });
-                                  console.log(
-                                    `Deleted Friend Request`,
-                                    user.id
-                                  );
-                                  await axios.delete(
-                                    `${backendUrl}/friends/${userInfo.id}/removefriend`,
-                                    {
-                                      data: {
-                                        friendshipId: user.id,
-                                      },
-                                      headers: {
-                                        Authorization: `Bearer ${accessToken}`,
-                                      },
-                                    }
-                                  );
-                                  setUpdateRequest(!updateRequest);
-                                }}
-                              />
-                            </ActionIcon>
-                          </Group>
-                        </Box>
-                      )}
-                    </div>
-                  );
-                }
-              })}
+                          <ActionIcon>
+                            <IconLetterX
+                              onClick={async () => {
+                                const accessToken =
+                                  await getAccessTokenSilently({
+                                    audience: process.env.REACT_APP_AUDIENCE,
+                                    scope: process.env.REACT_APP_SCOPE,
+                                  });
+                                console.log(`Deleted Friend Request`, user.id);
+                                await axios.delete(
+                                  `${backendUrl}/friends/${userInfo.id}/removefriend`,
+                                  {
+                                    data: {
+                                      friendshipId: user.id,
+                                    },
+                                    headers: {
+                                      Authorization: `Bearer ${accessToken}`,
+                                    },
+                                  }
+                                );
+                                setUpdateRequest(!updateRequest);
+                              }}
+                            />
+                          </ActionIcon>
+                        </Group>
+                      </Box>
+                    )}
+                  </div>
+                ) : null
+              )}
           </ScrollArea>
         </Container>
       </Container>
