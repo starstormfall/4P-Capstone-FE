@@ -116,7 +116,7 @@ export default function ThreadForm({
         photoLink: imageUrl,
       };
 
-      const response = await axios.post(
+      await axios.post(
         `${backendUrl}/posts/create-thread-from-explore?fromExplorePostId=${postId}`,
         requestBody,
         {

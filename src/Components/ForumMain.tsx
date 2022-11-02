@@ -45,7 +45,6 @@ import {
   GoogleMap,
   useJsApiLoader,
   MarkerF,
-  LoadScript,
   Autocomplete,
 } from "@react-google-maps/api";
 
@@ -101,16 +100,17 @@ export default function ForumMain() {
   const [updateForum, setUpdateForum] = useState<boolean>(false);
   const { getAccessTokenSilently } = useAuth0();
   const [allAreaData, setAllAreaData] = useState<AllPrefectureData[]>();
-  const { classes, theme } = useStyles();
+  const { classes } = useStyles();
   const navigate = useNavigate();
-  const [userLoggedIn, setUserLoggedIn, token] =
+  // eslint-disable-next-line
+  const [userLoggedIn, setUserLoggedIn, token, inputValue] =
     useOutletContext<ContextType["key"]>();
 
   // Google map library and API definition
   const [libraries] = useState<
     ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
   >(["visualization", "places"]);
-  const { isLoaded, loadError } = useJsApiLoader({
+  const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY as string,
     libraries: libraries,
   });
@@ -125,6 +125,7 @@ export default function ForumMain() {
 
   useEffect(() => {
     getForumData();
+    // eslint-disable-next-line
   }, [updateForum]);
 
   const colorPalette = [
@@ -236,6 +237,7 @@ export default function ForumMain() {
 
   // create new thread
   //setState for explorePost and forumPost UNDER CHECKBOX
+  // eslint-disable-next-line
   const [forumPost, setForumPost] = useState<boolean>(true);
   const [explorePost, setExplorePost] = useState<string | null>(null);
   const [opened, setOpened] = useState<boolean>(false);
@@ -249,6 +251,7 @@ export default function ForumMain() {
   const [externalLink, setExternalLink] = useState<string>("");
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const { userInfo } = UseApp();
+  // eslint-disable-next-line
   const [scroll, scrollTo] = useWindowScroll();
 
   // Googlemaps states for markers, and for autocomplete
@@ -257,6 +260,7 @@ export default function ForumMain() {
     lng: 139.7525871479461,
   });
   const [autoCompleteElem, setAutoCompleteElem] = useState<HTMLInputElement>();
+  // eslint-disable-next-line
   const [autoCompletePlacePos, setAutoCompletePlacePos] = useState<Location>();
   const [exactLocation, setExactLocation] = useState("");
 

@@ -64,11 +64,9 @@ function BeFriendPage() {
   useEffect(() => {
     getFriendList();
     setUserLoggedIn(!userLoggedIn);
+
+    // eslint-disable-next-line
   }, [userInfo]);
-
-  // useEffect(() => {
-
-  // }, [userInfo]);
 
   // const useFriendList = useQuery(["friendlist"], () =>
   //   axios

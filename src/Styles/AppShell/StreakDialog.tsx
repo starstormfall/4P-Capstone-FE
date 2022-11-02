@@ -1,18 +1,15 @@
-import { useState, useEffect, MouseEvent } from "react";
 import {
   ThemeIcon,
   RingProgress,
   Title,
   Text,
   Center,
-  Group,
   Stack,
   Image,
   Container,
 } from "@mantine/core";
 
 import cherryBlossom from "../../Images/cherry-blossom.png";
-import { SmilingFace } from "@easy-eva-icons/react";
 
 interface Props {
   loginStreak: number;
@@ -20,10 +17,6 @@ interface Props {
 }
 
 export function StreakDialog({ loginStreak, loginScore }: Props) {
-  const streakMessage = {
-    "1": "",
-  };
-
   return (
     <Container>
       <Title align="center" size="sm">

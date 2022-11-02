@@ -171,6 +171,7 @@ export default function ChatRoomList(props: Props) {
     } else {
       loginWithRedirect();
     }
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -195,6 +196,7 @@ export default function ChatRoomList(props: Props) {
 
       setAllFriends(allUserFriends);
     }
+    // eslint-disable-next-line
   }, [props.friendListData]);
 
   const getAllChatrooms = async () => {
@@ -217,6 +219,7 @@ export default function ChatRoomList(props: Props) {
 
   useEffect(() => {
     getAllChatrooms();
+    // eslint-disable-next-line
   }, [chatroomName, props.openChatroom, props.friendListData]);
 
   if (allChatrooms.length > 0) {
@@ -233,101 +236,97 @@ export default function ChatRoomList(props: Props) {
     });
   }
 
-  const hostedRooms = links.map((link) => {
-    if (links.length > 0 && userId && userId === link.hostUserId) {
-      return (
-        <>
-          {link.active ? (
-            <Text<"a">
-              component="a"
-              className={classes.link}
-              color={theme.colors.gray[7]}
-              href={link.link}
-              key={link.label}
-              onClick={(event) =>
-                handleChatroom(
-                  event,
-                  link.chatroomId,
-                  link.active,
-                  link.hostUserId,
-                  link.label
-                )
-              }
-            >
-              <IconCircleCheck size={15} color="#599EBF" /> {link.label}
-            </Text>
-          ) : (
-            <Text<"a">
-              component="a"
-              className={classes.link}
-              color="#B4ADCC"
-              href={link.link}
-              key={link.label}
-              onClick={(event) =>
-                handleChatroom(
-                  event,
-                  link.chatroomId,
-                  link.active,
-                  link.hostUserId,
-                  link.label
-                )
-              }
-            >
-              <IconCircleOff size={15} color="#C1BBD5" /> {link.label}
-            </Text>
-          )}
-        </>
-      );
-    }
-  });
+  const hostedRooms = links.map((link) =>
+    links.length > 0 && userId && userId === link.hostUserId ? (
+      <>
+        {link.active ? (
+          <Text<"a">
+            component="a"
+            className={classes.link}
+            color={theme.colors.gray[7]}
+            href={link.link}
+            key={link.label}
+            onClick={(event) =>
+              handleChatroom(
+                event,
+                link.chatroomId,
+                link.active,
+                link.hostUserId,
+                link.label
+              )
+            }
+          >
+            <IconCircleCheck size={15} color="#599EBF" /> {link.label}
+          </Text>
+        ) : (
+          <Text<"a">
+            component="a"
+            className={classes.link}
+            color="#B4ADCC"
+            href={link.link}
+            key={link.label}
+            onClick={(event) =>
+              handleChatroom(
+                event,
+                link.chatroomId,
+                link.active,
+                link.hostUserId,
+                link.label
+              )
+            }
+          >
+            <IconCircleOff size={15} color="#C1BBD5" /> {link.label}
+          </Text>
+        )}
+      </>
+    ) : null
+  );
 
-  const invitedRooms = links.map((link) => {
-    if (links.length > 0 && userId && userId !== link.hostUserId) {
-      return (
-        <>
-          {link.active ? (
-            <Text<"a">
-              component="a"
-              className={classes.link}
-              color={theme.colors.gray[7]}
-              href={link.link}
-              key={link.label}
-              onClick={(event) =>
-                handleChatroom(
-                  event,
-                  link.chatroomId,
-                  link.active,
-                  link.hostUserId,
-                  link.label
-                )
-              }
-            >
-              <IconCircleCheck size={15} color="#599EBF" /> {link.label}
-            </Text>
-          ) : (
-            <Text<"a">
-              component="a"
-              className={classes.link}
-              color="#B4ADCC"
-              href={link.link}
-              key={link.label}
-              onClick={(event) =>
-                handleChatroom(
-                  event,
-                  link.chatroomId,
-                  link.active,
-                  link.hostUserId,
-                  link.label
-                )
-              }
-            >
-              <IconCircleOff size={15} color="#C1BBD5" /> {link.label}
-            </Text>
-          )}
-        </>
-      );
-    }
-  });
+  const invitedRooms = links.map((link) =>
+    links.length > 0 && userId && userId !== link.hostUserId ? (
+      <>
+        {link.active ? (
+          <Text<"a">
+            component="a"
+            className={classes.link}
+            color={theme.colors.gray[7]}
+            href={link.link}
+            key={link.label}
+            onClick={(event) =>
+              handleChatroom(
+                event,
+                link.chatroomId,
+                link.active,
+                link.hostUserId,
+                link.label
+              )
+            }
+          >
+            <IconCircleCheck size={15} color="#599EBF" /> {link.label}
+          </Text>
+        ) : (
+          <Text<"a">
+            component="a"
+            className={classes.link}
+            color="#B4ADCC"
+            href={link.link}
+            key={link.label}
+            onClick={(event) =>
+              handleChatroom(
+                event,
+                link.chatroomId,
+                link.active,
+                link.hostUserId,
+                link.label
+              )
+            }
+          >
+            <IconCircleOff size={15} color="#C1BBD5" /> {link.label}
+          </Text>
+        )}
+      </>
+    ) : null
+  );
 
   const handleAddRoom = () => {
     setAddChatroom(!addChatroom);

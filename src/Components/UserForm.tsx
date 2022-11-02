@@ -43,6 +43,7 @@ export default function UserForm({
   const [name, setName] = useState<string>("");
   const [nationality, setNationality] = useState<string>("");
   const [fileInputFile, setFileInputFile] = useState<File>();
+  // eslint-disable-next-line
   const [image, setImage] = useState<string>("");
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const { userInfo } = UseApp();

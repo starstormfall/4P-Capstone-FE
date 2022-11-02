@@ -29,12 +29,10 @@ import {
   ThemeIcon,
   Modal,
   Paper,
-  useMantineTheme,
   Space,
   Center,
   SimpleGrid,
 } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
 import { Carousel } from "@mantine/carousel";
 
 import {
@@ -51,8 +49,6 @@ import { backendUrl } from "../utils";
 import { UseApp } from "./Context";
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
-import { addAbortSignal } from "stream";
-import { getTokenSourceMapRange } from "typescript";
 
 // Define centers for each region for google maps.
 const center = {
@@ -270,14 +266,12 @@ interface Distance {
 export default function Map() {
   const { classes, theme } = useStyles();
   const { state } = useLocation();
-  const carouselTheme = useMantineTheme();
-  const mobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm}px)`);
 
   // Google map library and API definition
   const [libraries] = useState<
     ("visualization" | "places" | "drawing" | "geometry" | "localContext")[]
   >(["visualization", "places"]);
-  const { isLoaded, loadError } = useJsApiLoader({
+  const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY as string,
     libraries: libraries,
   });
@@ -352,6 +346,7 @@ export default function Map() {
     } else {
       loginWithRedirect();
     }
+    // eslint-disable-next-line
   }, []);
 
   // Marker style for current location of user based on GPS. Requires google map instance to be loaded.
@@ -384,6 +379,7 @@ export default function Map() {
         });
       });
     }
+    // eslint-disable-next-line
   }, [originalMap]);
 
   // useEffect api call to get all areas(prefectures)
@@ -531,6 +527,7 @@ export default function Map() {
 
   useEffect(() => {
     getAllInitialPins();
+    // eslint-disable-next-line
   }, [filterRegion, filterCategory, filterHash, checkIn]);
 
   // Function to call within googlemaps distance matrix service, to process the response provided back from matrix service.
@@ -546,7 +543,7 @@ export default function Map() {
 
         if (originalPin) {
           const allCrowds = originalPin.crowds.slice(0, 1).map((crowd, i) => {
-            const { crowdIntensity, crowdSize, recordedAt } = crowd;
+            const { crowdSize, recordedAt } = crowd;
             return (
               <>
                 <Text
@@ -590,6 +587,8 @@ export default function Map() {
                       {allAvailableHashtags[hashtagId - 1].name}
                     </Badge>
                   );
+                } else {
+                  return null;
                 }
               });
 
@@ -636,6 +635,8 @@ export default function Map() {
               </Card>
             </Carousel.Slide>
           );
+        } else {
+          return null;
         }
       });
 
@@ -1446,7 +1447,7 @@ export default function Map() {
 
                   {/* MARKERS FOR ALL PINS WITHIN STATE. CHECKS IF CATEGORY FILTER IS SET. */}
                   {pinMarkers.map((element, index) => {
-                    const { id, name, position, categoryId } = element;
+                    const { id, position, categoryId } = element;
 
                     if (categoryId.length > 1) {
                       if (filterCategory !== 0) {
@@ -1486,7 +1487,7 @@ export default function Map() {
                                   onClick={() => handleActiveMarker(id)}
                                 ></MarkerF>
                               );
-                            }
+                            } else return null;
                           }
                         );
 

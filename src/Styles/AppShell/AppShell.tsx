@@ -112,6 +112,7 @@ function TdflAppShell() {
   // render components
   const [streakDialogOn, setStreakDialogOn] = useState<boolean>(false);
   const [userFormOn, setUserFormOn] = useState<boolean>(false);
+  // eslint-disable-next-line
   const [opened, setOpened] = useState(false);
 
   const [rewardModalVisible, setRewardModalVisible] = useState(true);
@@ -203,6 +204,7 @@ function TdflAppShell() {
     } else {
       loginWithRedirect();
     }
+    // eslint-disable-next-line
   }, [isAuthenticated, newUserDone]);
 
   const links = [

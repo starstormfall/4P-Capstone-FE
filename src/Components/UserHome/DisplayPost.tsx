@@ -123,7 +123,7 @@ export default function DisplayPost({
   likePost,
   favouritePost,
 }: DisplayPostCard) {
-  const { classes, theme } = useStyles();
+  const { classes } = useStyles();
   const [showContent, setShowContent] = useState<boolean>(false);
 
   return (

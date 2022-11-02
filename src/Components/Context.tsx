@@ -1,6 +1,4 @@
-import React, { useContext, useEffect, useState, createContext } from "react";
-import axios from "axios";
-import { useAuth0 } from "@auth0/auth0-react";
+import React, { useContext, useState, createContext } from "react";
 
 type AppContextProviderProps = {
   children: React.ReactNode;

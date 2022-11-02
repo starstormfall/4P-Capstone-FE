@@ -81,6 +81,7 @@ export default function FriendRequestList({
 
   useEffect(() => {
     getFriendList();
+    // eslint-disable-next-line
   }, [updateRequest]);
 
   return (
