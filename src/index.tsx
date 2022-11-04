@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App";
 import { Auth0Provider } from "@auth0/auth0-react";
 import { useNavigate, BrowserRouter } from "react-router-dom";
+import { redirectUri } from "./utils";
 
 type Props = {
   children: React.ReactElement;
@@ -36,7 +37,7 @@ root.render(
       <Auth0ProviderWithRedirectCallback
         domain={process.env.REACT_APP_DOMAIN as string}
         clientId={process.env.REACT_APP_CLIENT_ID as string}
-        redirectUri={process.env.REACT_APP_REDIRECT as string}
+        redirectUri={redirectUri}
         audience={process.env.REACT_APP_AUDIENCE as string}
         scope={process.env.REACT_APP_SCOPE as string}
       >
