@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { backendUrl } from "../utils";
+import { backendUrl, redirectUriHome } from "../utils";
 import tdflLogo from "../Images/tdflLogo.png";
 import { useAuth0 } from "@auth0/auth0-react";
 
@@ -54,7 +54,7 @@ export default function ExplorePage() {
       navigate("/home");
     } else {
       loginWithRedirect({
-        redirectUri: process.env.REACT_APP_REDIRECT_HOME as string,
+        redirectUri: redirectUriHome,
       });
     }
   };
