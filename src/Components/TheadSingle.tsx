@@ -865,7 +865,7 @@ export default function ThreadSingle() {
                             alt={newThreadData[1].post.locationName}
                             height={300}
                             radius="md"
-                            placeholder={<Text align="center">TDFL</Text>}
+                            placeholder={<Text align="center">git TDFL</Text>}
                           />
                           <Text size="md" color="dimmed" lineClamp={4} mt="md">
                             {newThreadData[1].post.content}
