@@ -13,6 +13,8 @@ This app allows users to:
 Use the app at https://tdfl.netlify.app
 
 ## Preview
+DB Schema
+![CapStone JP](https://user-images.githubusercontent.com/105807323/201516451-bd240aac-d847-4193-93e0-f8d555e51e38.png)
 
 ## Built with
 - ReactJS
